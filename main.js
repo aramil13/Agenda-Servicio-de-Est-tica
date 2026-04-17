@@ -231,8 +231,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     btnCloseModal.addEventListener('click', closeModal);
+
+    // Track where mousedown started to prevent accidental closes
+    // when user clicks inside modal and drags to overlay before releasing
+    let overlayMouseDownTarget = null;
+    modalOverlay.addEventListener('mousedown', e => {
+        overlayMouseDownTarget = e.target;
+    });
     modalOverlay.addEventListener('click', e => {
-        if (e.target === modalOverlay) closeModal();
+        if (e.target === modalOverlay && overlayMouseDownTarget === modalOverlay) {
+            closeModal();
+        }
+        overlayMouseDownTarget = null;
     });
 
     /* ═══════════════════════════════════════
