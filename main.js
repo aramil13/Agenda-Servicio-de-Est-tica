@@ -224,7 +224,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
     // ── Clients CRUD ──
 
     async function addClient(data) {
