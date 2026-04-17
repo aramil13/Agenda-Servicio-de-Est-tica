@@ -19,6 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
         calMonth: new Date().getMonth(),
         selectedDate: null,
         isLoading: false,
+        // Monthly listing state
+        monthlyYear: new Date().getFullYear(),
+        monthlyMonth: new Date().getMonth(),
     };
 
     /* ═══════════════════════════════════════
@@ -249,6 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentRoute === 'agenda') content = getAgendaView();
         else if (currentRoute === 'clients') content = getClientsView();
         else if (currentRoute === 'services') content = getServicesView();
+        else if (currentRoute === 'monthly') content = getMonthlyView();
 
         appContent.innerHTML = `<div class="fade-in">${content}</div>`;
         attachEvents();
@@ -532,6 +536,186 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* ═══════════════════════════════════════
+       MONTHLY LISTING VIEW
+       ═══════════════════════════════════════ */
+    function getMonthlyView() {
+        const year = State.monthlyYear;
+        const month = State.monthlyMonth;
+        const monthLabel = `${MONTH_NAMES[month]} ${year}`;
+
+        // Filter appointments for the selected month
+        const monthStr = String(month + 1).padStart(2, '0');
+        const prefix = `${year}-${monthStr}`;
+        const monthAppointments = State.appointments
+            .filter(a => a.date.startsWith(prefix))
+            .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+
+        // Summary stats
+        const totalCitas = monthAppointments.length;
+        let totalIngresos = 0;
+        let totalMinutos = 0;
+        const clientesUnicos = new Set();
+        monthAppointments.forEach(apt => {
+            const service = State.services.find(s => s.id === apt.serviceId);
+            if (service) {
+                totalIngresos += parseFloat(service.price) || 0;
+                totalMinutos += parseInt(service.duration) || 0;
+            }
+            clientesUnicos.add(apt.clientId);
+        });
+        const totalHoras = Math.floor(totalMinutos / 60);
+        const remainMin = totalMinutos % 60;
+
+        // Group appointments by day for visual separators
+        let tableRows = '';
+        if (monthAppointments.length === 0) {
+            tableRows = `
+                <tr>
+                    <td colspan="6" style="text-align:center;padding:3rem;color:var(--text-secondary)">
+                        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom:0.75rem;opacity:0.35;display:block;margin-left:auto;margin-right:auto;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                        No hay citas registradas en este mes.
+                    </td>
+                </tr>`;
+        } else {
+            let lastDate = '';
+            monthAppointments.forEach((apt, idx) => {
+                const client = State.clients.find(c => c.id === apt.clientId) || { name: 'Eliminado' };
+                const service = State.services.find(s => s.id === apt.serviceId) || { name: 'Eliminado', duration: 0, price: 0 };
+                const endTime = new Date(new Date(`${apt.date}T${apt.time}`).getTime() + (service.duration || 0) * 60000);
+                const endStr = endTime.toTimeString().substring(0, 5);
+
+                // Date label for grouping
+                const dateObj = new Date(apt.date + 'T00:00:00');
+                const dayLabel = dateObj.toLocaleDateString('es-ES', {
+                    weekday: 'long', day: 'numeric', month: 'long'
+                });
+
+                if (apt.date !== lastDate) {
+                    const dayCount = monthAppointments.filter(a => a.date === apt.date).length;
+                    tableRows += `
+                        <tr class="monthly-date-row">
+                            <td colspan="6">
+                                <span class="monthly-date-label">${dayLabel}</span>
+                                <span class="monthly-date-count">${dayCount} cita${dayCount !== 1 ? 's' : ''}</span>
+                            </td>
+                        </tr>`;
+                    lastDate = apt.date;
+                }
+
+                tableRows += `
+                    <tr class="monthly-apt-row">
+                        <td class="monthly-time-cell">
+                            <span class="monthly-time">${apt.time}</span>
+                            <span class="monthly-time-end">– ${endStr}</span>
+                        </td>
+                        <td style="font-weight:600">${client.name}</td>
+                        <td>
+                            <span class="monthly-service-badge">${service.name}</span>
+                        </td>
+                        <td>${service.duration} min</td>
+                        <td style="font-weight:600">${parseFloat(service.price).toFixed(2)} €</td>
+                        <td style="color:var(--text-secondary);font-size:0.85rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${apt.notes || '—'}</td>
+                    </tr>`;
+            });
+        }
+
+        // Build month selector options
+        let monthOptions = '';
+        MONTH_NAMES.forEach((name, i) => {
+            monthOptions += `<option value="${i}" ${i === month ? 'selected' : ''}>${name}</option>`;
+        });
+
+        // Year options (current year ± 2)
+        const currentYear = new Date().getFullYear();
+        let yearOptions = '';
+        for (let y = currentYear - 2; y <= currentYear + 2; y++) {
+            yearOptions += `<option value="${y}" ${y === year ? 'selected' : ''}>${y}</option>`;
+        }
+
+        return `
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">Listado Mensual</h1>
+                    <p style="color:var(--text-secondary)">Detalle de citas por mes · <span class="supabase-badge">⚡ Supabase</span></p>
+                </div>
+                <button class="btn btn-primary" id="btn-print-monthly">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    Imprimir
+                </button>
+            </div>
+
+            <!-- Month/Year Selector -->
+            <div class="monthly-controls">
+                <button class="cal-nav-btn" id="monthly-prev">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <div class="monthly-selectors">
+                    <select class="form-control monthly-select" id="monthly-month-select">
+                        ${monthOptions}
+                    </select>
+                    <select class="form-control monthly-select" id="monthly-year-select">
+                        ${yearOptions}
+                    </select>
+                </div>
+                <button class="cal-nav-btn" id="monthly-next">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="stats-row monthly-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div class="stat-content"><h3>Total Citas</h3><p>${totalCitas}</p></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    </div>
+                    <div class="stat-content"><h3>Clientes Únicos</h3><p>${clientesUnicos.size}</p></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <div class="stat-content"><h3>Tiempo Total</h3><p>${totalHoras}h ${remainMin}m</p></div>
+                </div>
+                <div class="stat-card stat-card-highlight">
+                    <div class="stat-icon stat-icon-highlight">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <div class="stat-content"><h3>Ingresos Estimados</h3><p>${totalIngresos.toFixed(2)} €</p></div>
+                </div>
+            </div>
+
+            <!-- Listing Table -->
+            <div class="data-card monthly-table-card" id="monthly-print-area">
+                <div class="monthly-table-header">
+                    <h3>📋 ${monthLabel}</h3>
+                    <span class="monthly-count-badge">${totalCitas} cita${totalCitas !== 1 ? 's' : ''}</span>
+                </div>
+                <table class="table monthly-table">
+                    <thead>
+                        <tr>
+                            <th>Hora</th>
+                            <th>Cliente</th>
+                            <th>Servicio</th>
+                            <th>Duración</th>
+                            <th>Precio</th>
+                            <th>Notas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    /* ═══════════════════════════════════════
        EVENT BINDING
        ═══════════════════════════════════════ */
     function attachEvents() {
@@ -544,6 +728,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const btnAddService = document.getElementById('btn-add-service');
         if (btnAddService) btnAddService.addEventListener('click', () => showServiceForm());
+
+        // Monthly listing controls
+        const monthlyPrev = document.getElementById('monthly-prev');
+        const monthlyNext = document.getElementById('monthly-next');
+        const monthlyMonthSel = document.getElementById('monthly-month-select');
+        const monthlyYearSel = document.getElementById('monthly-year-select');
+
+        if (monthlyPrev) monthlyPrev.addEventListener('click', () => {
+            State.monthlyMonth--;
+            if (State.monthlyMonth < 0) { State.monthlyMonth = 11; State.monthlyYear--; }
+            renderRoute();
+        });
+        if (monthlyNext) monthlyNext.addEventListener('click', () => {
+            State.monthlyMonth++;
+            if (State.monthlyMonth > 11) { State.monthlyMonth = 0; State.monthlyYear++; }
+            renderRoute();
+        });
+        if (monthlyMonthSel) monthlyMonthSel.addEventListener('change', e => {
+            State.monthlyMonth = parseInt(e.target.value);
+            renderRoute();
+        });
+        if (monthlyYearSel) monthlyYearSel.addEventListener('change', e => {
+            State.monthlyYear = parseInt(e.target.value);
+            renderRoute();
+        });
+
+        // Print monthly listing
+        const btnPrint = document.getElementById('btn-print-monthly');
+        if (btnPrint) btnPrint.addEventListener('click', () => {
+            window.print();
+        });
 
         // Calendar navigation
         const btnPrev = document.getElementById('cal-prev');
