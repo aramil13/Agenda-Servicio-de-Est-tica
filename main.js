@@ -1,22 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     /* ═══════════════════════════════════════
+       SUPABASE CLIENT
+       ═══════════════════════════════════════ */
+    const SUPABASE_URL = 'https://wqbrappajbrzanpymwtx.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_rxdHNZAUSQw-C8-BvzX4rA_9qH6GeL9';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    /* ═══════════════════════════════════════
        STATE
        ═══════════════════════════════════════ */
     const State = {
-        clients: JSON.parse(localStorage.getItem('clients')) || [],
-        services: JSON.parse(localStorage.getItem('services')) || [],
-        appointments: JSON.parse(localStorage.getItem('appointments')) || [],
+        clients: [],
+        services: [],
+        appointments: [],
         // Calendar state
         calYear: new Date().getFullYear(),
         calMonth: new Date().getMonth(),
         selectedDate: null,
-
-        save() {
-            localStorage.setItem('clients', JSON.stringify(this.clients));
-            localStorage.setItem('services', JSON.stringify(this.services));
-            localStorage.setItem('appointments', JSON.stringify(this.appointments));
-        }
+        isLoading: false,
     };
 
     /* ═══════════════════════════════════════
@@ -32,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ═══════════════════════════════════════
        HELPERS
        ═══════════════════════════════════════ */
-    const generateId = () => Math.random().toString(36).substr(2, 9);
+    const generateId = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
 
     /** Returns 'YYYY-MM-DD' in local time */
     function toLocalDateStr(date) {
@@ -47,6 +49,151 @@ document.addEventListener('DOMContentLoaded', () => {
         'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
         'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ];
+
+    /* ═══════════════════════════════════════
+       TOAST NOTIFICATIONS
+       ═══════════════════════════════════════ */
+    function showToast(message, type = 'success') {
+        // Remove existing toast
+        const existing = document.querySelector('.toast-notification');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.className = `toast-notification toast-${type}`;
+        toast.innerHTML = `
+            <span class="toast-icon">${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</span>
+            <span>${message}</span>
+        `;
+        document.body.appendChild(toast);
+
+        // Trigger animation
+        requestAnimationFrame(() => toast.classList.add('show'));
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    /* ═══════════════════════════════════════
+       SUPABASE DATA OPERATIONS
+       ═══════════════════════════════════════ */
+
+    /** Loads all data from Supabase into our local State cache */
+    async function loadAllData() {
+        State.isLoading = true;
+        renderRoute();
+
+        try {
+            const [clientsRes, servicesRes, appointmentsRes] = await Promise.all([
+                supabase.from('clients').select('*').order('name'),
+                supabase.from('services').select('*').order('name'),
+                supabase.from('appointments').select('*').order('date').order('time'),
+            ]);
+
+            if (clientsRes.error) throw clientsRes.error;
+            if (servicesRes.error) throw servicesRes.error;
+            if (appointmentsRes.error) throw appointmentsRes.error;
+
+            State.clients = clientsRes.data;
+            State.services = servicesRes.data;
+            // Map DB snake_case to JS camelCase for appointments
+            State.appointments = appointmentsRes.data.map(a => ({
+                id: a.id,
+                clientId: a.client_id,
+                serviceId: a.service_id,
+                date: a.date,
+                time: a.time.substring(0, 5), // "HH:MM:SS" → "HH:MM"
+                notes: a.notes || '',
+            }));
+
+        } catch (err) {
+            console.error('Error loading data from Supabase:', err);
+            showToast('Error al cargar datos: ' + (err.message || err), 'error');
+        } finally {
+            State.isLoading = false;
+            renderRoute();
+        }
+    }
+
+    // ── Clients CRUD ──
+
+    async function addClient(data) {
+        const { error } = await supabase.from('clients').insert([data]);
+        if (error) { showToast('Error al añadir cliente: ' + error.message, 'error'); return false; }
+        State.clients.push(data);
+        showToast('Cliente añadido correctamente');
+        return true;
+    }
+
+    async function updateClient(data) {
+        const { error } = await supabase.from('clients').update({ name: data.name, phone: data.phone, email: data.email }).eq('id', data.id);
+        if (error) { showToast('Error al actualizar cliente: ' + error.message, 'error'); return false; }
+        State.clients = State.clients.map(c => c.id === data.id ? data : c);
+        showToast('Cliente actualizado correctamente');
+        return true;
+    }
+
+    async function deleteClient(id) {
+        const { error } = await supabase.from('clients').delete().eq('id', id);
+        if (error) { showToast('Error al eliminar cliente: ' + error.message, 'error'); return false; }
+        State.clients = State.clients.filter(c => c.id !== id);
+        showToast('Cliente eliminado');
+        return true;
+    }
+
+    // ── Services CRUD ──
+
+    async function addService(data) {
+        const { error } = await supabase.from('services').insert([data]);
+        if (error) { showToast('Error al añadir servicio: ' + error.message, 'error'); return false; }
+        State.services.push(data);
+        showToast('Servicio añadido correctamente');
+        return true;
+    }
+
+    async function updateService(data) {
+        const { error } = await supabase.from('services').update({ name: data.name, duration: data.duration, price: data.price }).eq('id', data.id);
+        if (error) { showToast('Error al actualizar servicio: ' + error.message, 'error'); return false; }
+        State.services = State.services.map(s => s.id === data.id ? data : s);
+        showToast('Servicio actualizado correctamente');
+        return true;
+    }
+
+    async function deleteService(id) {
+        const { error } = await supabase.from('services').delete().eq('id', id);
+        if (error) { showToast('Error al eliminar servicio: ' + error.message, 'error'); return false; }
+        State.services = State.services.filter(s => s.id !== id);
+        showToast('Servicio eliminado');
+        return true;
+    }
+
+    // ── Appointments CRUD ──
+
+    async function addAppointment(data) {
+        // Map JS camelCase to DB snake_case
+        const dbRow = {
+            id: data.id,
+            client_id: data.clientId,
+            service_id: data.serviceId,
+            date: data.date,
+            time: data.time,
+            notes: data.notes,
+        };
+        const { error } = await supabase.from('appointments').insert([dbRow]);
+        if (error) { showToast('Error al agendar cita: ' + error.message, 'error'); return false; }
+        State.appointments.push(data);
+        showToast('Cita agendada correctamente');
+        return true;
+    }
+
+    async function deleteAppointment(id) {
+        const { error } = await supabase.from('appointments').delete().eq('id', id);
+        if (error) { showToast('Error al cancelar cita: ' + error.message, 'error'); return false; }
+        State.appointments = State.appointments.filter(a => a.id !== id);
+        showToast('Cita cancelada');
+        return true;
+    }
 
     /* ═══════════════════════════════════════
        ROUTING
@@ -89,6 +236,15 @@ document.addEventListener('DOMContentLoaded', () => {
        RENDER DISPATCHER
        ═══════════════════════════════════════ */
     function renderRoute() {
+        if (State.isLoading) {
+            appContent.innerHTML = `
+                <div class="fade-in" style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:1rem;">
+                    <div class="loading-spinner"></div>
+                    <p style="color:var(--text-secondary);font-size:1.1rem;">Conectando con Supabase…</p>
+                </div>`;
+            return;
+        }
+
         let content = '';
         if (currentRoute === 'agenda') content = getAgendaView();
         else if (currentRoute === 'clients') content = getClientsView();
@@ -224,7 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="section-header">
                 <div>
                     <h1 class="section-title">Agenda</h1>
-                    <p style="color:var(--text-secondary)">Calendario de citas</p>
+                    <p style="color:var(--text-secondary)">Calendario de citas · <span class="supabase-badge">⚡ Supabase</span></p>
                 </div>
                 <button class="btn btn-primary" id="btn-add-appointment">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
@@ -316,7 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return `
             <div class="section-header">
-                <div><h1 class="section-title">Clientes</h1><p style="color:var(--text-secondary)">Base de datos de clientes</p></div>
+                <div><h1 class="section-title">Clientes</h1><p style="color:var(--text-secondary)">Base de datos de clientes · <span class="supabase-badge">⚡ Supabase</span></p></div>
                 <button class="btn btn-primary" id="btn-add-client">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                     Añadir Cliente
@@ -366,7 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return `
             <div class="section-header">
-                <div><h1 class="section-title">Servicios</h1><p style="color:var(--text-secondary)">Catálogo de servicios</p></div>
+                <div><h1 class="section-title">Servicios</h1><p style="color:var(--text-secondary)">Catálogo de servicios · <span class="supabase-badge">⚡ Supabase</span></p></div>
                 <button class="btn btn-primary" id="btn-add-service">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                     Añadir Servicio
@@ -411,25 +567,22 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Delete buttons
+        // Delete buttons (now async)
         document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', e => {
+            btn.addEventListener('click', async e => {
                 const id = e.currentTarget.dataset.id;
                 const type = e.currentTarget.dataset.type;
                 if (type === 'client') {
-                    if (confirm('¿Eliminar este cliente?')) {
-                        State.clients = State.clients.filter(c => c.id !== id);
-                        State.save(); renderRoute();
+                    if (confirm('¿Eliminar este cliente? Se eliminarán también sus citas.')) {
+                        if (await deleteClient(id)) renderRoute();
                     }
                 } else if (type === 'service') {
-                    if (confirm('¿Eliminar este servicio?')) {
-                        State.services = State.services.filter(s => s.id !== id);
-                        State.save(); renderRoute();
+                    if (confirm('¿Eliminar este servicio? Se eliminarán también las citas asociadas.')) {
+                        if (await deleteService(id)) renderRoute();
                     }
                 } else {
                     if (confirm('¿Cancelar esta cita?')) {
-                        State.appointments = State.appointments.filter(a => a.id !== id);
-                        State.save(); renderRoute();
+                        if (await deleteAppointment(id)) renderRoute();
                     }
                 }
             });
@@ -447,7 +600,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* ═══════════════════════════════════════
-       FORMS
+       FORMS (now async submit handlers)
        ═══════════════════════════════════════ */
     function showClientForm(info = null) {
         const isEdit = !!info;
@@ -472,13 +625,21 @@ document.addEventListener('DOMContentLoaded', () => {
             </form>`;
 
         openModal(isEdit ? 'Editar Cliente' : 'Nuevo Cliente', html, () => {
-            document.getElementById('client-form').addEventListener('submit', e => {
+            document.getElementById('client-form').addEventListener('submit', async e => {
                 e.preventDefault();
+                const submitBtn = e.target.querySelector('[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Guardando…';
+
                 const fd = new FormData(e.target);
                 const data = { id: isEdit ? info.id : generateId(), name: fd.get('name'), phone: fd.get('phone'), email: fd.get('email') };
-                if (isEdit) State.clients = State.clients.map(c => c.id === data.id ? data : c);
-                else State.clients.push(data);
-                State.save(); closeModal(); renderRoute();
+
+                let success;
+                if (isEdit) success = await updateClient(data);
+                else success = await addClient(data);
+
+                if (success) { closeModal(); renderRoute(); }
+                else { submitBtn.disabled = false; submitBtn.textContent = isEdit ? 'Guardar' : 'Añadir'; }
             });
         });
     }
@@ -506,20 +667,28 @@ document.addEventListener('DOMContentLoaded', () => {
             </form>`;
 
         openModal(isEdit ? 'Editar Servicio' : 'Nuevo Servicio', html, () => {
-            document.getElementById('service-form').addEventListener('submit', e => {
+            document.getElementById('service-form').addEventListener('submit', async e => {
                 e.preventDefault();
+                const submitBtn = e.target.querySelector('[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Guardando…';
+
                 const fd = new FormData(e.target);
                 const data = { id: isEdit ? info.id : generateId(), name: fd.get('name'), duration: parseInt(fd.get('duration')), price: parseFloat(fd.get('price')) };
-                if (isEdit) State.services = State.services.map(s => s.id === data.id ? data : s);
-                else State.services.push(data);
-                State.save(); closeModal(); renderRoute();
+
+                let success;
+                if (isEdit) success = await updateService(data);
+                else success = await addService(data);
+
+                if (success) { closeModal(); renderRoute(); }
+                else { submitBtn.disabled = false; submitBtn.textContent = isEdit ? 'Guardar' : 'Añadir'; }
             });
         });
     }
 
     function showAppointmentForm() {
         if (State.clients.length === 0 || State.services.length === 0) {
-            alert('Debes tener al menos un cliente y un servicio antes de agendar una cita.');
+            showToast('Debes tener al menos un cliente y un servicio antes de agendar una cita.', 'error');
             return;
         }
 
@@ -560,24 +729,31 @@ document.addEventListener('DOMContentLoaded', () => {
             </form>`;
 
         openModal('Nueva Cita', html, () => {
-            document.getElementById('appointment-form').addEventListener('submit', e => {
+            document.getElementById('appointment-form').addEventListener('submit', async e => {
                 e.preventDefault();
+                const submitBtn = e.target.querySelector('[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Agendando…';
+
                 const fd = new FormData(e.target);
-                State.appointments.push({
+                const data = {
                     id: generateId(),
                     clientId: fd.get('clientId'),
                     serviceId: fd.get('serviceId'),
                     date: fd.get('date'),
                     time: fd.get('time'),
                     notes: fd.get('notes')
-                });
-                State.save(); closeModal(); renderRoute();
+                };
+
+                if (await addAppointment(data)) { closeModal(); renderRoute(); }
+                else { submitBtn.disabled = false; submitBtn.textContent = 'Agendar Cita'; }
             });
         });
     }
 
     /* ═══════════════════════════════════════
-       INIT
+       INIT — Load from Supabase & render
        ═══════════════════════════════════════ */
     navigate('agenda');
+    loadAllData();
 });
