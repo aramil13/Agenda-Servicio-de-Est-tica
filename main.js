@@ -21,7 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
         isLoading: false,
         // Monthly listing state
         monthlyYear: new Date().getFullYear(),
-        monthlyMonth: new Date().getMonth()
+        monthlyMonth: new Date().getMonth(),
+        // Auth state
+        session: null,
+        authMode: 'login' // 'login' or 'register'
     };
 
     /* ═══════════════════════════════════════
@@ -32,6 +35,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalOverlay = document.getElementById('modal-overlay');
     const modalBody = document.getElementById('modal-body');
     const btnCloseModal = document.getElementById('btn-close-modal');
+
+    // Auth DOM
+    const authScreen = document.getElementById('auth-screen');
+    const appLayout = document.getElementById('app-layout');
+    const authLoginForm = document.getElementById('auth-login-form');
+    const authFormTitle = document.getElementById('auth-form-title');
+    const authFormSubtitle = document.getElementById('auth-form-subtitle');
+    const authConfirmGroup = document.getElementById('auth-confirm-group');
+    const authSubmitText = document.getElementById('auth-submit-text');
+    const authSpinner = document.getElementById('auth-spinner');
+    const authSwitchText = document.getElementById('auth-switch-text');
+    const authSwitchBtn = document.getElementById('auth-switch-btn');
+    const authError = document.getElementById('auth-error');
+    const authForgotLink = document.getElementById('auth-forgot-link');
+    const userEmailEl = document.getElementById('user-email');
+    const userAvatarEl = document.getElementById('user-avatar');
+    const btnLogout = document.getElementById('btn-logout');
 
 
 
@@ -118,6 +138,141 @@ document.addEventListener('DOMContentLoaded', () => {
             State.isLoading = false;
             renderRoute();
         }
+    }
+
+    /* ═══════════════════════════════════════
+       AUTHENTICATION LOGIC
+       ═══════════════════════════════════════ */
+
+    // Check existing session
+    async function checkSession() {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+            console.error('Error checking session:', error);
+            return;
+        }
+        handleSessionUpdate(session);
+
+        // Listen for auth changes
+        supabase.auth.onAuthStateChange((_event, newSession) => {
+            handleSessionUpdate(newSession);
+        });
+    }
+
+    function handleSessionUpdate(session) {
+        State.session = session;
+        if (session) {
+            // Logged in
+            authScreen.style.display = 'none';
+            appLayout.style.display = 'flex';
+            
+            // Update sidebar user profile
+            const email = session.user.email;
+            if (userEmailEl) userEmailEl.textContent = email;
+            if (userAvatarEl) userAvatarEl.textContent = email.charAt(0).toUpperCase();
+
+            // Load data only if it's the first time we realize we are logged in
+            if (State.clients.length === 0 && !State.isLoading) {
+                navigate('agenda');
+                loadAllData();
+            }
+        } else {
+            // Logged out
+            authScreen.style.display = 'flex';
+            appLayout.style.display = 'none';
+            resetAuthState();
+        }
+    }
+
+    function resetAuthState() {
+        authLoginForm.reset();
+        authError.style.display = 'none';
+        setAuthMode('login');
+    }
+
+    function setAuthMode(mode) {
+        State.authMode = mode;
+        if (mode === 'login') {
+            authFormTitle.textContent = 'Iniciar Sesión';
+            authFormSubtitle.textContent = 'Accede a tu panel de control';
+            authConfirmGroup.style.display = 'none';
+            authSubmitText.textContent = 'Entrar';
+            authSwitchText.textContent = '¿No tienes cuenta?';
+            authSwitchBtn.textContent = 'Crear cuenta';
+            authForgotLink.style.display = 'inline-block';
+            document.getElementById('auth-confirm-password').removeAttribute('required');
+        } else {
+            authFormTitle.textContent = 'Crear Cuenta';
+            authFormSubtitle.textContent = 'Regístrate para empezar a usar la agenda';
+            authConfirmGroup.style.display = 'block';
+            authSubmitText.textContent = 'Registrarse';
+            authSwitchText.textContent = '¿Ya tienes cuenta?';
+            authSwitchBtn.textContent = 'Iniciar Sesión';
+            authForgotLink.style.display = 'none';
+            document.getElementById('auth-confirm-password').setAttribute('required', 'true');
+        }
+        authError.style.display = 'none';
+    }
+
+    // Toggle mode button
+    if (authSwitchBtn) {
+        authSwitchBtn.addEventListener('click', () => {
+            setAuthMode(State.authMode === 'login' ? 'register' : 'login');
+        });
+    }
+
+    // Handle Auth form submit
+    if (authLoginForm) {
+        authLoginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            authError.style.display = 'none';
+            
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            
+            // UI Loading state
+            authSubmitText.style.opacity = '0';
+            authSpinner.style.display = 'block';
+            const btn = document.getElementById('auth-submit-btn');
+            btn.disabled = true;
+
+            try {
+                if (State.authMode === 'register') {
+                    const confirmPassword = document.getElementById('auth-confirm-password').value;
+                    if (password !== confirmPassword) {
+                        throw new Error('Las contraseñas no coinciden.');
+                    }
+                    const { error } = await supabase.auth.signUp({ email, password });
+                    if (error) throw error;
+                    showToast('Registro exitoso o logueado.', 'success');
+                    setAuthMode('login'); // Switch to login after successful register
+                } else {
+                    const { error } = await supabase.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                    // Supabase automatically updates the session via onAuthStateChange listener
+                }
+            } catch (err) {
+                authError.textContent = err.message || 'Error en la autenticación';
+                authError.style.display = 'block';
+            } finally {
+                authSubmitText.style.opacity = '1';
+                authSpinner.style.display = 'none';
+                btn.disabled = false;
+            }
+        });
+    }
+
+    // Logout button
+    if (btnLogout) {
+        btnLogout.addEventListener('click', async () => {
+            if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+                await supabase.auth.signOut();
+                // State resetting data if necessary
+                State.clients = [];
+                State.services = [];
+                State.appointments = [];
+            }
+        });
     }
 
 
@@ -980,8 +1135,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* ═══════════════════════════════════════
-       INIT — Load Data
+       INIT — Check session to start
        ═══════════════════════════════════════ */
-    navigate('agenda');
-    loadAllData();
+    checkSession();
 });
