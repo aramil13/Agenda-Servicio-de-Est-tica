@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalOverlay = document.getElementById('modal-overlay');
     const modalBody = document.getElementById('modal-body');
     const btnCloseModal = document.getElementById('btn-close-modal');
+    const modalTitle = document.getElementById('modal-title');
 
     // Auth DOM
     const authScreen = document.getElementById('auth-screen');
