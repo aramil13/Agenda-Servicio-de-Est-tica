@@ -23,8 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         monthlyYear: new Date().getFullYear(),
         monthlyMonth: new Date().getMonth(),
         // Auth state
-        session: null,
-        authMode: 'login' // 'login' or 'register'
+        session: null
     };
 
     /* ═══════════════════════════════════════
@@ -40,13 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const authScreen = document.getElementById('auth-screen');
     const appLayout = document.getElementById('app-layout');
     const authLoginForm = document.getElementById('auth-login-form');
-    const authFormTitle = document.getElementById('auth-form-title');
-    const authFormSubtitle = document.getElementById('auth-form-subtitle');
-    const authConfirmGroup = document.getElementById('auth-confirm-group');
     const authSubmitText = document.getElementById('auth-submit-text');
     const authSpinner = document.getElementById('auth-spinner');
-    const authSwitchText = document.getElementById('auth-switch-text');
-    const authSwitchBtn = document.getElementById('auth-switch-btn');
     const authError = document.getElementById('auth-error');
     const authForgotLink = document.getElementById('auth-forgot-link');
     const userEmailEl = document.getElementById('user-email');
@@ -185,38 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetAuthState() {
         authLoginForm.reset();
         authError.style.display = 'none';
-        setAuthMode('login');
-    }
-
-    function setAuthMode(mode) {
-        State.authMode = mode;
-        if (mode === 'login') {
-            authFormTitle.textContent = 'Iniciar Sesión';
-            authFormSubtitle.textContent = 'Accede a tu panel de control';
-            authConfirmGroup.style.display = 'none';
-            authSubmitText.textContent = 'Entrar';
-            authSwitchText.textContent = '¿No tienes cuenta?';
-            authSwitchBtn.textContent = 'Crear cuenta';
-            authForgotLink.style.display = 'inline-block';
-            document.getElementById('auth-confirm-password').removeAttribute('required');
-        } else {
-            authFormTitle.textContent = 'Crear Cuenta';
-            authFormSubtitle.textContent = 'Regístrate para empezar a usar la agenda';
-            authConfirmGroup.style.display = 'block';
-            authSubmitText.textContent = 'Registrarse';
-            authSwitchText.textContent = '¿Ya tienes cuenta?';
-            authSwitchBtn.textContent = 'Iniciar Sesión';
-            authForgotLink.style.display = 'none';
-            document.getElementById('auth-confirm-password').setAttribute('required', 'true');
-        }
-        authError.style.display = 'none';
-    }
-
-    // Toggle mode button
-    if (authSwitchBtn) {
-        authSwitchBtn.addEventListener('click', () => {
-            setAuthMode(State.authMode === 'login' ? 'register' : 'login');
-        });
     }
 
     // Handle Auth form submit
@@ -235,20 +197,9 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = true;
 
             try {
-                if (State.authMode === 'register') {
-                    const confirmPassword = document.getElementById('auth-confirm-password').value;
-                    if (password !== confirmPassword) {
-                        throw new Error('Las contraseñas no coinciden.');
-                    }
-                    const { error } = await supabase.auth.signUp({ email, password });
-                    if (error) throw error;
-                    showToast('Registro exitoso. Revisa tu email o inicia sesión.', 'success');
-                    setAuthMode('login'); // Switch to login after successful register
-                } else {
-                    const { error } = await supabase.auth.signInWithPassword({ email, password });
-                    if (error) throw error;
-                    // Supabase automatically updates the session via onAuthStateChange listener
-                }
+                const { error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                // Supabase automatically updates the session via onAuthStateChange listener
             } catch (err) {
                 authError.textContent = err.message || 'Error en la autenticación';
                 authError.style.display = 'block';
