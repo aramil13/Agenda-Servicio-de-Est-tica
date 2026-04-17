@@ -21,9 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isLoading: false,
         // Monthly listing state
         monthlyYear: new Date().getFullYear(),
-        monthlyMonth: new Date().getMonth(),
-        // Auth state
-        session: null
+        monthlyMonth: new Date().getMonth()
     };
 
     /* ═══════════════════════════════════════
@@ -35,17 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalBody = document.getElementById('modal-body');
     const btnCloseModal = document.getElementById('btn-close-modal');
 
-    // Auth DOM
-    const authScreen = document.getElementById('auth-screen');
-    const appLayout = document.getElementById('app-layout');
-    const authLoginForm = document.getElementById('auth-login-form');
-    const authSubmitText = document.getElementById('auth-submit-text');
-    const authSpinner = document.getElementById('auth-spinner');
-    const authError = document.getElementById('auth-error');
-    const authForgotLink = document.getElementById('auth-forgot-link');
-    const userEmailEl = document.getElementById('user-email');
-    const userAvatarEl = document.getElementById('user-avatar');
-    const btnLogout = document.getElementById('btn-logout');
+
 
     /* ═══════════════════════════════════════
        HELPERS
@@ -132,97 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /* ═══════════════════════════════════════
-       AUTHENTICATION LOGIC
-       ═══════════════════════════════════════ */
 
-    // Check existing session
-    async function checkSession() {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-            console.error('Error checking session:', error);
-            return;
-        }
-        handleSessionUpdate(session);
-
-        // Listen for auth changes
-        supabase.auth.onAuthStateChange((_event, newSession) => {
-            handleSessionUpdate(newSession);
-        });
-    }
-
-    function handleSessionUpdate(session) {
-        State.session = session;
-        if (session) {
-            // Logged in
-            authScreen.style.display = 'none';
-            appLayout.style.display = 'flex';
-            
-            // Update sidebar user profile
-            const email = session.user.email;
-            if (userEmailEl) userEmailEl.textContent = email;
-            if (userAvatarEl) userAvatarEl.textContent = email.charAt(0).toUpperCase();
-
-            // Load data only if it's the first time we realize we are logged in
-            if (State.clients.length === 0 && !State.isLoading) {
-                navigate('agenda');
-                loadAllData();
-            }
-        } else {
-            // Logged out
-            authScreen.style.display = 'flex';
-            appLayout.style.display = 'none';
-            resetAuthState();
-        }
-    }
-
-    function resetAuthState() {
-        authLoginForm.reset();
-        authError.style.display = 'none';
-    }
-
-    // Handle Auth form submit
-    if (authLoginForm) {
-        authLoginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            authError.style.display = 'none';
-            
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-            
-            // UI Loading state
-            authSubmitText.style.opacity = '0';
-            authSpinner.style.display = 'block';
-            const btn = document.getElementById('auth-submit-btn');
-            btn.disabled = true;
-
-            try {
-                const { error } = await supabase.auth.signInWithPassword({ email, password });
-                if (error) throw error;
-                // Supabase automatically updates the session via onAuthStateChange listener
-            } catch (err) {
-                authError.textContent = err.message || 'Error en la autenticación';
-                authError.style.display = 'block';
-            } finally {
-                authSubmitText.style.opacity = '1';
-                authSpinner.style.display = 'none';
-                btn.disabled = false;
-            }
-        });
-    }
-
-    // Logout button
-    if (btnLogout) {
-        btnLogout.addEventListener('click', async () => {
-            if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-                await supabase.auth.signOut();
-                // State resetting data if necessary
-                State.clients = [];
-                State.services = [];
-                State.appointments = [];
-            }
-        });
-    }
 
     // ── Clients CRUD ──
 
@@ -1082,7 +980,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* ═══════════════════════════════════════
-       INIT — Check session to start
+       INIT — Load Data
        ═══════════════════════════════════════ */
-    checkSession();
+    navigate('agenda');
+    loadAllData();
 });
