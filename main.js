@@ -1441,4 +1441,22 @@ document.addEventListener('DOMContentLoaded', () => {
        INIT — Check session to start
        ═══════════════════════════════════════ */
     checkSession();
+
+    // Combat aggressive browser autofill
+    const emailInput = document.getElementById('auth-email');
+    const passwordInput = document.getElementById('auth-password');
+    
+    if (emailInput && passwordInput) {
+        // Clear again after a delay in case browser injected values late
+        setTimeout(() => {
+            emailInput.value = '';
+            passwordInput.value = '';
+            emailInput.readOnly = false;
+            passwordInput.readOnly = false;
+        }, 600);
+
+        // Also remove readonly on focus as a fallback
+        emailInput.addEventListener('focus', () => emailInput.readOnly = false);
+        passwordInput.addEventListener('focus', () => passwordInput.readOnly = false);
+    }
 });
