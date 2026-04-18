@@ -1279,6 +1279,16 @@ textarea.form-control {
     text-align: center;
 }
 
+.auth-success {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    text-align: center;
+}
+
 .auth-links {
     margin-top: 1.5rem;
     text-align: center;

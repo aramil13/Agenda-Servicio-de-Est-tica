@@ -151,31 +151,41 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check existing session
     async function checkSession() {
         // Only sign out automatically if we are NOT in a recovery or invitation flow
+        // We check both hash (#) and search (?) for access_token, type=recovery, or code (PKCE)
         const isAuthFlow = window.location.hash.includes('type=recovery') || 
-                           window.location.hash.includes('access_token=');
+                           window.location.hash.includes('access_token=') ||
+                           window.location.search.includes('type=recovery') ||
+                           window.location.search.includes('code=');
         
         if (!isAuthFlow) {
             // Always sign out on start to ensure we always ask for credentials
+            // unless we are in the middle of a recovery flow
             await supabase.auth.signOut();
         }
         
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-            console.error('Error checking session:', error);
-            // Even on error, ensure we show login
-            handleSessionUpdate(null);
-            return;
-        }
-        handleSessionUpdate(session);
-
         // Listen for auth changes
         supabase.auth.onAuthStateChange(async (event, newSession) => {
+            console.log('Auth event:', event);
             if (event === 'PASSWORD_RECOVERY') {
+                handleSessionUpdate(newSession);
                 showPasswordResetModal();
-            } else {
+            } else if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
                 handleSessionUpdate(newSession);
             }
         });
+
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+            console.error('Error checking session:', error);
+            handleSessionUpdate(null);
+            return;
+        }
+
+        // Only call handleSessionUpdate if we are NOT in a recovery flow
+        // so that the onAuthStateChange event 'PASSWORD_RECOVERY' can take priority
+        if (!isAuthFlow) {
+            handleSessionUpdate(session);
+        }
     }
 
     /** Shows a modal to enter a new password after recovery link is clicked */
@@ -265,6 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (passwordInput) passwordInput.value = '';
         }
         authError.style.display = 'none';
+        authError.className = 'auth-error';
     }
 
     // Handle Auth form submit
@@ -319,19 +330,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (btn) btn.disabled = true;
 
             try {
+                // Ensure we use the current base URL as redirect to avoid issues with different ports or domains
+                const redirectTo = window.location.href.split('#')[0].split('?')[0];
+                
                 const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin, // Safer than full href
+                    redirectTo: redirectTo,
                 });
                 if (error) throw error;
                 
                 showToast('Correo de recuperación enviado.', 'success');
+                authError.className = 'auth-success';
                 authError.textContent = 'Revisa tu bandeja de entrada para restablecer tu contraseña.';
                 authError.style.display = 'block';
-                authError.style.color = 'var(--success)'; 
             } catch (err) {
+                authError.className = 'auth-error';
                 authError.textContent = err.message || 'Error al enviar el correo de recuperación';
                 authError.style.display = 'block';
-                authError.style.color = 'var(--danger)';
             } finally {
                 authSubmitText.style.opacity = '1';
                 authSpinner.style.display = 'none';
