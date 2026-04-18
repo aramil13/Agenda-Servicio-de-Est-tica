@@ -171,6 +171,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 showPasswordResetModal();
             } else if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
                 handleSessionUpdate(newSession);
+                
+                // Fallback: Si estamos en flujo de recuperación y acabamos de iniciar sesión, 
+                // pero no saltó el evento PASSWORD_RECOVERY, mostramos el modal de todas formas.
+                if (event === 'SIGNED_IN' && isAuthFlow) {
+                    showPasswordResetModal();
+                }
             }
         });
 
