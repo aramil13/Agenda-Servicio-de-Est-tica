@@ -239,13 +239,17 @@ document.addEventListener('DOMContentLoaded', () => {
         for (const file of files) {
             const fileExt = file.name.split('.').pop();
             const fileName = `${clientId}/${generateId()}.${fileExt}`;
+            
+            console.log('Intentando subir archivo:', fileName);
+            
             const { data, error } = await supabase.storage
                 .from('client-photos')
                 .upload(fileName, file);
 
             if (error) {
-                console.error('Error subiendo foto:', error);
-                continue;
+                console.error('Error detallado de Supabase Storage:', error);
+                showToast('Error de almacenamiento: ' + error.message, 'error');
+                throw error; // Lanzar error para detener el proceso de guardado
             }
 
             const { data: { publicUrl } } = supabase.storage
@@ -1138,8 +1142,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Upload new photos if any
                 let newPhotosUrls = [];
-                if (fileInput.files.length > 0) {
-                    newPhotosUrls = await uploadClientPhotos(fileInput.files, clientId);
+                try {
+                    if (fileInput.files.length > 0) {
+                        newPhotosUrls = await uploadClientPhotos(fileInput.files, clientId);
+                    }
+                } catch (err) {
+                    // El error ya fue reportado por uploadClientPhotos via showToast
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = isEdit ? 'Guardar' : 'Añadir';
+                    return; // Detener el guardado si falla la subida
                 }
 
                 const data = { 
