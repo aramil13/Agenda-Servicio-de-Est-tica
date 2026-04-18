@@ -517,7 +517,15 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (totalMinutes > 0) {
             let cursorMins = startDayMins;
-            detailApts.forEach(apt => {
+            const bgPalette = [
+                'linear-gradient(135deg, #8b5cf6, #d946ef)', // Purple
+                'linear-gradient(135deg, #3b82f6, #2dd4bf)', // Blue to Teal
+                'linear-gradient(135deg, #ec4899, #f43f5e)', // Pink to Rose
+                'linear-gradient(135deg, #f59e0b, #ea580c)', // Amber to Orange
+                'linear-gradient(135deg, #6366f1, #a855f7)'  // Indigo to Purple
+            ];
+
+            detailApts.forEach((apt, idx) => {
                 const [h, m] = apt.time.split(':').map(Number);
                 const aptStart = h * 60 + m;
                 const aptServ = State.services.find(s => s.id === apt.serviceId);
@@ -540,7 +548,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const pct = ((clippedEnd - clippedStart) / totalMinutes) * 100;
                     const [stH_str, stM_str] = [Math.floor(clippedStart / 60).toString().padStart(2, '0'), (clippedStart % 60).toString().padStart(2, '0')];
                     const [endH_str, endM_str] = [Math.floor(clippedEnd / 60).toString().padStart(2, '0'), (clippedEnd % 60).toString().padStart(2, '0')];
-                    timelineHtml += `<div class="timeline-segment booked" style="width:${pct}%;" title="Ocupado: ${stH_str}:${stM_str} - ${endH_str}:${endM_str}"></div>`;
+                    const bgOption = bgPalette[idx % bgPalette.length];
+                    timelineHtml += `<div class="timeline-segment booked" style="width:${pct}%; background: ${bgOption}; border-left: 1px solid rgba(255,255,255,0.4); border-right: 1px solid rgba(255,255,255,0.4);" title="Ocupado: ${stH_str}:${stM_str} - ${endH_str}:${endM_str}"></div>`;
                 }
 
                 cursorMins = Math.max(cursorMins, clippedEnd);
