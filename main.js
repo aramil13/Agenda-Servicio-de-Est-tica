@@ -5,7 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
        ═══════════════════════════════════════ */
     const SUPABASE_URL = 'https://wqbrappajbrzanpymwtx.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_rxdHNZAUSQw-C8-BvzX4rA_9qH6GeL9';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+            persistSession: false
+        }
+    });
 
     /* ═══════════════════════════════════════
        STATE
