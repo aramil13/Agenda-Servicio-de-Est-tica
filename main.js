@@ -1021,6 +1021,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function findNextAvailableTime(dateStr, durationMinutes) {
+        let startMins = 9 * 60; // 09:00 default start
+        const endMins = 20 * 60; // 20:00 default end
+
+        const dayApts = State.appointments
+            .filter(a => a.date === dateStr)
+            .sort((a, b) => a.time.localeCompare(b.time));
+
+        for (const apt of dayApts) {
+            const [h, m] = apt.time.split(':').map(Number);
+            const aptStart = h * 60 + m;
+            const aptServ = State.services.find(s => s.id === apt.serviceId);
+            const aptDur = aptServ ? parseInt(aptServ.duration) : 0;
+            const aptEnd = aptStart + aptDur;
+
+            if (startMins + durationMinutes <= aptStart) {
+                break;
+            }
+            if (startMins < aptEnd) {
+                startMins = aptEnd;
+            }
+        }
+
+        if (startMins + durationMinutes > endMins) return "09:00"; // fallback if no time
+        const hStr = Math.floor(startMins / 60).toString().padStart(2, '0');
+        const mStr = (startMins % 60).toString().padStart(2, '0');
+        return `${hStr}:${mStr}`;
+    }
+
     function showAppointmentForm() {
         if (State.clients.length === 0 || State.services.length === 0) {
             showToast('Debes tener al menos un cliente y un servicio antes de agendar una cita.', 'error');
@@ -1028,6 +1057,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const defaultDate = State.selectedDate || toLocalDateStr(new Date());
+        const defaultDuration = State.services.length > 0 ? parseInt(State.services[0].duration) : 30;
+        const suggestedTime = findNextAvailableTime(defaultDate, defaultDuration);
 
         const html = `
             <form id="appointment-form">
@@ -1050,7 +1081,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="form-group" style="flex:1">
                         <label>Hora</label>
-                        <input type="time" class="form-control" name="time" required value="09:00">
+                        <input type="time" class="form-control" name="time" required value="${suggestedTime}">
                     </div>
                 </div>
                 <div class="form-group">
@@ -1064,7 +1095,22 @@ document.addEventListener('DOMContentLoaded', () => {
             </form>`;
 
         openModal('Nueva Cita', html, () => {
-            document.getElementById('appointment-form').addEventListener('submit', async e => {
+            const form = document.getElementById('appointment-form');
+            const dateInput = form.querySelector('[name="date"]');
+            const timeInput = form.querySelector('[name="time"]');
+            const serviceSelect = form.querySelector('[name="serviceId"]');
+
+            function updateSuggestion() {
+                const selDate = dateInput.value;
+                const selService = State.services.find(s => s.id === serviceSelect.value);
+                const dur = selService ? parseInt(selService.duration) : 30;
+                timeInput.value = findNextAvailableTime(selDate, dur);
+            }
+
+            dateInput.addEventListener('change', updateSuggestion);
+            serviceSelect.addEventListener('change', updateSuggestion);
+
+            form.addEventListener('submit', async e => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
                 submitBtn.disabled = true;
