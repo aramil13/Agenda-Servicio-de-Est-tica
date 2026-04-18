@@ -154,6 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 date: a.date,
                 time: a.time.substring(0, 5), // "HH:MM:SS" → "HH:MM"
                 notes: a.notes || '',
+                whatsappSent: a.whatsapp_sent || false,
             }));
 
         } catch (err) {
@@ -163,21 +164,24 @@ document.addEventListener('DOMContentLoaded', () => {
             State.isLoading = false;
             renderRoute();
             
-            // Verificación post-carga: ¿Hay recordatorios para dentro de 48h?
+            // Verificación post-carga: ¿Hay recordatorios para los próximos 3 días?
             if (State.session) {
                 const today = new Date();
-                const targetDate = new Date(today);
-                targetDate.setDate(today.getDate() + 2);
-                const targetStr = toLocalDateStr(targetDate);
+                const futureLimit = new Date(today);
+                futureLimit.setDate(today.getDate() + 3);
+                
+                const limitStr = toLocalDateStr(futureLimit);
+                const todayStr = toLocalDateStr(today);
                 
                 const count = State.appointments.filter(apt => {
-                    if (apt.date !== targetStr) return false;
+                    if (apt.date < todayStr || apt.date > limitStr) return false;
+                    if (apt.whatsappSent) return false; // Solo pendientes
                     const client = State.clients.find(c => c.id === apt.clientId);
-                    return client && client.send_whatsapp;
+                    return client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1);
                 }).length;
                 
                 if (count > 0) {
-                    showToast(`Tienes ${count} recordatorio${count !== 1 ? 's' : ''} pendiente${count !== 1 ? 's' : ''} para citas en 48 horas.`, 'info');
+                    showToast(`Tienes ${count} recordatorio${count !== 1 ? 's' : ''} WhatsApp pendiente${count !== 1 ? 's' : ''} para los próximos días.`, 'info');
                 }
             }
         }
@@ -333,11 +337,15 @@ document.addEventListener('DOMContentLoaded', () => {
             name: data.name, 
             phone: data.phone, 
             email: data.email,
-            send_whatsapp: data.send_whatsapp,
+            enviar_was: data.enviar_was,
             photos: data.photos,
             observations: data.observations 
         }).eq('id', data.id);
-        if (error) { showToast('Error al actualizar cliente: ' + error.message, 'error'); return false; }
+        if (error) { 
+            console.error('Supabase update error:', error);
+            showToast('Error al actualizar (¿columna "enviar_was" existe?): ' + error.message, 'error'); 
+            return false; 
+        }
         State.clients = State.clients.map(c => c.id === data.id ? data : c);
         showToast('Cliente actualizado correctamente');
         return true;
@@ -393,6 +401,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) { showToast('Error al agendar cita: ' + error.message, 'error'); return false; }
         State.appointments.push(data);
         showToast('Cita agendada correctamente');
+        return true;
+    }
+
+    async function markAppointmentReminded(id) {
+        // Intentamos actualizar la columna whatsapp_sent
+        const { error } = await supabase.from('appointments').update({ whatsapp_sent: true }).eq('id', id);
+        if (error) { 
+            console.error('Error al marcar como avisado (¿columna whatsapp_sent existe?):', error);
+            // Si falla, al menos lo marcamos en local para que desaparezca de la lista actual
+        }
+        const apt = State.appointments.find(a => a.id === id);
+        if (apt) apt.whatsappSent = true;
         return true;
     }
 
@@ -761,7 +781,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </div>
                             </td>
                             <td>${c.email || '—'}</td>
-                            <td>${c.send_whatsapp ? '<span class="status-badge status-success">Sí</span>' : '<span class="status-badge status-danger">No</span>'}</td>
+                            <td>${(c.enviar_was === true || c.enviar_was === 'true' || c.enviar_was === 1) ? '<span class="status-badge status-success">Sí</span>' : '<span class="status-badge status-danger">No</span>'}</td>
                              <td>
                                 <div class="client-photos-mini">
                                     ${Array.isArray(c.photos) ? c.photos.slice(0, 3).map(url => `<img src="${url}" class="mini-photo" onclick="event.stopPropagation(); window.open('${url}', '_blank')">`).join('') : ''}
@@ -1048,11 +1068,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const todayStr = toLocalDateStr(today);
 
         const toRemind = State.appointments.filter(apt => {
-            // Citas entre hoy y dentro de 3 días
+            // Citas entre hoy y dentro de 3 días que NO hayan sido avisadas
             if (apt.date < todayStr || apt.date > limitStr) return false;
+            if (apt.whatsappSent) return false;
             
             const client = State.clients.find(c => c.id === apt.clientId);
-            return client && client.send_whatsapp === true;
+            return client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1);
         }).sort((a, b) => {
             if (a.date !== b.date) return a.date.localeCompare(b.date);
             return a.time.localeCompare(b.time);
@@ -1132,7 +1153,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const dLabel = dObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
                         
                         return `
-                            <tr>
+                            <tr data-aptid="${apt.id}">
                                 <td>
                                     <div style="font-weight:600">${client.name}</div>
                                     <div style="font-size:0.8rem;color:var(--text-secondary)">${client.phone}</div>
@@ -1265,9 +1286,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // WhatsApp Reminder direct buttons
         document.querySelectorAll('.send-reminder-btn').forEach(btn => {
-            btn.addEventListener('click', e => {
+            btn.addEventListener('click', async e => {
                 const { name, phone, date, time } = e.currentTarget.dataset;
+                const id = e.currentTarget.closest('[data-id]') ? e.currentTarget.closest('[data-id]').dataset.id : null;
+                
+                // Si el botón está en la vista de recordatorios, intentamos sacar el ID de la cita
+                const aptId = e.currentTarget.closest('tr')?.dataset.aptid;
+
                 sendWASMessage(phone, name, date, time);
+                
+                if (aptId) {
+                    await markAppointmentReminded(aptId);
+                    renderRoute(); // Refrescar para que desaparezca
+                    showToast('Recordatorio marcado como enviado');
+                }
             });
         });
     }
@@ -1293,9 +1325,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="form-group">
                     <label>¿Enviar mensaje de WhatsApp automático?</label>
-                    <select class="form-control" name="send_whatsapp">
-                        <option value="true" ${isEdit && info.send_whatsapp ? 'selected' : ''}>Sí</option>
-                        <option value="false" ${isEdit && info.send_whatsapp === false ? 'selected' : !isEdit ? 'selected' : ''}>No</option>
+                    <select class="form-control" name="enviar_was">
+                        <option value="true" ${isEdit && (info.enviar_was === true || info.enviar_was === 'true' || info.enviar_was === 1) ? 'selected' : ''}>Sí</option>
+                        <option value="false" ${!isEdit || (info.enviar_was === false || info.enviar_was === 'false' || info.enviar_was === 0 || info.enviar_was === null) ? 'selected' : ''}>No</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -1382,7 +1414,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     name: fd.get('name'), 
                     phone: fd.get('phone'), 
                     email: fd.get('email'),
-                    send_whatsapp: fd.get('send_whatsapp') === 'true',
+                    enviar_was: fd.get('enviar_was') === 'true',
                     photos: [...currentPhotos, ...newPhotosUrls],
                     observations: fd.get('observations')
                 };
@@ -1629,7 +1661,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // Notificar por WhatsApp si el cliente lo tiene activado
                     const client = State.clients.find(c => c.id === data.clientId);
-                    if (client && client.send_whatsapp === true && client.phone) {
+                    if (client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1) && client.phone) {
                         sendWASMessage(client.phone, client.name, data.date, data.time);
                     }
                 }
