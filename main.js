@@ -5,7 +5,22 @@ document.addEventListener('DOMContentLoaded', () => {
        ═══════════════════════════════════════ */
     const SUPABASE_URL = 'https://wqbrappajbrzanpymwtx.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_rxdHNZAUSQw-C8-BvzX4rA_9qH6GeL9';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    let supabase;
+    try {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('Supabase client initialized');
+    } catch (e) {
+        console.error('Critical: could not initialize Supabase', e);
+        alert('Error crítico: No se pudo conectar con Supabase. Verifica la URL y la Key.');
+    }
+
+    // Global error listener to help debugging
+    window.onerror = function(msg, url, lineNo, columnNo, error) {
+        showToast('Error de sistema: ' + msg, 'error');
+        return false;
+    };
+
 
     /* ═══════════════════════════════════════
        STATE
@@ -199,6 +214,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
                 passwordInput.setAttribute('type', type);
                 togglePassword.classList.toggle('active');
+            });
+        }
+
+        const btnCheck = document.getElementById('btn-check-connection');
+        if (btnCheck) {
+            btnCheck.addEventListener('click', async () => {
+                btnCheck.disabled = true;
+                btnCheck.innerHTML = 'Probando...';
+                try {
+                    // Try to fetch one row from a public table or just ping
+                    const { error } = await supabase.from('services').select('id').limit(1);
+                    if (error) {
+                        if (error.message.includes('API key')) {
+                            showToast('La clave de Supabase es inválida.', 'error');
+                        } else {
+                            showToast('Error: ' + error.message, 'error');
+                        }
+                    } else {
+                        showToast('✓ Conexión con Supabase establecida correctamente.');
+                    }
+                } catch (e) {
+                    showToast('Fallo total de conexión. Revisa el archivo main.js.', 'error');
+                } finally {
+                    btnCheck.innerHTML = 'Verificar conexión con Supabase';
+                    btnCheck.disabled = false;
+                }
             });
         }
 

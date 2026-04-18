@@ -796,6 +796,27 @@ body {
     color: var(--accent-primary);
 }
 
+.auth-debug-tools {
+    margin: 1.5rem 0;
+    text-align: center;
+}
+
+.btn-check-connection {
+    background: transparent;
+    border: 1px dashed var(--border-color);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-check-connection:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    background: var(--bg-surface-hover);
+}
 
 /* ── Toast Notifications ── */
 .toast-notification {
