@@ -238,14 +238,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Forgot password listener
     if (authForgotLink) {
-        authForgotLink.addEventListener('click', async () => {
+        authForgotLink.addEventListener('click', async (e) => {
+            e.preventDefault(); // Extra protection for Firefox
+            
             const emailInput = document.getElementById('auth-email');
             const email = emailInput ? emailInput.value : '';
             
             if (!email) {
                 authError.textContent = 'Por favor, introduce tu correo electrónico para enviarte las instrucciones.';
                 authError.style.display = 'block';
-                authError.style.color = 'var(--error)';
+                authError.style.color = 'var(--danger)'; // Corrected from --error
                 return;
             }
             
@@ -257,18 +259,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.href,
+                    redirectTo: window.location.origin, // Safer than full href
                 });
                 if (error) throw error;
                 
                 showToast('Correo de recuperación enviado.', 'success');
                 authError.textContent = 'Revisa tu bandeja de entrada para restablecer tu contraseña.';
                 authError.style.display = 'block';
-                authError.style.color = '#10b981'; // Success color
+                authError.style.color = 'var(--success)'; 
             } catch (err) {
                 authError.textContent = err.message || 'Error al enviar el correo de recuperación';
                 authError.style.display = 'block';
-                authError.style.color = 'var(--error)';
+                authError.style.color = 'var(--danger)';
             } finally {
                 authSubmitText.style.opacity = '1';
                 authSpinner.style.display = 'none';
