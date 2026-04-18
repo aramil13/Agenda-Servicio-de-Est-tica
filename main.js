@@ -1080,6 +1080,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     notes: fd.get('notes')
                 };
 
+                // Validar que no se solape con otra cita existente en el mismo día
+                const [targetHour, targetMin] = data.time.split(':').map(Number);
+                const targetStartMinutes = targetHour * 60 + targetMin;
+                const targetService = State.services.find(s => s.id === data.serviceId);
+                const targetEndMinutes = targetStartMinutes + (targetService ? parseInt(targetService.duration) : 0);
+
+                const hasCollision = State.appointments.some(apt => {
+                    if (apt.date !== data.date) return false;
+                    const [aptHour, aptMin] = apt.time.split(':').map(Number);
+                    const aptStartMinutes = aptHour * 60 + aptMin;
+                    const aptService = State.services.find(s => s.id === apt.serviceId);
+                    const aptEndMinutes = aptStartMinutes + (aptService ? parseInt(aptService.duration) : 0);
+                    
+                    // Hay superposición si InicioN < FinE y FinN > InicioE
+                    return targetStartMinutes < aptEndMinutes && targetEndMinutes > aptStartMinutes;
+                });
+
+                if (hasCollision) {
+                    showToast('El horario elegido choca con una cita ya existente.', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Agendar Cita';
+                    return;
+                }
+
                 if (await addAppointment(data)) { closeModal(); renderRoute(); }
                 else { submitBtn.disabled = false; submitBtn.textContent = 'Agendar Cita'; }
             });
