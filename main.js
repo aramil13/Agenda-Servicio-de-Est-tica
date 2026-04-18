@@ -77,6 +77,28 @@ document.addEventListener('DOMContentLoaded', () => {
         'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ];
 
+    /** Helper to send specialized WhatsApp messages */
+    function sendWASMessage(phone, name, date = null, time = null) {
+        if (!phone) {
+            showToast('El cliente no tiene un teléfono configurado.', 'error');
+            return;
+        }
+        
+        const cleanPhone = phone.replace(/\D/g, '');
+        let msg = '';
+        
+        if (date && time) {
+            const dateObj = new Date(date + 'T00:00:00');
+            const dateLabel = dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+            msg = `Hola ${name} tienes una cita con Nymara Estilistas, el ${dateLabel}, a las ${time}`;
+        } else {
+            msg = `Hola ${name}, me pongo en contacto contigo desde Nymara Estilistas.`;
+        }
+        
+        const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
+        window.open(waUrl, '_blank');
+    }
+
     /* ═══════════════════════════════════════
        TOAST NOTIFICATIONS
        ═══════════════════════════════════════ */
@@ -732,7 +754,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${State.clients.map(c => `
                         <tr>
                             <td style="font-weight:600">${c.name}</td>
-                            <td>${c.phone ? `<a href="https://wa.me/${c.phone.replace(/\D/g, '')}" target="_blank" class="contact-link" title="Enviar WhatsApp"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;vertical-align:middle"><path d="M12.031 6.172c-2.32 0-4.516.903-6.183 2.563-3.23 3.23-3.403 8.356-.511 11.777l-1.341 4.904 5.035-1.32c1.077.585 2.29.893 3.522.893h.03c2.321 0 4.516-.903 6.183-2.563 3.413-3.414 3.413-8.948 0-12.362-1.667-1.66-3.863-1.592-6.235-1.592zm5.753 12.185c-.254.71-1.472 1.286-2.028 1.368-.556.082-1.112.122-1.666-.122-.303-.122-.656-.254-1.076-.442-1.812-.816-3.033-2.656-3.13-2.77-.091-.112-.76-.98-.76-1.884 0-.904.47-1.353.64-1.554.17-.2.37-.25.5-.25s.262-.01.373.01c.123 0 .285-.04.444.33.16.38.542 1.312.59 1.41.05.1.08.21.01.34-.07.13-.1.22-.2.34-.1.12-.21.26-.3.37-.1.12-.22.25-.1.44.13.21.57.94 1.22 1.52.84.75 1.55 1 1.77 1.11.22.11.36.09.49-.06.13-.15.54-.62.68-.84.14-.21.29-.18.49-.1.2.08 1.25.59 1.47.69s.36.16.41.25c.05.1.05.57-.2.1.28l-.01.01zM12.031 0C5.386 0 0 5.385 0 12.031c0 2.11.55 4.16 1.59 5.97L0 24l6.19-1.62c1.77 1.04 3.79 1.59 5.84 1.59h.01C18.66 24 24 18.615 24 12.031 24 5.385 18.66 0 12.031 0z"/></svg>${c.phone}</a>` : '—'}</td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:8px">
+                                    ${c.phone ? `<a href="https://wa.me/${c.phone.replace(/\D/g, '')}" target="_blank" class="contact-link" title="Enviar WhatsApp Directo"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle"><path d="M12.031 6.172c-2.32 0-4.516.903-6.183 2.563-3.23 3.23-3.403 8.356-.511 11.777l-1.341 4.904 5.035-1.32c1.077.585 2.29.893 3.522.893h.03c2.321 0 4.516-.903 6.183-2.563 3.413-3.414 3.413-8.948 0-12.362-1.667-1.66-3.863-1.592-6.235-1.592zm5.753 12.185c-.254.71-1.472 1.286-2.028 1.368-.556.082-1.112.122-1.666-.122-.303-.122-.656-.254-1.076-.442-1.812-.816-3.033-2.656-3.13-2.77-.091-.112-.76-.98-.76-1.884 0-.904.47-1.353.64-1.554.17-.2.37-.25.5-.25s.262-.01.373.01c.123 0 .285-.04.444.33.16.38.542 1.312.59 1.41.05.1.08.21.01.34-.07.13-.1.22-.2.34-.1.12-.21.26-.3.37-.1.12-.22.25-.1.44.13.21.57.94 1.22 1.52.84.75 1.55 1 1.77 1.11.22.11.36.09.49-.06.13-.15.54-.62.68-.84.14-.21.29-.18.49-.1.2.08 1.25.59 1.47.69s.36.16.41.25c.05.1.05.57-.2.1.28l-.01.01zM12.031 0C5.386 0 0 5.385 0 12.031c0 2.11.55 4.16 1.59 5.97L0 24l6.19-1.62c1.77 1.04 3.79 1.59 5.84 1.59h.01C18.66 24 24 18.615 24 12.031 24 5.385 18.66 0 12.031 0z"/></svg></a> ${c.phone}` : '—'}
+                                </div>
+                            </td>
                             <td>${c.email || '—'}</td>
                             <td>${c.send_whatsapp ? '<span class="status-badge status-success">Sí</span>' : '<span class="status-badge status-danger">No</span>'}</td>
                              <td>
@@ -1012,20 +1038,24 @@ document.addEventListener('DOMContentLoaded', () => {
        WHATSAPP REMINDERS VIEW
        ═══════════════════════════════════════ */
     function getWhatsAppView() {
-        // Buscamos citas que sean exactamente dentro de 2 días (48 horas)
+        // Buscamos citas en los próximos 3 días para dar más margen
         const today = new Date();
-        const targetDate = new Date(today);
-        targetDate.setDate(today.getDate() + 2);
-        const targetStr = toLocalDateStr(targetDate);
+        const futureLimit = new Date(today);
+        futureLimit.setDate(today.getDate() + 3);
         
-        // Formatear la fecha para mostrar en el título
-        const dateLabel = targetDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+        const limitStr = toLocalDateStr(futureLimit);
+        const todayStr = toLocalDateStr(today);
 
         const toRemind = State.appointments.filter(apt => {
-            if (apt.date !== targetStr) return false;
+            // Citas entre hoy y dentro de 3 días
+            if (apt.date < todayStr || apt.date > limitStr) return false;
+            
             const client = State.clients.find(c => c.id === apt.clientId);
-            return client && client.send_whatsapp;
-        }).sort((a, b) => a.time.localeCompare(b.time));
+            return client && client.send_whatsapp === true;
+        }).sort((a, b) => {
+            if (a.date !== b.date) return a.date.localeCompare(b.date);
+            return a.time.localeCompare(b.time);
+        });
 
         let rows = '';
         if (toRemind.length === 0) {
@@ -1072,7 +1102,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="section-header">
                 <div>
                     <h1 class="section-title">Recordatorios WhatsApp</h1>
-                    <p style="color:var(--text-secondary)">Gestiona los avisos para las citas en 48 horas · <span class="supabase-badge">⚡ Automático</span></p>
+                    <p style="color:var(--text-secondary)">Gestiona los avisos para las próximas citas · <span class="supabase-badge">⚡ Automático</span></p>
                 </div>
             </div>
 
@@ -1080,7 +1110,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="monthly-table-header" style="background: var(--bg-surface); padding: 1.5rem; border-bottom: 1px solid var(--border-color);">
                     <h3 style="display:flex;align-items:center;gap:0.75rem;">
                         <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        ${dateLabel}
+                        Próximas Citas (3 días)
                     </h3>
                     <span class="monthly-count-badge">${toRemind.length} pendiente${toRemind.length !== 1 ? 's' : ''}</span>
                 </div>
@@ -1088,12 +1118,40 @@ document.addEventListener('DOMContentLoaded', () => {
                     <thead>
                         <tr>
                             <th>Cliente</th>
+                            <th>Fecha</th>
                             <th>Hora</th>
                             <th>Servicio</th>
                             <th>Acción</th>
                         </tr>
                     </thead>
-                    <tbody>${rows}</tbody>
+                    <tbody>${toRemind.map(apt => {
+                        const client = State.clients.find(c => c.id === apt.clientId);
+                        const service = State.services.find(s => s.id === apt.serviceId);
+                        const dObj = new Date(apt.date + 'T00:00:00');
+                        const dLabel = dObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+                        
+                        return `
+                            <tr>
+                                <td>
+                                    <div style="font-weight:600">${client.name}</div>
+                                    <div style="font-size:0.8rem;color:var(--text-secondary)">${client.phone}</div>
+                                </td>
+                                <td><span class="status-badge" style="background:var(--bg-body);color:var(--text-primary)">${dLabel}</span></td>
+                                <td><div style="font-weight:500;color:var(--accent-primary)">${apt.time}</div></td>
+                                <td><span class="monthly-service-badge">${service ? service.name : '—'}</span></td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm send-reminder-btn" 
+                                            style="padding: 0.4rem 0.8rem;"
+                                            data-name="${client.name}" 
+                                            data-phone="${client.phone}" 
+                                            data-date="${apt.date}" 
+                                            data-time="${apt.time}">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;vertical-align:middle"><path d="M12.031 6.172c-2.32 0-4.516.903-6.183 2.563-3.23 3.23-3.403 8.356-.511 11.777l-1.341 4.904 5.035-1.32c1.077.585 2.29.893 3.522.893h.03c2.321 0 4.516-.903 6.183-2.563 3.413-3.414 3.413-8.948 0-12.362-1.667-1.66-3.863-1.592-6.235-1.592zm5.753 12.185c-.254.71-1.472 1.286-2.028 1.368-.556.082-1.112.122-1.666-.122-.303-.122-.656-.254-1.076-.442-1.812-.816-3.033-2.656-3.13-2.77-.091-.112-.76-.98-.76-1.884 0-.904.47-1.353.64-1.554.17-.2.37-.25.5-.25s.262-.01.373.01c.123 0 .285-.04.444.33.16.38.542 1.312.59 1.41.05.1.08.21.01.34-.07.13-.1.22-.2.34-.1.12-.21.26-.3.37-.1.12-.22.25-.1.44.13.21.57.94 1.22 1.52.84.75 1.55 1 1.77 1.11.22.11.36.09.49-.06.13-.15.54-.62.68-.84.14-.21.29-.18.49-.1.2.08 1.25.59 1.47.69s.36.16.41.25c.05.1.05.57-.2.1.28l-.01.01zM12.031 0C5.386 0 0 5.385 0 12.031c0 2.11.55 4.16 1.59 5.97L0 24l6.19-1.62c1.77 1.04 3.79 1.59 5.84 1.59h.01C18.66 24 24 18.615 24 12.031 24 5.385 18.66 0 12.031 0z"/></svg>
+                                        Recordar
+                                    </button>
+                                </td>
+                            </tr>`;
+                    }).join('')}</tbody>
                 </table>
             </div>
             
@@ -1208,13 +1266,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.send-reminder-btn').forEach(btn => {
             btn.addEventListener('click', e => {
                 const { name, phone, date, time } = e.currentTarget.dataset;
-                const cleanPhone = phone.replace(/\D/g, '');
-                const dateObj = new Date(date + 'T00:00:00');
-                const dateLabel = dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
-                
-                const msg = `Hola ${name} tienes una cita con Nymara Estilistas, el ${dateLabel}, a las ${time}`;
-                const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
-                window.open(waUrl, '_blank');
+                sendWASMessage(phone, name, date, time);
             });
         });
     }
@@ -1576,17 +1628,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // Notificar por WhatsApp si el cliente lo tiene activado
                     const client = State.clients.find(c => c.id === data.clientId);
-                    if (client && client.send_whatsapp && client.phone) {
-                        const cleanPhone = client.phone.replace(/\D/g, '');
-                        // Formatear fecha para el mensaje (ej: 18 de abril)
-                        const dateObj = new Date(data.date + 'T00:00:00');
-                        const dateLabel = dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
-                        
-                        const msg = `Hola ${client.name} tienes una cita con Nymara Estilistas, el ${dateLabel}, a las ${data.time}`;
-                        const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
-                        
-                        // Abrimos WhatsApp en una nueva pestaña
-                        window.open(waUrl, '_blank');
+                    if (client && client.send_whatsapp === true && client.phone) {
+                        sendWASMessage(client.phone, client.name, data.date, data.time);
                     }
                 }
                 else { submitBtn.disabled = false; submitBtn.textContent = 'Agendar Cita'; }
