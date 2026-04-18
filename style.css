@@ -1399,3 +1399,16 @@ textarea.form-control {
         min-width: 100px;
     }
 }
+
+/* ── Contact Links ── */
+.contact-link {
+    color: var(--accent-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.contact-link:hover {
+    color: var(--accent-secondary);
+    text-decoration: underline;
+}

@@ -713,8 +713,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${State.clients.map(c => `
                         <tr>
                             <td style="font-weight:600">${c.name}</td>
-                            <td>${c.phone || '—'}</td>
-                            <td>${c.email || '—'}</td>
+                            <td>${c.phone ? `<a href="https://wa.me/${c.phone.replace(/\D/g, '')}" target="_blank" class="contact-link" title="Enviar WhatsApp">${c.phone}</a>` : '—'}</td>
+                            <td>${c.email ? `<a href="mailto:${c.email}" class="contact-link" title="Enviar Email">${c.email}</a>` : '—'}</td>
                              <td>
                                 <div class="client-photos-mini">
                                     ${Array.isArray(c.photos) ? c.photos.slice(0, 3).map(url => `<img src="${url}" class="mini-photo" onclick="event.stopPropagation(); window.open('${url}', '_blank')">`).join('') : ''}
