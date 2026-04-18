@@ -333,6 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
             name: data.name, 
             phone: data.phone, 
             email: data.email,
+            send_whatsapp: data.send_whatsapp,
             photos: data.photos,
             observations: data.observations 
         }).eq('id', data.id);
