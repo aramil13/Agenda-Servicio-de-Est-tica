@@ -236,6 +236,47 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Forgot password listener
+    if (authForgotLink) {
+        authForgotLink.addEventListener('click', async () => {
+            const emailInput = document.getElementById('auth-email');
+            const email = emailInput ? emailInput.value : '';
+            
+            if (!email) {
+                authError.textContent = 'Por favor, introduce tu correo electrónico para enviarte las instrucciones.';
+                authError.style.display = 'block';
+                authError.style.color = 'var(--error)';
+                return;
+            }
+            
+            authError.style.display = 'none';
+            authSubmitText.style.opacity = '0';
+            authSpinner.style.display = 'block';
+            const btn = document.getElementById('auth-submit-btn');
+            if (btn) btn.disabled = true;
+
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.href,
+                });
+                if (error) throw error;
+                
+                showToast('Correo de recuperación enviado.', 'success');
+                authError.textContent = 'Revisa tu bandeja de entrada para restablecer tu contraseña.';
+                authError.style.display = 'block';
+                authError.style.color = '#10b981'; // Success color
+            } catch (err) {
+                authError.textContent = err.message || 'Error al enviar el correo de recuperación';
+                authError.style.display = 'block';
+                authError.style.color = 'var(--error)';
+            } finally {
+                authSubmitText.style.opacity = '1';
+                authSpinner.style.display = 'none';
+                if (btn) btn.disabled = false;
+            }
+        });
+    }
+
     // Logout button
     if (btnLogout) {
         btnLogout.addEventListener('click', async () => {
