@@ -5,26 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
        ═══════════════════════════════════════ */
     const SUPABASE_URL = 'https://wqbrappajbrzanpymwtx.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_rxdHNZAUSQw-C8-BvzX4rA_9qH6GeL9';
-    
-    let supabase;
-    try {
-        if (!SUPABASE_ANON_KEY.startsWith('eyJ')) {
-            console.error('La clave ANON_KEY no parece válida (debe empezar por eyJ)');
-            alert('Aviso: La clave de Supabase no parece correcta. Por favor, verifica el archivo main.js.');
-        }
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        console.log('Supabase client initialized');
-    } catch (e) {
-        console.error('Critical: could not initialize Supabase', e);
-        alert('Error crítico: No se pudo conectar con Supabase. Verifica la URL y la Key.');
-    }
-
-    // Global error listener to help debugging
-    window.onerror = function(msg, url, lineNo, columnNo, error) {
-        showToast('Error de sistema: ' + msg, 'error');
-        return false;
-    };
-
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     /* ═══════════════════════════════════════
        STATE
@@ -210,55 +191,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle Auth form submit
     if (authLoginForm) {
-        const togglePassword = document.getElementById('toggle-password');
-        const passwordInput = document.getElementById('auth-password');
-        
-        if (togglePassword && passwordInput) {
-            togglePassword.addEventListener('click', () => {
-                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordInput.setAttribute('type', type);
-                togglePassword.classList.toggle('active');
-            });
-        }
-
-        const btnCheck = document.getElementById('btn-check-connection');
-        if (btnCheck) {
-            btnCheck.addEventListener('click', async () => {
-                btnCheck.disabled = true;
-                btnCheck.innerHTML = 'Probando...';
-                try {
-                    // Try to fetch one row from a public table or just ping
-                    const { error } = await supabase.from('services').select('id').limit(1);
-                    if (error) {
-                        if (error.message.includes('API key')) {
-                            showToast('La clave de Supabase es inválida.', 'error');
-                        } else {
-                            showToast('Error: ' + error.message, 'error');
-                        }
-                    } else {
-                        showToast('✓ Conexión con Supabase establecida correctamente.');
-                    }
-                } catch (e) {
-                    showToast('Fallo total de conexión. Revisa el archivo main.js.', 'error');
-                } finally {
-                    btnCheck.innerHTML = 'Verificar conexión con Supabase';
-                    btnCheck.disabled = false;
-                }
-            });
-        }
-
         authLoginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             authError.style.display = 'none';
             
-            const email = document.getElementById('auth-email').value.trim();
+            const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
-            
-            if (!email || !password) {
-                authError.textContent = 'Por favor, rellena todos los campos';
-                authError.style.display = 'block';
-                return;
-            }
             
             // UI Loading state
             authSubmitText.style.opacity = '0';
@@ -267,20 +205,10 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = true;
 
             try {
-                const { error, data } = await supabase.auth.signInWithPassword({ email, password });
-                if (error) {
-                    if (error.message.includes('Email not confirmed')) {
-                        throw new Error('El correo no ha sido confirmado. Revisa tu bandeja de entrada.');
-                    } else if (error.message.includes('Invalid login credentials')) {
-                        throw new Error('Email o contraseña incorrectos. Verifica tus datos.');
-                    }
-                    throw error;
-                }
-                
-                showToast('¡Bienvenido de nuevo!');
-                // handleSessionUpdate will take care of the UI
+                const { error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                // Supabase automatically updates the session via onAuthStateChange listener
             } catch (err) {
-                console.error('Login error:', err);
                 authError.textContent = err.message || 'Error en la autenticación';
                 authError.style.display = 'block';
             } finally {
@@ -320,9 +248,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const { error } = await supabase.from('clients').update({ 
             name: data.name, 
             phone: data.phone, 
-            email: data.email, 
-            notes: data.notes,
-            photo_url: data.photo_url 
+            email: data.email,
+            observations: data.observations 
         }).eq('id', data.id);
         if (error) { showToast('Error al actualizar cliente: ' + error.message, 'error'); return false; }
         State.clients = State.clients.map(c => c.id === data.id ? data : c);
@@ -571,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="day-detail-time">${apt.time} – ${endStr}</div>
                         <div class="day-detail-info">
                             <strong>${client.name}</strong>
-                            <span>${service.name} · ${service.duration} min ${client.notes ? `<small style="color:var(--accent-primary); font-weight:500">(${client.notes})</small>` : ''}${apt.notes ? ' · ' + apt.notes : ''}</span>
+                            <span>${service.name} · ${service.duration} min${apt.notes ? ' · ' + apt.notes : ''}</span>
                         </div>
                         <div class="day-detail-actions">
                             <button class="delete-btn" data-id="${apt.id}" title="Eliminar cita">
@@ -728,24 +655,14 @@ document.addEventListener('DOMContentLoaded', () => {
             rows = `
             <div class="data-card">
                 <table class="table">
-                    <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Fotos</th><th>Observaciones</th><th>Acciones</th></tr></thead>
+                    <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Observaciones</th><th>Acciones</th></tr></thead>
                     <tbody>
-                    ${State.clients.map(c => {
-                        const photoList = c.photo_url ? c.photo_url.split(',').map(url => url.trim()).filter(Boolean) : [];
-                        return `
+                    ${State.clients.map(c => `
                         <tr>
                             <td style="font-weight:600">${c.name}</td>
                             <td>${c.phone || '—'}</td>
                             <td>${c.email || '—'}</td>
-                            <td>
-                                <div class="client-avatar-group">
-                                    ${photoList.length > 0 
-                                        ? photoList.map(url => `<div class="avatar-stack"><img src="${url}" onerror="this.parentElement.style.display='none'"></div>`).join('')
-                                        : `<div class="avatar-placeholder-small">${c.name.charAt(0)}</div>`
-                                    }
-                                </div>
-                            </td>
-                            <td class="col-observaciones">${c.notes || '—'}</td>
+                            <td title="${c.observations || ''}" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); font-size: 0.85rem;">${c.observations || '—'}</td>
                             <td>
                                 <div class="actions">
                                     <button class="edit-btn" data-id="${c.id}" data-type="client" title="Editar">
@@ -1125,12 +1042,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input type="email" class="form-control" name="email" value="${isEdit ? info.email : ''}">
                 </div>
                 <div class="form-group">
-                    <label>URLs de las Fotos (separadas por comas)</label>
-                    <textarea class="form-control" name="photoUrl" rows="2" placeholder="https://url1.com, https://url2.com">${isEdit ? (info.photo_url || '') : ''}</textarea>
-                </div>
-                <div class="form-group">
                     <label>Observaciones</label>
-                    <textarea class="form-control" name="notes" rows="2" placeholder="Información importante...">${isEdit ? (info.notes || '') : ''}</textarea>
+                    <textarea class="form-control" name="observations" rows="3" placeholder="Notas sobre el cliente...">${isEdit ? (info.observations || '') : ''}</textarea>
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
@@ -1150,9 +1063,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     id: isEdit ? info.id : generateId(), 
                     name: fd.get('name'), 
                     phone: fd.get('phone'), 
-                    email: fd.get('email'), 
-                    notes: fd.get('notes'),
-                    photo_url: fd.get('photoUrl') 
+                    email: fd.get('email'),
+                    observations: fd.get('observations')
                 };
 
                 let success;

@@ -46,17 +46,9 @@
                 <div class="form-group" id="auth-password-group">
                     <label for="auth-password">Contraseña</label>
                     <div class="auth-input-wrapper">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                         <input type="password" class="form-control auth-input" id="auth-password" name="password" required placeholder="••••••••" autocomplete="current-password" minlength="6">
-                        <button type="button" class="btn-toggle-password" id="toggle-password" title="Mostrar contraseña">
-                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                        </button>
                     </div>
-                </div>
-
-                <div class="auth-debug-tools">
-                    <button type="button" class="btn-check-connection" id="btn-check-connection">
-                        <span>🔍 Probar conexión con Supabase</span>
-                    </button>
                 </div>
 
                 <button type="submit" class="btn btn-primary auth-submit" id="auth-submit-btn">
