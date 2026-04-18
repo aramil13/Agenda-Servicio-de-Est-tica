@@ -52,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const authSubmitText = document.getElementById('auth-submit-text');
     const authSpinner = document.getElementById('auth-spinner');
     const authError = document.getElementById('auth-error');
-    const authForgotLink = document.getElementById('auth-forgot-link');
     const userEmailEl = document.getElementById('user-email');
     const userAvatarEl = document.getElementById('user-avatar');
     const btnLogout = document.getElementById('btn-logout');
@@ -150,34 +149,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Check existing session
     async function checkSession() {
-        // Only sign out automatically if we are NOT in a recovery or invitation flow
-        // We check both hash (#) and search (?) for access_token, type=recovery, or code (PKCE)
-        const isAuthFlow = window.location.hash.includes('type=recovery') || 
-                           window.location.hash.includes('access_token=') ||
-                           window.location.search.includes('type=recovery') ||
-                           window.location.search.includes('code=');
-        
-        if (!isAuthFlow) {
-            // Always sign out on start to ensure we always ask for credentials
-            // unless we are in the middle of a recovery flow
-            await supabase.auth.signOut();
-        }
+        // Always sign out on start to ensure we always ask for credentials
+        await supabase.auth.signOut();
         
         // Listen for auth changes
         supabase.auth.onAuthStateChange(async (event, newSession) => {
-            console.log('Auth event:', event);
-            if (event === 'PASSWORD_RECOVERY') {
-                handleSessionUpdate(newSession);
-                showPasswordResetModal();
-            } else if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
-                handleSessionUpdate(newSession);
-                
-                // Fallback: Si estamos en flujo de recuperación y acabamos de iniciar sesión, 
-                // pero no saltó el evento PASSWORD_RECOVERY, mostramos el modal de todas formas.
-                if (event === 'SIGNED_IN' && isAuthFlow) {
-                    showPasswordResetModal();
-                }
-            }
+            handleSessionUpdate(newSession);
         });
 
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -186,65 +163,10 @@ document.addEventListener('DOMContentLoaded', () => {
             handleSessionUpdate(null);
             return;
         }
-
-        // Only call handleSessionUpdate if we are NOT in a recovery flow
-        // so that the onAuthStateChange event 'PASSWORD_RECOVERY' can take priority
-        if (!isAuthFlow) {
-            handleSessionUpdate(session);
-        }
+        handleSessionUpdate(session);
     }
 
-    /** Shows a modal to enter a new password after recovery link is clicked */
-    function showPasswordResetModal() {
-        const resetHtml = `
-            <form id="form-reset-password" class="auth-form" style="padding: 1rem 0;">
-                <p style="margin-bottom: 1.5rem; color: var(--text-secondary); font-size: 0.9rem;">
-                    Introduce tu nueva contraseña (mínimo 6 caracteres).
-                </p>
-                <div class="form-group">
-                    <label for="new-password">Nueva contraseña</label>
-                    <div class="auth-input-wrapper">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                        <input type="password" class="form-control auth-input" id="new-password" required minlength="6" placeholder="••••••••">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="confirm-password">Confirmar contraseña</label>
-                    <div class="auth-input-wrapper">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                        <input type="password" class="form-control auth-input" id="confirm-password" required minlength="6" placeholder="••••••••">
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 1rem;">Actualizar Contraseña</button>
-            </form>
-        `;
 
-        openModal('Restablecer Contraseña', resetHtml, () => {
-            const form = document.getElementById('form-reset-password');
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const newPass = document.getElementById('new-password').value;
-                const confirmPass = document.getElementById('confirm-password').value;
-
-                if (newPass !== confirmPass) {
-                    showToast('Las contraseñas no coinciden', 'error');
-                    return;
-                }
-
-                try {
-                    const { error } = await supabase.auth.updateUser({ password: newPass });
-                    if (error) throw error;
-                    
-                    showToast('Contraseña actualizada correctamente', 'success');
-                    closeModal();
-                    // Forced logout to ensure they login with the new one
-                    await supabase.auth.signOut();
-                } catch (err) {
-                    showToast('Error: ' + err.message, 'error');
-                }
-            });
-        });
-    }
 
     function handleSessionUpdate(session) {
         State.session = session;
@@ -314,51 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Forgot password listener
-    if (authForgotLink) {
-        authForgotLink.addEventListener('click', async (e) => {
-            e.preventDefault(); // Extra protection for Firefox
-            
-            const emailInput = document.getElementById('auth-email');
-            const email = emailInput ? emailInput.value : '';
-            
-            if (!email) {
-                authError.textContent = 'Por favor, introduce tu correo electrónico para enviarte las instrucciones.';
-                authError.style.display = 'block';
-                authError.style.color = 'var(--danger)'; // Corrected from --error
-                return;
-            }
-            
-            authError.style.display = 'none';
-            authSubmitText.style.opacity = '0';
-            authSpinner.style.display = 'block';
-            const btn = document.getElementById('auth-submit-btn');
-            if (btn) btn.disabled = true;
 
-            try {
-                // Ensure we use the current base URL as redirect to avoid issues with different ports or domains
-                const redirectTo = window.location.href.split('#')[0].split('?')[0];
-                
-                const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: redirectTo,
-                });
-                if (error) throw error;
-                
-                showToast('Correo de recuperación enviado.', 'success');
-                authError.className = 'auth-success';
-                authError.textContent = 'Revisa tu bandeja de entrada para restablecer tu contraseña.';
-                authError.style.display = 'block';
-            } catch (err) {
-                authError.className = 'auth-error';
-                authError.textContent = err.message || 'Error al enviar el correo de recuperación';
-                authError.style.display = 'block';
-            } finally {
-                authSubmitText.style.opacity = '1';
-                authSpinner.style.display = 'none';
-                if (btn) btn.disabled = false;
-            }
-        });
-    }
 
     // Logout button
     if (btnLogout) {

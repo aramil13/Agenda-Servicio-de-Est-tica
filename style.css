@@ -1279,34 +1279,9 @@ textarea.form-control {
     text-align: center;
 }
 
-.auth-success {
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--success);
-    padding: 0.75rem 1rem;
-    border-radius: var(--radius-md);
-    font-size: 0.85rem;
-    border: 1px solid rgba(16, 185, 129, 0.2);
-    text-align: center;
-}
 
-.auth-links {
-    margin-top: 1.5rem;
-    text-align: center;
-}
 
-.auth-link {
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    font-family: var(--font-sans);
-    cursor: pointer;
-    transition: var(--transition);
-}
 
-.auth-link:hover {
-    color: var(--accent-primary);
-}
 
 .auth-divider {
     height: 1px;
