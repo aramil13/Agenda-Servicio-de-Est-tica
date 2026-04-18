@@ -686,9 +686,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             <td>${c.email || '—'}</td>
                              <td>
                                 <div class="client-photos-mini">
-                                    ${(c.photos || []).slice(0, 3).map(url => `<img src="${url}" class="mini-photo" onclick="window.open('${url}', '_blank')">`).join('')}
-                                    ${(c.photos || []).length > 3 ? `<span class="more-photos">+${c.photos.length - 3}</span>` : ''}
-                                    ${!(c.photos || []).length ? '—' : ''}
+                                    ${Array.isArray(c.photos) ? c.photos.slice(0, 3).map(url => `<img src="${url}" class="mini-photo" onclick="event.stopPropagation(); window.open('${url}', '_blank')">`).join('') : ''}
+                                    ${Array.isArray(c.photos) && c.photos.length > 3 ? `<span class="more-photos">+${c.photos.length - 3}</span>` : ''}
+                                    ${(!Array.isArray(c.photos) || c.photos.length === 0) ? '<span style="color:var(--text-secondary);opacity:0.5">—</span>' : ''}
                                 </div>
                             </td>
                             <td title="${c.observations || ''}" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); font-size: 0.85rem;">${c.observations || '—'}</td>
@@ -1095,7 +1095,29 @@ document.addEventListener('DOMContentLoaded', () => {
         openModal(isEdit ? 'Editar Cliente' : 'Nuevo Cliente', html, () => {
             let currentPhotos = isEdit ? [...(info.photos || [])] : [];
             
-            // Handle photo removal
+            const fileInput = document.getElementById('client-photos-input');
+            const previewContainer = document.getElementById('photos-preview');
+
+            // Handle new file selection preview
+            fileInput.addEventListener('change', () => {
+                // Keep existing photo previews, but clear old "new" previews
+                const existingPreviews = previewContainer.querySelectorAll('.preview-item:not(.new-preview)');
+                previewContainer.innerHTML = '';
+                existingPreviews.forEach(p => previewContainer.appendChild(p));
+
+                Array.from(fileInput.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const div = document.createElement('div');
+                        div.className = 'preview-item new-preview';
+                        div.innerHTML = `<img src="${e.target.result}"><span class="new-badge">Nuevo</span>`;
+                        previewContainer.appendChild(div);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            });
+
+            // Handle photo removal (existing ones)
             document.querySelectorAll('.remove-photo').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const url = btn.dataset.url;
