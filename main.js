@@ -529,14 +529,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (clippedStart > cursorMins) {
                     const pct = ((clippedStart - cursorMins) / totalMinutes) * 100;
-                    timelineHtml += `<div class="timeline-segment free" style="width:${pct}%;" title="Libre"></div>`;
+                    const stH_str = Math.floor(cursorMins / 60).toString().padStart(2, '0');
+                    const stM_str = (cursorMins % 60).toString().padStart(2, '0');
+                    const endH_str = Math.floor(clippedStart / 60).toString().padStart(2, '0');
+                    const endM_str = (clippedStart % 60).toString().padStart(2, '0');
+                    timelineHtml += `<div class="timeline-segment free" style="width:${pct}%;" title="Libre: ${stH_str}:${stM_str} - ${endH_str}:${endM_str}"></div>`;
                 }
                 
                 if (clippedEnd > clippedStart) {
                     const pct = ((clippedEnd - clippedStart) / totalMinutes) * 100;
-                    // For the title of the booked spot we could show the time
-                    const [endH_str, endM_str] = [Math.floor(clippedEnd / 60).toString().padStart(2, '0'), (clippedEnd % 60).toString().padStart(2, '0')];
                     const [stH_str, stM_str] = [Math.floor(clippedStart / 60).toString().padStart(2, '0'), (clippedStart % 60).toString().padStart(2, '0')];
+                    const [endH_str, endM_str] = [Math.floor(clippedEnd / 60).toString().padStart(2, '0'), (clippedEnd % 60).toString().padStart(2, '0')];
                     timelineHtml += `<div class="timeline-segment booked" style="width:${pct}%;" title="Ocupado: ${stH_str}:${stM_str} - ${endH_str}:${endM_str}"></div>`;
                 }
 
@@ -545,7 +548,11 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (cursorMins < endDayMins) {
                 const pct = ((endDayMins - cursorMins) / totalMinutes) * 100;
-                timelineHtml += `<div class="timeline-segment free" style="width:${pct}%;" title="Libre"></div>`;
+                const stH_str = Math.floor(cursorMins / 60).toString().padStart(2, '0');
+                const stM_str = (cursorMins % 60).toString().padStart(2, '0');
+                const endH_str = Math.floor(endDayMins / 60).toString().padStart(2, '0');
+                const endM_str = (endDayMins % 60).toString().padStart(2, '0');
+                timelineHtml += `<div class="timeline-segment free" style="width:${pct}%;" title="Libre: ${stH_str}:${stM_str} - ${endH_str}:${endM_str}"></div>`;
             }
         }
         timelineHtml += '</div>';
