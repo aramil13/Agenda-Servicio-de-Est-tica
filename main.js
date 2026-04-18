@@ -140,6 +140,24 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             State.isLoading = false;
             renderRoute();
+            
+            // Verificación post-carga: ¿Hay recordatorios para dentro de 48h?
+            if (State.session) {
+                const today = new Date();
+                const targetDate = new Date(today);
+                targetDate.setDate(today.getDate() + 2);
+                const targetStr = toLocalDateStr(targetDate);
+                
+                const count = State.appointments.filter(apt => {
+                    if (apt.date !== targetStr) return false;
+                    const client = State.clients.find(c => c.id === apt.clientId);
+                    return client && client.send_whatsapp;
+                }).length;
+                
+                if (count > 0) {
+                    showToast(`Tienes ${count} recordatorio${count !== 1 ? 's' : ''} pendiente${count !== 1 ? 's' : ''} para citas en 48 horas.`, 'info');
+                }
+            }
         }
     }
 
@@ -428,6 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (currentRoute === 'clients') content = getClientsView();
         else if (currentRoute === 'services') content = getServicesView();
         else if (currentRoute === 'monthly') content = getMonthlyView();
+        else if (currentRoute === 'whatsapp') content = getWhatsAppView();
 
         appContent.innerHTML = `<div class="fade-in">${content}</div>`;
         attachEvents();
@@ -990,6 +1009,101 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* ═══════════════════════════════════════
+       WHATSAPP REMINDERS VIEW
+       ═══════════════════════════════════════ */
+    function getWhatsAppView() {
+        // Buscamos citas que sean exactamente dentro de 2 días (48 horas)
+        const today = new Date();
+        const targetDate = new Date(today);
+        targetDate.setDate(today.getDate() + 2);
+        const targetStr = toLocalDateStr(targetDate);
+        
+        // Formatear la fecha para mostrar en el título
+        const dateLabel = targetDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+
+        const toRemind = State.appointments.filter(apt => {
+            if (apt.date !== targetStr) return false;
+            const client = State.clients.find(c => c.id === apt.clientId);
+            return client && client.send_whatsapp;
+        }).sort((a, b) => a.time.localeCompare(b.time));
+
+        let rows = '';
+        if (toRemind.length === 0) {
+            rows = `
+                <tr>
+                    <td colspan="4" style="text-align:center;padding:4rem;color:var(--text-secondary)">
+                        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="opacity:0.25;margin-bottom:1rem;"><path d="M12.031 6.172c-2.32 0-4.516.903-6.183 2.563-3.23 3.23-3.403 8.356-.511 11.777l-1.341 4.904 5.035-1.32c1.077.585 2.29.893 3.522.893h.03c2.321 0 4.516-.903 6.183-2.563 3.413-3.414 3.413-8.948 0-12.362-1.667-1.66-3.863-1.592-6.235-1.592zm5.753 12.185c-.254.71-1.472 1.286-2.028 1.368-.556.082-1.112.122-1.666-.122-.303-.122-.656-.254-1.076-.442-1.812-.816-3.033-2.656-3.13-2.77-.091-.112-.76-.98-.76-1.884 0-.904.47-1.353.64-1.554.17-.2.37-.25.5-.25s.262-.01.373.01c.123 0 .285-.04.444.33.16.38.542 1.312.59 1.41.05.1.08.21.01.34-.07.13-.1.22-.2.34-.1.12-.21.26-.3.37-.1.12-.22.25-.1.44.13.21.57.94 1.22 1.52.84.75 1.55 1 1.77 1.11.22.11.36.09.49-.06.13-.15.54-.62.68-.84.14-.21.29-.18.49-.1.2.08 1.25.59 1.47.69s.36.16.41.25c.05.1.05.57-.2.1.28l-.01.01zM12.031 0C5.386 0 0 5.385 0 12.031c0 2.11.55 4.16 1.59 5.97L0 24l6.19-1.62c1.77 1.04 3.79 1.59 5.84 1.59h.01C18.66 24 24 18.615 24 12.031 24 5.385 18.66 0 12.031 0z"/></svg>
+                        <p>No hay recordatorios pendientes para citas en 48 horas.</p>
+                        <p style="font-size:0.85rem;margin-top:0.5rem">Objetivo: Citas del ${dateLabel}</p>
+                    </td>
+                </tr>`;
+        } else {
+            toRemind.forEach(apt => {
+                const client = State.clients.find(c => c.id === apt.clientId);
+                const service = State.services.find(s => s.id === apt.serviceId);
+                rows += `
+                    <tr>
+                        <td>
+                            <div style="font-weight:600">${client.name}</div>
+                            <div style="font-size:0.8rem;color:var(--text-secondary)">${client.phone}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight:500;color:var(--accent-primary)">${apt.time}</div>
+                        </td>
+                        <td>
+                            <span class="monthly-service-badge">${service ? service.name : '—'}</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-primary btn-sm send-reminder-btn" 
+                                    style="padding: 0.4rem 0.8rem;"
+                                    data-name="${client.name}" 
+                                    data-phone="${client.phone}" 
+                                    data-date="${apt.date}" 
+                                    data-time="${apt.time}">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;vertical-align:middle"><path d="M12.031 6.172c-2.32 0-4.516.903-6.183 2.563-3.23 3.23-3.403 8.356-.511 11.777l-1.341 4.904 5.035-1.32c1.077.585 2.29.893 3.522.893h.03c2.321 0 4.516-.903 6.183-2.563 3.413-3.414 3.413-8.948 0-12.362-1.667-1.66-3.863-1.592-6.235-1.592zm5.753 12.185c-.254.71-1.472 1.286-2.028 1.368-.556.082-1.112.122-1.666-.122-.303-.122-.656-.254-1.076-.442-1.812-.816-3.033-2.656-3.13-2.77-.091-.112-.76-.98-.76-1.884 0-.904.47-1.353.64-1.554.17-.2.37-.25.5-.25s.262-.01.373.01c.123 0 .285-.04.444.33.16.38.542 1.312.59 1.41.05.1.08.21.01.34-.07.13-.1.22-.2.34-.1.12-.21.26-.3.37-.1.12-.22.25-.1.44.13.21.57.94 1.22 1.52.84.75 1.55 1 1.77 1.11.22.11.36.09.49-.06.13-.15.54-.62.68-.84.14-.21.29-.18.49-.1.2.08 1.25.59 1.47.69s.36.16.41.25c.05.1.05.57-.2.1.28l-.01.01zM12.031 0C5.386 0 0 5.385 0 12.031c0 2.11.55 4.16 1.59 5.97L0 24l6.19-1.62c1.77 1.04 3.79 1.59 5.84 1.59h.01C18.66 24 24 18.615 24 12.031 24 5.385 18.66 0 12.031 0z"/></svg>
+                                Recordar
+                            </button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        return `
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">Recordatorios WhatsApp</h1>
+                    <p style="color:var(--text-secondary)">Gestiona los avisos para las citas en 48 horas · <span class="supabase-badge">⚡ Automático</span></p>
+                </div>
+            </div>
+
+            <div class="data-card monthly-table-card">
+                <div class="monthly-table-header" style="background: var(--bg-surface); padding: 1.5rem; border-bottom: 1px solid var(--border-color);">
+                    <h3 style="display:flex;align-items:center;gap:0.75rem;">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        ${dateLabel}
+                    </h3>
+                    <span class="monthly-count-badge">${toRemind.length} pendiente${toRemind.length !== 1 ? 's' : ''}</span>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Hora</th>
+                            <th>Servicio</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+            
+            <p style="margin-top: 1.5rem; color: var(--text-secondary); font-size: 0.85rem; text-align: center; font-style: italic;">
+                * Debes tener abierta esta pestaña para gestionar los recordatorios diarios.
+            </p>
+        `;
+    }
+
+    /* ═══════════════════════════════════════
        EVENT BINDING
        ═══════════════════════════════════════ */
     function attachEvents() {
@@ -1087,6 +1201,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 const type = e.currentTarget.dataset.type;
                 if (type === 'client') showClientForm(State.clients.find(c => c.id === id));
                 else if (type === 'service') showServiceForm(State.services.find(s => s.id === id));
+            });
+        });
+
+        // WhatsApp Reminder direct buttons
+        document.querySelectorAll('.send-reminder-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                const { name, phone, date, time } = e.currentTarget.dataset;
+                const cleanPhone = phone.replace(/\D/g, '');
+                const dateObj = new Date(date + 'T00:00:00');
+                const dateLabel = dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+                
+                const msg = `Hola ${name} tienes una cita con Nymara Estilistas, el ${dateLabel}, a las ${time}`;
+                const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
+                window.open(waUrl, '_blank');
             });
         });
     }
