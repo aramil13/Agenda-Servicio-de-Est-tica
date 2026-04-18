@@ -1155,8 +1155,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         return `
                             <tr data-aptid="${apt.id}">
                                 <td>
-                                    <div style="font-weight:600">${client.name}</div>
-                                    <div style="font-size:0.8rem;color:var(--text-secondary)">${client.phone}</div>
+                                    <div style="font-weight:600">${client ? client.name : 'Cliente desconocido'}</div>
+                                    <div style="font-size:0.8rem;color:var(--text-secondary)">${client ? client.phone : 'Sin teléfono'}</div>
                                 </td>
                                 <td><span class="status-badge" style="background:var(--bg-body);color:var(--text-primary)">${dLabel}</span></td>
                                 <td><div style="font-weight:500;color:var(--accent-primary)">${apt.time}</div></td>
@@ -1164,8 +1164,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <td>
                                     <button class="btn btn-primary btn-sm send-reminder-btn" 
                                             style="padding: 0.4rem 0.8rem;"
-                                            data-name="${client.name}" 
-                                            data-phone="${client.phone}" 
+                                            data-name="${client ? client.name : ''}" 
+                                            data-phone="${client ? client.phone : ''}" 
                                             data-date="${apt.date}" 
                                             data-time="${apt.time}">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;vertical-align:middle"><path d="M12.031 6.172c-2.32 0-4.516.903-6.183 2.563-3.23 3.23-3.403 8.356-.511 11.777l-1.341 4.904 5.035-1.32c1.077.585 2.29.893 3.522.893h.03c2.321 0 4.516-.903 6.183-2.563 3.413-3.414 3.413-8.948 0-12.362-1.667-1.66-3.863-1.592-6.235-1.592zm5.753 12.185c-.254.71-1.472 1.286-2.028 1.368-.556.082-1.112.122-1.666-.122-.303-.122-.656-.254-1.076-.442-1.812-.816-3.033-2.656-3.13-2.77-.091-.112-.76-.98-.76-1.884 0-.904.47-1.353.64-1.554.17-.2.37-.25.5-.25s.262-.01.373.01c.123 0 .285-.04.444.33.16.38.542 1.312.59 1.41.05.1.08.21.01.34-.07.13-.1.22-.2.34-.1.12-.21.26-.3.37-.1.12-.22.25-.1.44.13.21.57.94 1.22 1.52.84.75 1.55 1 1.77 1.11.22.11.36.09.49-.06.13-.15.54-.62.68-.84.14-.21.29-.18.49-.1.2.08 1.25.59 1.47.69s.36.16.41.25c.05.1.05.57-.2.1.28l-.01.01zM12.031 0C5.386 0 0 5.385 0 12.031c0 2.11.55 4.16 1.59 5.97L0 24l6.19-1.62c1.77 1.04 3.79 1.59 5.84 1.59h.01C18.66 24 24 18.615 24 12.031 24 5.385 18.66 0 12.031 0z"/></svg>
