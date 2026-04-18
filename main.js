@@ -150,9 +150,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Check existing session
     async function checkSession() {
+        // Always sign out on start to ensure we always ask for credentials
+        // and clear any lingering session from previous usages
+        await supabase.auth.signOut();
+        
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
             console.error('Error checking session:', error);
+            // Even on error, ensure we show login
+            handleSessionUpdate(null);
             return;
         }
         handleSessionUpdate(session);
@@ -189,7 +195,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function resetAuthState() {
-        authLoginForm.reset();
+        if (authLoginForm) {
+            authLoginForm.reset();
+            // Explicitly clear values to bypass some browser autofill behaviors
+            const emailInput = document.getElementById('auth-email');
+            const passwordInput = document.getElementById('auth-password');
+            if (emailInput) emailInput.value = '';
+            if (passwordInput) passwordInput.value = '';
+        }
         authError.style.display = 'none';
     }
 
