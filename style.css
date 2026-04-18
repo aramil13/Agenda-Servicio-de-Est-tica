@@ -795,6 +795,83 @@ textarea.form-control {
     animation: spin 0.8s linear infinite;
 }
 
+/* ── Client Photos ── */
+.client-photos-mini {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.mini-photo {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 1px solid var(--border-color);
+    cursor: zoom-in;
+    transition: var(--transition);
+}
+
+.mini-photo:hover {
+    transform: scale(1.1);
+    z-index: 2;
+    box-shadow: var(--shadow-md);
+}
+
+.more-photos {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--accent-primary);
+    background: var(--bg-surface-hover);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.photos-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.preview-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.remove-photo {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(239, 68, 68, 0.85);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    transition: var(--transition);
+}
+
+.remove-photo:hover {
+    background: var(--danger);
+    transform: scale(1.1);
+}
+
 /* ── Supabase Badge ── */
 .supabase-badge {
     display: inline-flex;

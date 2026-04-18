@@ -234,7 +234,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    // ── Clients CRUD ──
+    async function uploadClientPhotos(files, clientId) {
+        const urls = [];
+        for (const file of files) {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${clientId}/${generateId()}.${fileExt}`;
+            const { data, error } = await supabase.storage
+                .from('client-photos')
+                .upload(fileName, file);
+
+            if (error) {
+                console.error('Error subiendo foto:', error);
+                continue;
+            }
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('client-photos')
+                .getPublicUrl(fileName);
+            
+            urls.push(publicUrl);
+        }
+        return urls;
+    }
 
     async function addClient(data) {
         const { error } = await supabase.from('clients').insert([data]);
@@ -249,6 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
             name: data.name, 
             phone: data.phone, 
             email: data.email,
+            photos: data.photos,
             observations: data.observations 
         }).eq('id', data.id);
         if (error) { showToast('Error al actualizar cliente: ' + error.message, 'error'); return false; }
@@ -655,13 +677,20 @@ document.addEventListener('DOMContentLoaded', () => {
             rows = `
             <div class="data-card">
                 <table class="table">
-                    <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Observaciones</th><th>Acciones</th></tr></thead>
+                    <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Fotos</th><th>Observaciones</th><th>Acciones</th></tr></thead>
                     <tbody>
                     ${State.clients.map(c => `
                         <tr>
                             <td style="font-weight:600">${c.name}</td>
                             <td>${c.phone || '—'}</td>
                             <td>${c.email || '—'}</td>
+                             <td>
+                                <div class="client-photos-mini">
+                                    ${(c.photos || []).slice(0, 3).map(url => `<img src="${url}" class="mini-photo" onclick="window.open('${url}', '_blank')">`).join('')}
+                                    ${(c.photos || []).length > 3 ? `<span class="more-photos">+${c.photos.length - 3}</span>` : ''}
+                                    ${!(c.photos || []).length ? '—' : ''}
+                                </div>
+                            </td>
                             <td title="${c.observations || ''}" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); font-size: 0.85rem;">${c.observations || '—'}</td>
                             <td>
                                 <div class="actions">
@@ -1042,6 +1071,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input type="email" class="form-control" name="email" value="${isEdit ? info.email : ''}">
                 </div>
                 <div class="form-group">
+                    <label>Fotos (puedes seleccionar varias)</label>
+                    <input type="file" class="form-control" id="client-photos-input" multiple accept="image/*">
+                    <div id="photos-preview" class="photos-preview-grid">
+                        ${isEdit && info.photos ? info.photos.map(url => `
+                            <div class="preview-item">
+                                <img src="${url}">
+                                <button type="button" class="remove-photo" data-url="${url}">&times;</button>
+                            </div>
+                        `).join('') : ''}
+                    </div>
+                </div>
+                <div class="form-group">
                     <label>Observaciones</label>
                     <textarea class="form-control" name="observations" rows="3" placeholder="Notas sobre el cliente...">${isEdit ? (info.observations || '') : ''}</textarea>
                 </div>
@@ -1052,6 +1093,17 @@ document.addEventListener('DOMContentLoaded', () => {
             </form>`;
 
         openModal(isEdit ? 'Editar Cliente' : 'Nuevo Cliente', html, () => {
+            let currentPhotos = isEdit ? [...(info.photos || [])] : [];
+            
+            // Handle photo removal
+            document.querySelectorAll('.remove-photo').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const url = btn.dataset.url;
+                    currentPhotos = currentPhotos.filter(u => u !== url);
+                    btn.parentElement.remove();
+                });
+            });
+
             document.getElementById('client-form').addEventListener('submit', async e => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
@@ -1059,11 +1111,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.textContent = 'Guardando…';
 
                 const fd = new FormData(e.target);
+                const fileInput = document.getElementById('client-photos-input');
+                const clientId = isEdit ? info.id : generateId();
+
+                // Upload new photos if any
+                let newPhotosUrls = [];
+                if (fileInput.files.length > 0) {
+                    newPhotosUrls = await uploadClientPhotos(fileInput.files, clientId);
+                }
+
                 const data = { 
-                    id: isEdit ? info.id : generateId(), 
+                    id: clientId, 
                     name: fd.get('name'), 
                     phone: fd.get('phone'), 
                     email: fd.get('email'),
+                    photos: [...currentPhotos, ...newPhotosUrls],
                     observations: fd.get('observations')
                 };
 
