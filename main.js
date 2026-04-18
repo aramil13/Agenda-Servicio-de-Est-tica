@@ -655,22 +655,23 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             rows = `
             <div class="data-card">
-                <table class="table">
-                    <thead><tr><th>Foto</th><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Observaciones</th><th>Acciones</th></tr></thead>
+                    <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Fotos</th><th>Observaciones</th><th>Acciones</th></tr></thead>
                     <tbody>
-                    ${State.clients.map(c => `
+                    ${State.clients.map(c => {
+                        const photoList = c.photo_url ? c.photo_url.split(',').map(url => url.trim()).filter(Boolean) : [];
+                        return `
                         <tr>
-                            <td>
-                                <div class="client-avatar-min">
-                                    ${c.photo_url 
-                                        ? `<img src="${c.photo_url}" alt="${c.name}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=random'">` 
-                                        : `<div class="avatar-placeholder">${c.name.charAt(0)}</div>`
-                                    }
-                                </div>
-                            </td>
                             <td style="font-weight:600">${c.name}</td>
                             <td>${c.phone || '—'}</td>
                             <td>${c.email || '—'}</td>
+                            <td>
+                                <div class="client-avatar-group">
+                                    ${photoList.length > 0 
+                                        ? photoList.map(url => `<div class="avatar-stack"><img src="${url}" onerror="this.parentElement.style.display='none'"></div>`).join('')
+                                        : `<div class="avatar-placeholder-small">${c.name.charAt(0)}</div>`
+                                    }
+                                </div>
+                            </td>
                             <td class="col-observaciones">${c.notes || '—'}</td>
                             <td>
                                 <div class="actions">
@@ -1051,8 +1052,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input type="email" class="form-control" name="email" value="${isEdit ? info.email : ''}">
                 </div>
                 <div class="form-group">
-                    <label>URL de la Foto</label>
-                    <input type="url" class="form-control" name="photoUrl" placeholder="https://ejemplo.com/foto.jpg" value="${isEdit ? (info.photo_url || '') : ''}">
+                    <label>URLs de las Fotos (separadas por comas)</label>
+                    <textarea class="form-control" name="photoUrl" rows="2" placeholder="https://url1.com, https://url2.com">${isEdit ? (info.photo_url || '') : ''}</textarea>
                 </div>
                 <div class="form-group">
                     <label>Observaciones</label>
