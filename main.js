@@ -505,6 +505,57 @@ document.addEventListener('DOMContentLoaded', () => {
             detailHtml += `</div>`;
         }
 
+        const [startH, startM] = State.settings.startTime.split(':').map(Number);
+        const [endH, endM] = State.settings.endTime.split(':').map(Number);
+        const startDayMins = startH * 60 + startM;
+        const endDayMins = endH * 60 + endM;
+        const totalMinutes = endDayMins - startDayMins;
+        
+        let timelineHtml = '<div class="timeline-wrapper">';
+        timelineHtml += `<div class="timeline-header"><span>${State.settings.startTime}</span><span>${State.settings.endTime}</span></div>`;
+        timelineHtml += '<div class="timeline-bar" title="Horario comercial para este día">';
+        
+        if (totalMinutes > 0) {
+            let cursorMins = startDayMins;
+            detailApts.forEach(apt => {
+                const [h, m] = apt.time.split(':').map(Number);
+                const aptStart = h * 60 + m;
+                const aptServ = State.services.find(s => s.id === apt.serviceId);
+                const aptDur = aptServ ? parseInt(aptServ.duration) : 0;
+                const aptEnd = aptStart + aptDur;
+
+                const clippedStart = Math.max(startDayMins, aptStart);
+                const clippedEnd = Math.min(endDayMins, aptEnd);
+
+                if (clippedStart > cursorMins) {
+                    const pct = ((clippedStart - cursorMins) / totalMinutes) * 100;
+                    timelineHtml += `<div class="timeline-segment free" style="width:${pct}%;" title="Libre"></div>`;
+                }
+                
+                if (clippedEnd > clippedStart) {
+                    const pct = ((clippedEnd - clippedStart) / totalMinutes) * 100;
+                    // For the title of the booked spot we could show the time
+                    const [endH_str, endM_str] = [Math.floor(clippedEnd / 60).toString().padStart(2, '0'), (clippedEnd % 60).toString().padStart(2, '0')];
+                    const [stH_str, stM_str] = [Math.floor(clippedStart / 60).toString().padStart(2, '0'), (clippedStart % 60).toString().padStart(2, '0')];
+                    timelineHtml += `<div class="timeline-segment booked" style="width:${pct}%;" title="Ocupado: ${stH_str}:${stM_str} - ${endH_str}:${endM_str}"></div>`;
+                }
+
+                cursorMins = Math.max(cursorMins, clippedEnd);
+            });
+            
+            if (cursorMins < endDayMins) {
+                const pct = ((endDayMins - cursorMins) / totalMinutes) * 100;
+                timelineHtml += `<div class="timeline-segment free" style="width:${pct}%;" title="Libre"></div>`;
+            }
+        }
+        timelineHtml += '</div>';
+        timelineHtml += `
+            <div class="timeline-legend">
+                <div class="legend-item"><span class="legend-color free-color"></span> Libre</div>
+                <div class="legend-item"><span class="legend-color booked-color"></span> Ocupado</div>
+            </div>
+        </div>`;
+
         return `
             <div class="section-header">
                 <div>
@@ -561,6 +612,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <!-- Day Detail -->
             <div class="day-detail">
                 <h3>📋 ${detailLabel}</h3>
+                ${timelineHtml}
                 ${detailHtml}
             </div>
         `;
