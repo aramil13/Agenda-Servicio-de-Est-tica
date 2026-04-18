@@ -150,9 +150,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Check existing session
     async function checkSession() {
-        // Always sign out on start to ensure we always ask for credentials
-        // and clear any lingering session from previous usages
-        await supabase.auth.signOut();
+        // Only sign out automatically if we are NOT in a recovery or invitation flow
+        const isAuthFlow = window.location.hash.includes('type=recovery') || 
+                           window.location.hash.includes('access_token=');
+        
+        if (!isAuthFlow) {
+            // Always sign out on start to ensure we always ask for credentials
+            await supabase.auth.signOut();
+        }
         
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
@@ -164,8 +169,64 @@ document.addEventListener('DOMContentLoaded', () => {
         handleSessionUpdate(session);
 
         // Listen for auth changes
-        supabase.auth.onAuthStateChange((_event, newSession) => {
-            handleSessionUpdate(newSession);
+        supabase.auth.onAuthStateChange(async (event, newSession) => {
+            if (event === 'PASSWORD_RECOVERY') {
+                showPasswordResetModal();
+            } else {
+                handleSessionUpdate(newSession);
+            }
+        });
+    }
+
+    /** Shows a modal to enter a new password after recovery link is clicked */
+    function showPasswordResetModal() {
+        const resetHtml = `
+            <form id="form-reset-password" class="auth-form" style="padding: 1rem 0;">
+                <p style="margin-bottom: 1.5rem; color: var(--text-secondary); font-size: 0.9rem;">
+                    Introduce tu nueva contraseña (mínimo 6 caracteres).
+                </p>
+                <div class="form-group">
+                    <label for="new-password">Nueva contraseña</label>
+                    <div class="auth-input-wrapper">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        <input type="password" class="form-control auth-input" id="new-password" required minlength="6" placeholder="••••••••">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">Confirmar contraseña</label>
+                    <div class="auth-input-wrapper">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        <input type="password" class="form-control auth-input" id="confirm-password" required minlength="6" placeholder="••••••••">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 1rem;">Actualizar Contraseña</button>
+            </form>
+        `;
+
+        openModal('Restablecer Contraseña', resetHtml, () => {
+            const form = document.getElementById('form-reset-password');
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const newPass = document.getElementById('new-password').value;
+                const confirmPass = document.getElementById('confirm-password').value;
+
+                if (newPass !== confirmPass) {
+                    showToast('Las contraseñas no coinciden', 'error');
+                    return;
+                }
+
+                try {
+                    const { error } = await supabase.auth.updateUser({ password: newPass });
+                    if (error) throw error;
+                    
+                    showToast('Contraseña actualizada correctamente', 'success');
+                    closeModal();
+                    // Forced logout to ensure they login with the new one
+                    await supabase.auth.signOut();
+                } catch (err) {
+                    showToast('Error: ' + err.message, 'error');
+                }
+            });
         });
     }
 
