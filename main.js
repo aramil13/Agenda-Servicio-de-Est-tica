@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function updateClient(data) {
-        const { error } = await supabase.from('clients').update({ name: data.name, phone: data.phone, email: data.email }).eq('id', data.id);
+        const { error } = await supabase.from('clients').update({ name: data.name, phone: data.phone, email: data.email, notes: data.notes }).eq('id', data.id);
         if (error) { showToast('Error al actualizar cliente: ' + error.message, 'error'); return false; }
         State.clients = State.clients.map(c => c.id === data.id ? data : c);
         showToast('Cliente actualizado correctamente');
@@ -650,13 +650,14 @@ document.addEventListener('DOMContentLoaded', () => {
             rows = `
             <div class="data-card">
                 <table class="table">
-                    <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Acciones</th></tr></thead>
+                    <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Observaciones</th><th>Acciones</th></tr></thead>
                     <tbody>
                     ${State.clients.map(c => `
                         <tr>
                             <td style="font-weight:600">${c.name}</td>
                             <td>${c.phone || '—'}</td>
                             <td>${c.email || '—'}</td>
+                            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.85rem;color:var(--text-secondary)">${c.notes || '—'}</td>
                             <td>
                                 <div class="actions">
                                     <button class="edit-btn" data-id="${c.id}" data-type="client" title="Editar">
@@ -1035,6 +1036,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <label>Email</label>
                     <input type="email" class="form-control" name="email" value="${isEdit ? info.email : ''}">
                 </div>
+                <div class="form-group">
+                    <label>Observaciones</label>
+                    <textarea class="form-control" name="notes" rows="2" placeholder="Información importante...">${isEdit ? (info.notes || '') : ''}</textarea>
+                </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
                     <button type="submit" class="btn btn-primary">${isEdit ? 'Guardar' : 'Añadir'}</button>
@@ -1049,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.textContent = 'Guardando…';
 
                 const fd = new FormData(e.target);
-                const data = { id: isEdit ? info.id : generateId(), name: fd.get('name'), phone: fd.get('phone'), email: fd.get('email') };
+                const data = { id: isEdit ? info.id : generateId(), name: fd.get('name'), phone: fd.get('phone'), email: fd.get('email'), notes: fd.get('notes') };
 
                 let success;
                 if (isEdit) success = await updateClient(data);
