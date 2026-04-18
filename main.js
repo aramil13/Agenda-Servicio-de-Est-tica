@@ -191,12 +191,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle Auth form submit
     if (authLoginForm) {
+        const togglePassword = document.getElementById('toggle-password');
+        const passwordInput = document.getElementById('auth-password');
+        
+        if (togglePassword && passwordInput) {
+            togglePassword.addEventListener('click', () => {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                togglePassword.classList.toggle('active');
+            });
+        }
+
         authLoginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             authError.style.display = 'none';
             
-            const email = document.getElementById('auth-email').value;
+            const email = document.getElementById('auth-email').value.trim();
             const password = document.getElementById('auth-password').value;
+            
+            if (!email || !password) {
+                authError.textContent = 'Por favor, rellena todos los campos';
+                authError.style.display = 'block';
+                return;
+            }
             
             // UI Loading state
             authSubmitText.style.opacity = '0';
@@ -205,10 +222,20 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = true;
 
             try {
-                const { error } = await supabase.auth.signInWithPassword({ email, password });
-                if (error) throw error;
-                // Supabase automatically updates the session via onAuthStateChange listener
+                const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) {
+                    if (error.message.includes('Email not confirmed')) {
+                        throw new Error('El correo no ha sido confirmado. Revisa tu bandeja de entrada.');
+                    } else if (error.message.includes('Invalid login credentials')) {
+                        throw new Error('Email o contraseña incorrectos. Verifica tus datos.');
+                    }
+                    throw error;
+                }
+                
+                showToast('¡Bienvenido de nuevo!');
+                // handleSessionUpdate will take care of the UI
             } catch (err) {
+                console.error('Login error:', err);
                 authError.textContent = err.message || 'Error en la autenticación';
                 authError.style.display = 'block';
             } finally {
