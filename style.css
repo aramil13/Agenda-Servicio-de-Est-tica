@@ -805,17 +805,24 @@ textarea.form-control {
 .mini-photo {
     width: 32px;
     height: 32px;
-    border-radius: 6px;
+    border-radius: 8px;
     object-fit: cover;
     border: 1px solid var(--border-color);
-    cursor: zoom-in;
+    cursor: pointer;
     transition: var(--transition);
+    background-color: var(--bg-base);
 }
 
 .mini-photo:hover {
     transform: scale(1.1);
     z-index: 2;
     box-shadow: var(--shadow-md);
+    border-color: var(--accent-primary);
+}
+
+.day-detail-info .mini-photo {
+    width: 42px;
+    height: 42px;
 }
 
 .more-photos {

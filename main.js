@@ -524,6 +524,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="day-detail-time">${apt.time} – ${endStr}</div>
                         <div class="day-detail-info">
                             <strong>${client.name}</strong>
+                            <div style="margin-top: 4px; margin-bottom: 4px;">
+                                ${Array.isArray(client.photos) && client.photos.length > 0 ? `
+                                    <div class="client-photos-mini">
+                                        ${client.photos.slice(0, 5).map(url => `<img src="${url}" class="mini-photo" onclick="event.stopPropagation(); window.open('${url}', '_blank')">`).join('')}
+                                        ${client.photos.length > 5 ? `<span class="more-photos">+${client.photos.length - 5}</span>` : ''}
+                                    </div>
+                                ` : ''}
+                            </div>
                             <span>${service.name} · ${service.duration} min${apt.notes ? ' · ' + apt.notes : ''}</span>
                         </div>
                         <div class="day-detail-actions">
@@ -846,7 +854,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span class="monthly-time">${apt.time}</span>
                             <span class="monthly-time-end">– ${endStr}</span>
                         </td>
-                        <td style="font-weight:600">${client.name}</td>
+                        <td>
+                            <div style="font-weight:600">${client.name}</div>
+                            ${Array.isArray(client.photos) && client.photos.length > 0 ? `
+                                <div class="client-photos-mini" style="margin-top:4px">
+                                    ${client.photos.slice(0, 3).map(url => `<img src="${url}" class="mini-photo" style="width:24px;height:24px" onclick="event.stopPropagation(); window.open('${url}', '_blank')">`).join('')}
+                                    ${client.photos.length > 3 ? `<span class="more-photos" style="font-size:0.6rem">+${client.photos.length - 3}</span>` : ''}
+                                </div>
+                            ` : ''}
+                        </td>
                         <td>
                             <span class="monthly-service-badge">${service.name}</span>
                         </td>
