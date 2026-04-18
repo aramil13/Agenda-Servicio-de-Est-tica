@@ -493,7 +493,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="day-detail-time">${apt.time} – ${endStr}</div>
                         <div class="day-detail-info">
                             <strong>${client.name}</strong>
-                            <span>${service.name} · ${service.duration} min${apt.notes ? ' · ' + apt.notes : ''}</span>
+                            <span>${service.name} · ${service.duration} min ${client.notes ? `<small style="color:var(--accent-primary); font-weight:500">(${client.notes})</small>` : ''}${apt.notes ? ' · ' + apt.notes : ''}</span>
                         </div>
                         <div class="day-detail-actions">
                             <button class="delete-btn" data-id="${apt.id}" title="Eliminar cita">
