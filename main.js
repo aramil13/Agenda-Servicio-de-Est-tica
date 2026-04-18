@@ -245,7 +245,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function updateClient(data) {
-        const { error } = await supabase.from('clients').update({ name: data.name, phone: data.phone, email: data.email, notes: data.notes }).eq('id', data.id);
+        const { error } = await supabase.from('clients').update({ 
+            name: data.name, 
+            phone: data.phone, 
+            email: data.email, 
+            notes: data.notes,
+            photo_url: data.photo_url 
+        }).eq('id', data.id);
         if (error) { showToast('Error al actualizar cliente: ' + error.message, 'error'); return false; }
         State.clients = State.clients.map(c => c.id === data.id ? data : c);
         showToast('Cliente actualizado correctamente');
@@ -650,10 +656,18 @@ document.addEventListener('DOMContentLoaded', () => {
             rows = `
             <div class="data-card">
                 <table class="table">
-                    <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Observaciones</th><th>Acciones</th></tr></thead>
+                    <thead><tr><th>Foto</th><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Observaciones</th><th>Acciones</th></tr></thead>
                     <tbody>
                     ${State.clients.map(c => `
                         <tr>
+                            <td>
+                                <div class="client-avatar-min">
+                                    ${c.photo_url 
+                                        ? `<img src="${c.photo_url}" alt="${c.name}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=random'">` 
+                                        : `<div class="avatar-placeholder">${c.name.charAt(0)}</div>`
+                                    }
+                                </div>
+                            </td>
                             <td style="font-weight:600">${c.name}</td>
                             <td>${c.phone || '—'}</td>
                             <td>${c.email || '—'}</td>
@@ -1037,6 +1051,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input type="email" class="form-control" name="email" value="${isEdit ? info.email : ''}">
                 </div>
                 <div class="form-group">
+                    <label>URL de la Foto</label>
+                    <input type="url" class="form-control" name="photoUrl" placeholder="https://ejemplo.com/foto.jpg" value="${isEdit ? (info.photo_url || '') : ''}">
+                </div>
+                <div class="form-group">
                     <label>Observaciones</label>
                     <textarea class="form-control" name="notes" rows="2" placeholder="Información importante...">${isEdit ? (info.notes || '') : ''}</textarea>
                 </div>
@@ -1054,7 +1072,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.textContent = 'Guardando…';
 
                 const fd = new FormData(e.target);
-                const data = { id: isEdit ? info.id : generateId(), name: fd.get('name'), phone: fd.get('phone'), email: fd.get('email'), notes: fd.get('notes') };
+                const data = { 
+                    id: isEdit ? info.id : generateId(), 
+                    name: fd.get('name'), 
+                    phone: fd.get('phone'), 
+                    email: fd.get('email'), 
+                    notes: fd.get('notes'),
+                    photo_url: fd.get('photoUrl') 
+                };
 
                 let success;
                 if (isEdit) success = await updateClient(data);
