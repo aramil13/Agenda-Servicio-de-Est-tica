@@ -657,7 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <td style="font-weight:600">${c.name}</td>
                             <td>${c.phone || '—'}</td>
                             <td>${c.email || '—'}</td>
-                            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.85rem;color:var(--text-secondary)">${c.notes || '—'}</td>
+                            <td class="col-observaciones">${c.notes || '—'}</td>
                             <td>
                                 <div class="actions">
                                     <button class="edit-btn" data-id="${c.id}" data-type="client" title="Editar">

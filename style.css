@@ -290,6 +290,15 @@ body {
     background-color: var(--bg-surface-hover);
 }
 
+.col-observaciones {
+    max-width: 250px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    white-space: normal;
+    word-break: break-word;
+}
+
 .actions {
     display: flex;
     gap: 0.4rem;
