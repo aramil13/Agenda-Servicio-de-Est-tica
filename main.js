@@ -23,7 +23,12 @@ document.addEventListener('DOMContentLoaded', () => {
         monthlyYear: new Date().getFullYear(),
         monthlyMonth: new Date().getMonth(),
         // Auth state
-        session: null
+        session: null,
+        // Settings
+        settings: {
+            startTime: localStorage.getItem('nymara_start_time') || '09:00',
+            endTime: localStorage.getItem('nymara_end_time') || '20:00'
+        }
     };
 
     /* ═══════════════════════════════════════
@@ -506,10 +511,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h1 class="section-title">Agenda</h1>
                     <p style="color:var(--text-secondary)">Calendario de citas · <span class="supabase-badge">⚡ Supabase</span></p>
                 </div>
-                <button class="btn btn-primary" id="btn-add-appointment">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                    Nueva Cita
-                </button>
+                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                    <button class="btn btn-secondary" id="btn-settings" title="Configurar Horario">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Horas
+                    </button>
+                    <button class="btn btn-primary" id="btn-add-appointment">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                        Nueva Cita
+                    </button>
+                </div>
             </div>
 
             <!-- Stats -->
@@ -843,6 +854,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnAddAppt = document.getElementById('btn-add-appointment');
         if (btnAddAppt) btnAddAppt.addEventListener('click', showAppointmentForm);
 
+        const btnSettings = document.getElementById('btn-settings');
+        if (btnSettings) btnSettings.addEventListener('click', showSettingsForm);
+
         const btnAddClient = document.getElementById('btn-add-client');
         if (btnAddClient) btnAddClient.addEventListener('click', () => showClientForm());
 
@@ -1021,9 +1035,52 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function showSettingsForm() {
+        const html = `
+            <form id="settings-form">
+                <div class="form-group">
+                    <label>Hora de Apertura</label>
+                    <input type="time" class="form-control" name="startTime" required value="${State.settings.startTime}">
+                </div>
+                <div class="form-group">
+                    <label>Hora de Cierre</label>
+                    <input type="time" class="form-control" name="endTime" required value="${State.settings.endTime}">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Horario</button>
+                </div>
+            </form>`;
+
+        openModal('Configurar Horario', html, () => {
+            document.getElementById('settings-form').addEventListener('submit', e => {
+                e.preventDefault();
+                const fd = new FormData(e.target);
+                const start = fd.get('startTime');
+                const end = fd.get('endTime');
+
+                if (start >= end) {
+                    showToast('La hora de cierre debe ser posterior a la de apertura.', 'error');
+                    return;
+                }
+
+                State.settings.startTime = start;
+                State.settings.endTime = end;
+                localStorage.setItem('nymara_start_time', start);
+                localStorage.setItem('nymara_end_time', end);
+                
+                showToast('Horario actualizado correctamente.');
+                closeModal();
+            });
+        });
+    }
+
     function findNextAvailableTime(dateStr, durationMinutes) {
-        let startMins = 9 * 60; // 09:00 default start
-        const endMins = 20 * 60; // 20:00 default end
+        const [startH, startM] = State.settings.startTime.split(':').map(Number);
+        const [endH, endM] = State.settings.endTime.split(':').map(Number);
+        
+        let startMins = startH * 60 + startM;
+        const endMins = endH * 60 + endM;
 
         const dayApts = State.appointments
             .filter(a => a.date === dateStr)
@@ -1044,7 +1101,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        if (startMins + durationMinutes > endMins) return "09:00"; // fallback if no time
+        if (startMins + durationMinutes > endMins) return State.settings.startTime; // fallback if no time
         const hStr = Math.floor(startMins / 60).toString().padStart(2, '0');
         const mStr = (startMins % 60).toString().padStart(2, '0');
         return `${hStr}:${mStr}`;
@@ -1131,6 +1188,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const targetStartMinutes = targetHour * 60 + targetMin;
                 const targetService = State.services.find(s => s.id === data.serviceId);
                 const targetEndMinutes = targetStartMinutes + (targetService ? parseInt(targetService.duration) : 0);
+
+                const [startH, startM] = State.settings.startTime.split(':').map(Number);
+                const [endH, endM] = State.settings.endTime.split(':').map(Number);
+                const workingStartMins = startH * 60 + startM;
+                const workingEndMins = endH * 60 + endM;
+
+                if (targetStartMinutes < workingStartMins || targetEndMinutes > workingEndMins) {
+                    showToast(`El horario seleccionado se sale de tus horas de apertura (${State.settings.startTime} - ${State.settings.endTime}).`, 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Agendar Cita';
+                    return;
+                }
 
                 const hasCollision = State.appointments.some(apt => {
                     if (apt.date !== data.date) return false;
