@@ -8,6 +8,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let supabase;
     try {
+        if (!SUPABASE_ANON_KEY.startsWith('eyJ')) {
+            console.error('La clave ANON_KEY no parece válida (debe empezar por eyJ)');
+            alert('Aviso: La clave de Supabase no parece correcta. Por favor, verifica el archivo main.js.');
+        }
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         console.log('Supabase client initialized');
     } catch (e) {
@@ -723,6 +727,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             rows = `
             <div class="data-card">
+                <table class="table">
                     <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Fotos</th><th>Observaciones</th><th>Acciones</th></tr></thead>
                     <tbody>
                     ${State.clients.map(c => {
