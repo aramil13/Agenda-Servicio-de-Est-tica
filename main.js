@@ -1600,12 +1600,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         e.stopPropagation();
                         const photoId = btn.dataset.photoId;
                         const photo = apt.appointmentPhotos.find(p => p.id === photoId);
-                        if (!photo) {
+if (!photo) {
                             alert('Foto no encontrada: ' + photoId);
                             return;
                         }
-                    
-                    openModal('Editar Foto', `
+                     
+                        openModal('Editar Foto', `
                         <form id="edit-photo-form">
                             <div class="form-group">
                                 <label>Fecha</label>
@@ -1651,7 +1651,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                     });
                 });
-            });
+            }, 100);
             
             document.querySelectorAll('.apt-new-photo').forEach(input => {
                 input.addEventListener('change', async () => {
