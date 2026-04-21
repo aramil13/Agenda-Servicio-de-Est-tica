@@ -682,7 +682,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="day-detail-info">
                             <strong>${client.name}</strong>
                             <span>${service.name} · ${service.duration} min${apt.notes ? ' · ' + apt.notes : ''}</span>
-                            <span class="apt-user-key" style="color:${userColor}" title="${apt.userEmail}">🔑 ${userDisplay}</span>
+                            <span class="apt-user-key" style="color:${userColor}" title="${apt.userEmail}">${userDisplay}</span>
                             <div class="day-detail-photos">
                                 ${photosBefore.length > 0 ? photosBefore.map(p => `
                                     <div class="day-photo-container">
