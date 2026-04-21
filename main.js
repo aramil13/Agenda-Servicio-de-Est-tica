@@ -339,7 +339,6 @@ document.addEventListener('DOMContentLoaded', () => {
             phone: data.phone, 
             email: data.email,
             enviar_was: data.enviar_was,
-            photos: data.photos,
             observations: data.observations 
         }).eq('id', data.id);
         if (error) { 
@@ -634,30 +633,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const service = State.services.find(s => s.id === apt.serviceId) || { name: 'Eliminado', duration: 0 };
                 const endTime = new Date(new Date(`${apt.date}T${apt.time}`).getTime() + (service.duration || 0) * 60000);
                 const endStr = endTime.toTimeString().substring(0, 5);
-
-                const photosBefore = apt.appointmentPhotos?.filter(p => p.type === 'before') || [];
-                const photosAfter = apt.appointmentPhotos?.filter(p => p.type === 'after') || [];
                 
                 detailHtml += `
                     <div class="day-detail-item">
                         <div class="day-detail-time">${apt.time} – ${endStr}</div>
                         <div class="day-detail-info">
                             <strong>${client.name}</strong>
-                            <div style="margin-top: 4px; margin-bottom: 4px;">
-                                ${Array.isArray(client.photos) && client.photos.length > 0 ? `
-                                    <div class="client-photos-mini">
-                                        ${client.photos.slice(0, 5).map(url => `<img src="${url}" class="mini-photo" onclick="event.stopPropagation(); window.open('${url}', '_blank')">`).join('')}
-                                        ${client.photos.length > 5 ? `<span class="more-photos">+${client.photos.length - 5}</span>` : ''}
-                                    </div>
-                                ` : ''}
-                            </div>
                             <span>${service.name} · ${service.duration} min${apt.notes ? ' · ' + apt.notes : ''}</span>
-                            ${(photosBefore.length > 0 || photosAfter.length > 0) ? `
-                                <div class="appointment-photos-mini" style="margin-top: 6px;">
-                                    ${photosBefore.length > 0 ? `<span class="apt-photo-badge before">Antes: ${photosBefore.length}</span>` : ''}
-                                    ${photosAfter.length > 0 ? `<span class="apt-photo-badge after">Después: ${photosAfter.length}</span>` : ''}
-                                </div>
-                            ` : ''}
                         </div>
                         <div class="day-detail-actions">
                             <button class="edit-apt-photos-btn" data-id="${apt.id}" title="Gestionar fotos">
@@ -817,7 +799,7 @@ document.addEventListener('DOMContentLoaded', () => {
             rows = `
             <div class="data-card">
                 <table class="table">
-                    <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>ENVIAR WAS</th><th>Fotos</th><th>Observaciones</th><th>Acciones</th></tr></thead>
+                    <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>ENVIAR WAS</th><th>Observaciones</th><th>Acciones</th></tr></thead>
                     <tbody>
                     ${State.clients.map(c => `
                         <tr>
@@ -829,13 +811,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             </td>
                             <td>${c.email || '—'}</td>
                             <td>${(c.enviar_was === true || c.enviar_was === 'true' || c.enviar_was === 1) ? '<span class="status-badge status-success">Sí</span>' : '<span class="status-badge status-danger">No</span>'}</td>
-                             <td>
-                                <div class="client-photos-mini">
-                                    ${Array.isArray(c.photos) ? c.photos.slice(0, 3).map(url => `<img src="${url}" class="mini-photo" onclick="event.stopPropagation(); window.open('${url}', '_blank')">`).join('') : ''}
-                                    ${Array.isArray(c.photos) && c.photos.length > 3 ? `<span class="more-photos">+${c.photos.length - 3}</span>` : ''}
-                                    ${(!Array.isArray(c.photos) || c.photos.length === 0) ? '<span style="color:var(--text-secondary);opacity:0.5">—</span>' : ''}
-                                </div>
-                            </td>
                             <td title="${c.observations || ''}" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); font-size: 0.85rem;">${c.observations || '—'}</td>
                             <td>
                                 <div class="actions">
@@ -989,12 +964,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         </td>
                         <td>
                             <div style="font-weight:600">${client.name}</div>
-                            ${Array.isArray(client.photos) && client.photos.length > 0 ? `
-                                <div class="client-photos-mini" style="margin-top:4px">
-                                    ${client.photos.slice(0, 3).map(url => `<img src="${url}" class="mini-photo" style="width:24px;height:24px" onclick="event.stopPropagation(); window.open('${url}', '_blank')">`).join('')}
-                                    ${client.photos.length > 3 ? `<span class="more-photos" style="font-size:0.6rem">+${client.photos.length - 3}</span>` : ''}
-                                </div>
-                            ` : ''}
                         </td>
                         <td>
                             <span class="monthly-service-badge">${service.name}</span>
@@ -1386,18 +1355,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Fotos (puedes seleccionar varias)</label>
-                    <input type="file" class="form-control" id="client-photos-input" multiple accept="image/*">
-                    <div id="photos-preview" class="photos-preview-grid">
-                        ${isEdit && info.photos ? info.photos.map(url => `
-                            <div class="preview-item">
-                                <img src="${url}">
-                                <button type="button" class="remove-photo" data-url="${url}">&times;</button>
-                            </div>
-                        `).join('') : ''}
-                    </div>
-                </div>
-                <div class="form-group">
                     <label>Observaciones</label>
                     <textarea class="form-control" name="observations" rows="3" placeholder="Notas sobre el cliente...">${isEdit ? (info.observations || '') : ''}</textarea>
                 </div>
@@ -1408,39 +1365,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </form>`;
 
         openModal(isEdit ? 'Editar Cliente' : 'Nuevo Cliente', html, () => {
-            let currentPhotos = isEdit ? [...(info.photos || [])] : [];
-            
-            const fileInput = document.getElementById('client-photos-input');
-            const previewContainer = document.getElementById('photos-preview');
-
-            // Handle new file selection preview
-            fileInput.addEventListener('change', () => {
-                // Keep existing photo previews, but clear old "new" previews
-                const existingPreviews = previewContainer.querySelectorAll('.preview-item:not(.new-preview)');
-                previewContainer.innerHTML = '';
-                existingPreviews.forEach(p => previewContainer.appendChild(p));
-
-                Array.from(fileInput.files).forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const div = document.createElement('div');
-                        div.className = 'preview-item new-preview';
-                        div.innerHTML = `<img src="${e.target.result}"><span class="new-badge">Nuevo</span>`;
-                        previewContainer.appendChild(div);
-                    };
-                    reader.readAsDataURL(file);
-                });
-            });
-
-            // Handle photo removal (existing ones)
-            document.querySelectorAll('.remove-photo').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const url = btn.dataset.url;
-                    currentPhotos = currentPhotos.filter(u => u !== url);
-                    btn.parentElement.remove();
-                });
-            });
-
             document.getElementById('client-form').addEventListener('submit', async e => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
@@ -1448,21 +1372,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.textContent = 'Guardando…';
 
                 const fd = new FormData(e.target);
-                const fileInput = document.getElementById('client-photos-input');
                 const clientId = isEdit ? info.id : generateId();
-
-                // Upload new photos if any
-                let newPhotosUrls = [];
-                try {
-                    if (fileInput.files.length > 0) {
-                        newPhotosUrls = await uploadClientPhotos(fileInput.files, clientId);
-                    }
-                } catch (err) {
-                    // El error ya fue reportado por uploadClientPhotos via showToast
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = isEdit ? 'Guardar' : 'Añadir';
-                    return; // Detener el guardado si falla la subida
-                }
 
                 const data = { 
                     id: clientId, 
@@ -1470,7 +1380,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     phone: fd.get('phone'), 
                     email: fd.get('email'),
                     enviar_was: fd.get('enviar_was') === 'true',
-                    photos: [...currentPhotos, ...newPhotosUrls],
                     observations: fd.get('observations')
                 };
 
