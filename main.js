@@ -1499,10 +1499,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!gallery) return;
                 gallery.innerHTML = currentPhotos.map(p => `
                     <div class="photo-thumb" style="position:relative;width:60px;height:60px" data-id="${p.id}">
-                        <img src="${p.photo_url}" style="width:100%;height:100%;border-radius:8px;object-fit:cover">
+                        <img src="${p.photo_url}" style="width:100%;height:100%;border-radius:8px;object-fit:cover;cursor:pointer" class="view-photo" data-url="${p.photo_url}">
                         <button type="button" class="remove-client-photo" data-id="${p.id}" style="position:absolute;top:-6px;right:-6px;background:red;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">×</button>
                     </div>
                 `).join('');
+                
+                gallery.querySelectorAll('.view-photo').forEach(img => {
+                    img.addEventListener('click', () => {
+                        openModal('Foto', `<div style="text-align:center"><img src="${img.dataset.url}" style="max-width:100%;max-height:70vh;border-radius:8px"></div>`);
+                    });
+                });
             };
             renderPhotos();
 
