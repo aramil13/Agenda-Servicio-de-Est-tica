@@ -1606,3 +1606,25 @@ textarea.form-control {
     object-fit: cover;
     border: 1px solid var(--border-color);
 }
+
+.day-detail-photos {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.day-photo-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.day-photo-thumb:hover {
+    transform: scale(1.1);
+    border-color: var(--accent-primary);
+}

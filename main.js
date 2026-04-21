@@ -634,12 +634,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 const endTime = new Date(new Date(`${apt.date}T${apt.time}`).getTime() + (service.duration || 0) * 60000);
                 const endStr = endTime.toTimeString().substring(0, 5);
                 
+                const photos = apt.appointmentPhotos || [];
+                const photosBefore = photos.filter(p => p.type === 'before');
+                const photosAfter = photos.filter(p => p.type === 'after');
+                
                 detailHtml += `
                     <div class="day-detail-item">
                         <div class="day-detail-time">${apt.time} – ${endStr}</div>
                         <div class="day-detail-info">
                             <strong>${client.name}</strong>
                             <span>${service.name} · ${service.duration} min${apt.notes ? ' · ' + apt.notes : ''}</span>
+                            ${(photosBefore.length > 0 || photosAfter.length > 0) ? `
+                                <div class="day-detail-photos">
+                                    ${photosBefore.map(p => `<img src="${p.url}" class="day-photo-thumb" onclick="window.open('${p.url}', '_blank')">`).join('')}
+                                    ${photosAfter.map(p => `<img src="${p.url}" class="day-photo-thumb" onclick="window.open('${p.url}', '_blank')">`).join('')}
+                                </div>
+                            ` : ''}
                         </div>
                         <div class="day-detail-actions">
                             <button class="edit-apt-photos-btn" data-id="${apt.id}" title="Gestionar fotos">
