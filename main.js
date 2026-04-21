@@ -857,10 +857,11 @@ document.addEventListener('DOMContentLoaded', () => {
             rows = `
             <div class="data-card">
                 <table class="table">
-                    <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>ENVIAR WAS</th><th>Observaciones</th><th>Acciones</th></tr></thead>
+                    <thead><tr><th style="width:60px">Foto</th><th>Nombre</th><th>Teléfono</th><th>Email</th><th>ENVIAR WAS</th><th>Observaciones</th><th>Acciones</th></tr></thead>
                     <tbody>
                     ${State.clients.map(c => `
                         <tr>
+                            <td>${c.photo ? `<img src="${c.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : '<span style="color:var(--text-secondary)">—</span>'}</td>
                             <td style="font-weight:600">${c.name}</td>
                             <td>
                                 <div style="display:flex;align-items:center;gap:8px">
@@ -1398,6 +1399,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input type="text" class="form-control" name="name" required value="${isEdit ? info.name : ''}">
                 </div>
                 <div class="form-group">
+                    <label>Foto</label>
+                    <input type="url" class="form-control" name="photo" placeholder="https://..." value="${isEdit ? (info.photo || '') : ''}">
+                </div>
+                <div class="form-group">
                     <label>Teléfono</label>
                     <input type="tel" class="form-control" name="phone" value="${isEdit ? info.phone : ''}">
                 </div>
@@ -1437,6 +1442,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     name: fd.get('name'), 
                     phone: fd.get('phone'), 
                     email: fd.get('email'),
+                    photo: fd.get('photo'),
                     enviar_was: fd.get('enviar_was') === 'true',
                     observations: fd.get('observations')
                 };
