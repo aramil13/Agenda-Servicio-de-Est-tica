@@ -1501,67 +1501,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const apt = State.appointments.find(a => a.id === appointmentId);
         if (!apt) return;
         
-        const photos = apt.appointmentPhotos || [];
-        const photosBefore = photos.filter(p => p.type === 'before');
-        const photosAfter = photos.filter(p => p.type === 'after');
-
-        const renderPhotos = () => {
-            const currentPhotos = document.getElementById('apt-photos-container');
-            if (!currentPhotos) return '';
-            
-            const allPhotos = apt.appointmentPhotos || [];
-            const beforePhotos = allPhotos.filter(p => p.type === 'before');
-            const afterPhotos = allPhotos.filter(p => p.type === 'after');
-            
-            let html = '';
-            
-            html += `<div class="apt-photos-section">
-                <h4>Foto Antes (${beforePhotos.length})</h4>
-                <div class="apt-photos-grid">
-                    ${beforePhotos.length === 0 ? '<p class="no-photos">No hay fotos "antes"</p>' : ''}
-                    ${beforePhotos.map(p => `
-                        <div class="apt-photo-item" data-photo-id="${p.id}">
-                            <img src="${p.url}" onclick="window.open('${p.url}', '_blank')">
-                            <div class="apt-photo-overlay">
-                                <button type="button" class="apt-photo-edit-btn" onclick="window.editAptPhoto('${p.id}', '${p.type}', '${p.date || ''}', \`${p.notes || ''}\`)">
-                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                </button>
-                                <button type="button" class="apt-photo-delete-btn" onclick="window.deleteAptPhoto('${p.id}')">
-                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                </button>
-                            </div>
-                            ${p.date ? `<span class="apt-photo-date">${p.date}</span>` : ''}
-                        </div>
-                    `).join('')}
-                </div>
-                <input type="file" class="form-control apt-new-photo" id="apt-new-before" accept="image/*" data-type="before" style="margin-top:10px">
-            </div>`;
-            
-            html += `<div class="apt-photos-section">
-                <h4>Foto Después (${afterPhotos.length})</h4>
-                <div class="apt-photos-grid">
-                    ${afterPhotos.length === 0 ? '<p class="no-photos">No hay fotos "después"</p>' : ''}
-                    ${afterPhotos.map(p => `
-                        <div class="apt-photo-item" data-photo-id="${p.id}">
-                            <img src="${p.url}" onclick="window.open('${p.url}', '_blank')">
-                            <div class="apt-photo-overlay">
-                                <button type="button" class="apt-photo-edit-btn" onclick="window.editAptPhoto('${p.id}', '${p.type}', '${p.date || ''}', \`${p.notes || ''}\`)">
-                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                </button>
-                                <button type="button" class="apt-photo-delete-btn" onclick="window.deleteAptPhoto('${p.id}')">
-                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                </button>
-                            </div>
-                            ${p.date ? `<span class="apt-photo-date">${p.date}</span>` : ''}
-                        </div>
-                    `).join('')}
-                </div>
-                <input type="file" class="form-control apt-new-photo" id="apt-new-after" accept="image/*" data-type="after" style="margin-top:10px">
-            </div>`;
-            
-            return html;
-        };
-
         const client = State.clients.find(c => c.id === apt.clientId) || { name: 'Cliente' };
         const service = State.services.find(s => s.id === apt.serviceId) || { name: 'Servicio' };
 
