@@ -1548,30 +1548,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
                     if (e.target.classList.contains('remove-pending-photo')) {
-                        const idx = Array.from(gallery.children).indexOf(e.target.parentElement);
                         const pendingThumbs = gallery.querySelectorAll('.photo-thumb.pending');
                         const pendingIdx = Array.from(pendingThumbs).indexOf(e.target.parentElement);
                         if (pendingIdx >= 0 && pendingIdx < pendingFiles.length) {
                             pendingFiles.splice(pendingIdx, 1);
                         }
                         e.target.parentElement.remove();
-                    }
-                });
-            }
-
-            const gallery = document.getElementById('client-photos-gallery');
-            if (gallery) {
-                gallery.addEventListener('click', async e => {
-                    if (e.target.classList.contains('remove-client-photo')) {
-                        const photoId = e.target.dataset.id;
-                        if (confirm('¿Eliminar esta foto?')) {
-                            const success = await deleteClientPhoto(photoId, currentClientId);
-                            if (success) {
-                                currentPhotos = currentPhotos.filter(p => p.id !== photoId);
-                                renderPhotos();
-                                showToast('Foto eliminada');
-                            }
-                        }
                     }
                 });
             }
