@@ -1594,11 +1594,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
             
-            document.querySelectorAll('.apt-photo-edit-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const photoId = btn.dataset.photoId;
-                    const photo = apt.appointmentPhotos.find(p => p.id === photoId);
-                    if (!photo) return;
+            setTimeout(() => {
+                document.querySelectorAll('.apt-photo-edit-btn').forEach(btn => {
+                    btn.onclick = (e) => {
+                        e.stopPropagation();
+                        const photoId = btn.dataset.photoId;
+                        const photo = apt.appointmentPhotos.find(p => p.id === photoId);
+                        if (!photo) {
+                            alert('Foto no encontrada: ' + photoId);
+                            return;
+                        }
                     
                     openModal('Editar Foto', `
                         <form id="edit-photo-form">
