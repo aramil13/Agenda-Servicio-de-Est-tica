@@ -340,11 +340,13 @@ body {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-xl);
     width: 100%;
-    max-width: 500px;
-    padding: 2rem;
+    max-width: 550px;
+    max-height: 85vh;
+    padding: 1.5rem;
     box-shadow: var(--shadow-lg);
     transform: scale(0.95) translateY(10px);
     transition: var(--transition);
+    overflow-y: auto;
 }
 
 .modal-overlay.active .modal-container {
@@ -361,6 +363,11 @@ body {
 .modal-header h2 {
     font-size: 1.35rem;
     font-weight: 700;
+}
+
+.modal-body {
+    overflow-y: auto;
+    padding-right: 0.25rem;
 }
 
 .btn-close {
@@ -538,9 +545,10 @@ textarea.form-control {
 
 .cal-event {
     display: block;
-    font-size: 0.65rem;
-    font-weight: 600;
-    color: #333;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #222 !important;
+    text-shadow: none;
     padding: 0.15rem 0.35rem;
     border-radius: 4px;
     margin-bottom: 2px;

@@ -633,7 +633,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const client = State.clients.find(c => c.id === apt.clientId);
                 const cName = client ? client.name.split(' ')[0] : '??';
                 const aptUserColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-primary)';
-                eventsHtml += `<span class="cal-event" style="background:${aptUserColor}20;border-left:3px solid ${aptUserColor}">${apt.time} ${cName}</span>`;
+                eventsHtml += `<span class="cal-event" style="border-left:3px solid ${aptUserColor}">${apt.time} ${cName}</span>`;
             });
             if (apts.length > maxShow) {
                 eventsHtml += `<span class="cal-more">+${apts.length - maxShow} más</span>`;
