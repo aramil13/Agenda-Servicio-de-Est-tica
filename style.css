@@ -540,8 +540,7 @@ textarea.form-control {
     display: block;
     font-size: 0.65rem;
     font-weight: 600;
-    color: #fff;
-    background: var(--accent-gradient);
+    color: #333;
     padding: 0.15rem 0.35rem;
     border-radius: 4px;
     margin-bottom: 2px;
@@ -549,10 +548,6 @@ textarea.form-control {
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.4;
-}
-
-.cal-event:nth-child(odd) {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
 }
 
 .cal-more {
