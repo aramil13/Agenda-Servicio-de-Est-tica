@@ -1600,8 +1600,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const photo = apt.appointmentPhotos.find(p => p.id === photoId);
                     if (!photo) return;
                     
-                    const editHtml = `
-                        <div id="photo-edit-form" style="padding:15px;background:var(--bg-surface-hover);border-radius:var(--radius-md);margin:10px 0;">
+                    openModal('Editar Foto', `
+                        <form id="edit-photo-form">
                             <div class="form-group">
                                 <label>Fecha</label>
                                 <input type="date" class="form-control" id="edit-photo-date" value="${photo.date || ''}">
@@ -1615,46 +1615,35 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                             <div class="form-group">
                                 <label>Notas</label>
-                                <textarea class="form-control" id="edit-photo-notes" rows="2" placeholder="Notas sobre esta foto...">${photo.notes || ''}</textarea>
+                                <textarea class="form-control" id="edit-photo-notes" rows="3" placeholder="Notas sobre esta foto...">${photo.notes || ''}</textarea>
                             </div>
-                            <div style="display:flex;gap:10px;margin-top:15px">
-                                <button type="button" class="btn btn-secondary" id="cancel-edit-photo">Cancelar</button>
-                                <button type="button" class="btn btn-primary" id="save-edit-photo">Guardar</button>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Guardar</button>
                             </div>
-                        </div>
-                    `;
-                    
-                    const photoItem = document.querySelector(`[data-photo-id="${photoId}"]`);
-                    const existingEdit = photoItem.querySelector('.photo-edit-container');
-                    if (existingEdit) existingEdit.remove();
-                    
-                    const editContainer = document.createElement('div');
-                    editContainer.className = 'photo-edit-container';
-                    editContainer.innerHTML = editHtml;
-                    photoItem.appendChild(editContainer);
-                    
-                    document.getElementById('cancel-edit-photo').addEventListener('click', () => {
-                        editContainer.remove();
-                    });
-                    
-                    document.getElementById('save-edit-photo').addEventListener('click', async () => {
-                        const newDate = document.getElementById('edit-photo-date').value;
-                        const newType = document.getElementById('edit-photo-type').value;
-                        const newNotes = document.getElementById('edit-photo-notes').value;
-                        
-                        const updatedPhotos = apt.appointmentPhotos.map(p => {
-                            if (p.id === photoId) {
-                                return { ...p, date: newDate, type: newType, notes: newNotes };
+                        </form>
+                    `, () => {
+                        document.getElementById('edit-photo-form').addEventListener('submit', async e => {
+                            e.preventDefault();
+                            const newDate = document.getElementById('edit-photo-date').value;
+                            const newType = document.getElementById('edit-photo-type').value;
+                            const newNotes = document.getElementById('edit-photo-notes').value;
+                            
+                            const updatedPhotos = apt.appointmentPhotos.map(p => {
+                                if (p.id === photoId) {
+                                    return { ...p, date: newDate, type: newType, notes: newNotes };
+                                }
+                                return p;
+                            });
+                            
+                            if (await updateAppointmentPhotos(appointmentId, updatedPhotos)) {
+                                apt.appointmentPhotos = updatedPhotos;
+                                closeModal();
+                                container.innerHTML = renderPhotos();
+                                showToast('Foto actualizada');
+                                renderRoute();
                             }
-                            return p;
                         });
-                        
-                        if (await updateAppointmentPhotos(appointmentId, updatedPhotos)) {
-                            apt.appointmentPhotos = updatedPhotos;
-                            container.innerHTML = renderPhotos();
-                            showToast('Foto actualizada');
-                            renderRoute();
-                        }
                     });
                 });
             });
