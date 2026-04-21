@@ -644,26 +644,24 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="day-detail-info">
                             <strong>${client.name}</strong>
                             <span>${service.name} · ${service.duration} min${apt.notes ? ' · ' + apt.notes : ''}</span>
-                            ${(photosBefore.length > 0 || photosAfter.length > 0) ? `
-                                <div class="day-detail-photos">
-                                    ${photosBefore.map(p => `
-                                        <div class="day-photo-container">
-                                            <img src="${p.url}" class="day-photo-thumb" onclick="window.open('${p.url}', '_blank')">
-                                            <span class="day-photo-label before">Antes</span>
-                                        </div>
-                                    `).join('')}
-                                    ${photosAfter.map(p => `
-                                        <div class="day-photo-container">
-                                            <img src="${p.url}" class="day-photo-thumb" onclick="window.open('${p.url}', '_blank')">
-                                            <span class="day-photo-label after">Después</span>
-                                        </div>
-                                    `).join('')}
-                                    <button type="button" class="edit-apt-photos-btn" data-id="${apt.id}" title="Gestionar fotos">
-                                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                        Editar
-                                    </button>
-                                </div>
-                            ` : ''}
+                            <div class="day-detail-photos">
+                                ${photosBefore.length > 0 ? photosBefore.map(p => `
+                                    <div class="day-photo-container">
+                                        <img src="${p.url}" class="day-photo-thumb" onclick="window.open('${p.url}', '_blank')">
+                                        <span class="day-photo-label before">Antes</span>
+                                    </div>
+                                `).join('') : ''}
+                                ${photosAfter.length > 0 ? photosAfter.map(p => `
+                                    <div class="day-photo-container">
+                                        <img src="${p.url}" class="day-photo-thumb" onclick="window.open('${p.url}', '_blank')">
+                                        <span class="day-photo-label after">Después</span>
+                                    </div>
+                                `).join('') : ''}
+                                <button type="button" class="edit-apt-photos-btn" data-id="${apt.id}" title="Gestionar fotos">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                    ${(photosBefore.length + photosAfter.length) > 0 ? 'Editar' : 'Añadir fotos'}
+                                </button>
+                            </div>
                         </div>
                         <div class="day-detail-actions">
                             <button class="delete-btn" data-id="${apt.id}" title="Eliminar cita">
