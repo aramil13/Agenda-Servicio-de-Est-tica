@@ -623,8 +623,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const classes = [
                 'cal-day',
                 !day.currentMonth ? 'other-month' : '',
-                isToday ? 'today' : '',
-                isSelected ? 'today' : '' // reuse style for selection highlight
+                isToday ? 'is-today' : '',
+                isSelected ? 'is-selected' : ''
             ].filter(Boolean).join(' ');
 
             let eventsHtml = '';
