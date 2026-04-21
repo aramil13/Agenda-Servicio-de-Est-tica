@@ -1497,6 +1497,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showAppointmentPhotosForm(appointmentId) {
+        window.currentAptId = appointmentId;
         const apt = State.appointments.find(a => a.id === appointmentId);
         if (!apt) return;
         
@@ -1522,10 +1523,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="apt-photo-item" data-photo-id="${p.id}">
                             <img src="${p.url}" onclick="window.open('${p.url}', '_blank')">
                             <div class="apt-photo-overlay">
-                                <button type="button" class="apt-photo-edit-btn" data-photo-id="${p.id}">
+                                <button type="button" class="apt-photo-edit-btn" onclick="window.editAptPhoto('${p.id}', '${p.type}', '${p.date || ''}', \`${p.notes || ''}\`)">
                                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                 </button>
-                                <button type="button" class="apt-photo-delete-btn" data-photo-id="${p.id}">
+                                <button type="button" class="apt-photo-delete-btn" onclick="window.deleteAptPhoto('${p.id}')">
                                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
                             </div>
@@ -1544,10 +1545,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="apt-photo-item" data-photo-id="${p.id}">
                             <img src="${p.url}" onclick="window.open('${p.url}', '_blank')">
                             <div class="apt-photo-overlay">
-                                <button type="button" class="apt-photo-edit-btn" data-photo-id="${p.id}">
+                                <button type="button" class="apt-photo-edit-btn" onclick="window.editAptPhoto('${p.id}', '${p.type}', '${p.date || ''}', \`${p.notes || ''}\`)">
                                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                 </button>
-                                <button type="button" class="apt-photo-delete-btn" data-photo-id="${p.id}">
+                                <button type="button" class="apt-photo-delete-btn" onclick="window.deleteAptPhoto('${p.id}')">
                                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
                             </div>
@@ -1568,7 +1569,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div id="apt-photos-modal">
                 <p style="margin-bottom:15px;color:var(--text-secondary)">Cita: <strong>${client.name}</strong> - ${service.name}</p>
                 <div id="apt-photos-container">
-                    ${renderPhotos()}
+                    ${renderPhotosForApt(apt)}
                 </div>
                 <div class="form-actions" style="margin-top:20px">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cerrar</button>
@@ -1578,81 +1579,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         openModal('Gestionar Fotos de la Cita', html, () => {
             const container = document.getElementById('apt-photos-container');
-            
-            document.querySelectorAll('.apt-photo-delete-btn').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    const photoId = btn.dataset.photoId;
-                    if (confirm('¿Eliminar esta foto?')) {
-                        const updatedPhotos = apt.appointmentPhotos.filter(p => p.id !== photoId);
-                        if (await updateAppointmentPhotos(appointmentId, updatedPhotos)) {
-                            apt.appointmentPhotos = updatedPhotos;
-                            container.innerHTML = renderPhotos();
-                            showToast('Foto eliminada');
-                            renderRoute();
-                        }
-                    }
-                });
-            });
-            
-            setTimeout(() => {
-                document.querySelectorAll('.apt-photo-edit-btn').forEach(btn => {
-                    btn.onclick = (e) => {
-                        e.stopPropagation();
-                        const photoId = btn.dataset.photoId;
-                        const photo = apt.appointmentPhotos.find(p => p.id === photoId);
-                        if (!photo) {
-                            alert('Foto no encontrada: ' + photoId);
-                            return;
-                        }
-                        
-                        openModal('Editar Foto', `
-                            <form id="edit-photo-form">
-                                <div class="form-group">
-                                    <label>Fecha</label>
-                                    <input type="date" class="form-control" id="edit-photo-date" value="${photo.date || ''}">
-                                </div>
-                                <div class="form-group">
-                                    <label>Tipo de foto</label>
-                                    <select class="form-control" id="edit-photo-type">
-                                        <option value="before" ${photo.type === 'before' ? 'selected' : ''}>Foto Antes</option>
-                                        <option value="after" ${photo.type === 'after' ? 'selected' : ''}>Foto Después</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Notas</label>
-                                    <textarea class="form-control" id="edit-photo-notes" rows="3" placeholder="Notas sobre esta foto...">${photo.notes || ''}</textarea>
-                                </div>
-                                <div class="form-actions">
-                                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
-                                    <button type="submit" class="btn btn-primary">Guardar</button>
-                                </div>
-                            </form>
-                        `, () => {
-                            document.getElementById('edit-photo-form').addEventListener('submit', async e => {
-                                e.preventDefault();
-                                const newDate = document.getElementById('edit-photo-date').value;
-                                const newType = document.getElementById('edit-photo-type').value;
-                                const newNotes = document.getElementById('edit-photo-notes').value;
-                                
-                                const updatedPhotos = apt.appointmentPhotos.map(p => {
-                                    if (p.id === photoId) {
-                                        return { ...p, date: newDate, type: newType, notes: newNotes };
-                                    }
-                                    return p;
-                                });
-                                
-                                if (await updateAppointmentPhotos(appointmentId, updatedPhotos)) {
-                                    apt.appointmentPhotos = updatedPhotos;
-                                    closeModal();
-                                    container.innerHTML = renderPhotos();
-                                    showToast('Foto actualizada');
-                                    renderRoute();
-                                }
-                            });
-                        });
-                    };
-                });
-            }, 100);
             
             document.querySelectorAll('.apt-new-photo').forEach(input => {
                 input.addEventListener('change', async () => {
@@ -1674,7 +1600,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const updatedPhotos = [...(apt.appointmentPhotos || []), newPhoto];
                         if (await updateAppointmentPhotos(appointmentId, updatedPhotos)) {
                             apt.appointmentPhotos = updatedPhotos;
-                            container.innerHTML = renderPhotos();
+                            container.innerHTML = renderPhotosForApt(apt);
                             showToast('Foto añadida');
                             renderRoute();
                         }
@@ -1931,5 +1857,118 @@ document.addEventListener('DOMContentLoaded', () => {
         // Also remove readonly on focus as a fallback
         emailInput.addEventListener('focus', () => emailInput.readOnly = false);
         passwordInput.addEventListener('focus', () => passwordInput.readOnly = false);
+    }
+
+    window.deleteAptPhoto = async function(photoId) {
+        if (!confirm('¿Eliminar esta foto?')) return;
+        const apt = State.appointments.find(a => a.id === window.currentAptId);
+        if (!apt) return;
+        const updatedPhotos = apt.appointmentPhotos.filter(p => p.id !== photoId);
+        if (await updateAppointmentPhotos(window.currentAptId, updatedPhotos)) {
+            apt.appointmentPhotos = updatedPhotos;
+            showToast('Foto eliminada');
+            renderRoute();
+            const container = document.getElementById('apt-photos-container');
+            if (container) {
+                container.innerHTML = renderPhotosForApt(apt);
+            }
+        }
+    };
+
+    window.editAptPhoto = function(photoId, type, date, notes) {
+        openModal('Editar Foto', `
+            <form id="edit-photo-form">
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <input type="date" class="form-control" id="edit-photo-date" value="${date}">
+                </div>
+                <div class="form-group">
+                    <label>Tipo de foto</label>
+                    <select class="form-control" id="edit-photo-type">
+                        <option value="before" ${type === 'before' ? 'selected' : ''}>Foto Antes</option>
+                        <option value="after" ${type === 'after' ? 'selected' : ''}>Foto Después</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notas</label>
+                    <textarea class="form-control" id="edit-photo-notes" rows="3">${notes}</textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        `, () => {
+            document.getElementById('edit-photo-form').addEventListener('submit', async e => {
+                e.preventDefault();
+                const newDate = document.getElementById('edit-photo-date').value;
+                const newType = document.getElementById('edit-photo-type').value;
+                const newNotes = document.getElementById('edit-photo-notes').value;
+                const apt = State.appointments.find(a => a.id === window.currentAptId);
+                if (!apt) return;
+                const updatedPhotos = apt.appointmentPhotos.map(p => {
+                    if (p.id === photoId) {
+                        return { ...p, date: newDate, type: newType, notes: newNotes };
+                    }
+                    return p;
+                });
+                if (await updateAppointmentPhotos(window.currentAptId, updatedPhotos)) {
+                    apt.appointmentPhotos = updatedPhotos;
+                    closeModal();
+                    showToast('Foto actualizada');
+                    renderRoute();
+                }
+            });
+        });
+    };
+
+    function renderPhotosForApt(apt) {
+        const allPhotos = apt.appointmentPhotos || [];
+        const beforePhotos = allPhotos.filter(p => p.type === 'before');
+        const afterPhotos = allPhotos.filter(p => p.type === 'after');
+        let html = '';
+        html += `<div class="apt-photos-section">
+            <h4>Foto Antes (${beforePhotos.length})</h4>
+            <div class="apt-photos-grid">
+                ${beforePhotos.length === 0 ? '<p class="no-photos">No hay fotos "antes"</p>' : ''}
+                ${beforePhotos.map(p => `
+                    <div class="apt-photo-item" data-photo-id="${p.id}">
+                        <img src="${p.url}" onclick="window.open('${p.url}', '_blank')">
+                        <div class="apt-photo-overlay">
+                            <button type="button" class="apt-photo-edit-btn" onclick="window.editAptPhoto('${p.id}', '${p.type}', '${p.date || ''}', \`${p.notes || ''}\`)">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </button>
+                            <button type="button" class="apt-photo-delete-btn" onclick="window.deleteAptPhoto('${p.id}')">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                        ${p.date ? `<span class="apt-photo-date">${p.date}</span>` : ''}
+                    </div>
+                `).join('')}
+            </div>
+            <input type="file" class="form-control apt-new-photo" id="apt-new-before" accept="image/*" data-type="before" style="margin-top:10px">
+        </div>`;
+        html += `<div class="apt-photos-section">
+            <h4>Foto Después (${afterPhotos.length})</h4>
+            <div class="apt-photos-grid">
+                ${afterPhotos.length === 0 ? '<p class="no-photos">No hay fotos "después"</p>' : ''}
+                ${afterPhotos.map(p => `
+                    <div class="apt-photo-item" data-photo-id="${p.id}">
+                        <img src="${p.url}" onclick="window.open('${p.url}', '_blank')">
+                        <div class="apt-photo-overlay">
+                            <button type="button" class="apt-photo-edit-btn" onclick="window.editAptPhoto('${p.id}', '${p.type}', '${p.date || ''}', \`${p.notes || ''}\`)">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </button>
+                            <button type="button" class="apt-photo-delete-btn" onclick="window.deleteAptPhoto('${p.id}')">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                        ${p.date ? `<span class="apt-photo-date">${p.date}</span>` : ''}
+                    </div>
+                `).join('')}
+            </div>
+            <input type="file" class="form-control apt-new-photo" id="apt-new-after" accept="image/*" data-type="after" style="margin-top:10px">
+        </div>`;
+        return html;
     }
 });
