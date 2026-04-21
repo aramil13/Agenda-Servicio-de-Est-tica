@@ -1600,56 +1600,57 @@ document.addEventListener('DOMContentLoaded', () => {
                         e.stopPropagation();
                         const photoId = btn.dataset.photoId;
                         const photo = apt.appointmentPhotos.find(p => p.id === photoId);
-if (!photo) {
+                        if (!photo) {
                             alert('Foto no encontrada: ' + photoId);
                             return;
                         }
-                     
+                        
                         openModal('Editar Foto', `
-                        <form id="edit-photo-form">
-                            <div class="form-group">
-                                <label>Fecha</label>
-                                <input type="date" class="form-control" id="edit-photo-date" value="${photo.date || ''}">
-                            </div>
-                            <div class="form-group">
-                                <label>Tipo de foto</label>
-                                <select class="form-control" id="edit-photo-type">
-                                    <option value="before" ${photo.type === 'before' ? 'selected' : ''}>Foto Antes</option>
-                                    <option value="after" ${photo.type === 'after' ? 'selected' : ''}>Foto Después</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Notas</label>
-                                <textarea class="form-control" id="edit-photo-notes" rows="3" placeholder="Notas sobre esta foto...">${photo.notes || ''}</textarea>
-                            </div>
-                            <div class="form-actions">
-                                <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
-                                <button type="submit" class="btn btn-primary">Guardar</button>
-                            </div>
-                        </form>
-                    `, () => {
-                        document.getElementById('edit-photo-form').addEventListener('submit', async e => {
-                            e.preventDefault();
-                            const newDate = document.getElementById('edit-photo-date').value;
-                            const newType = document.getElementById('edit-photo-type').value;
-                            const newNotes = document.getElementById('edit-photo-notes').value;
-                            
-                            const updatedPhotos = apt.appointmentPhotos.map(p => {
-                                if (p.id === photoId) {
-                                    return { ...p, date: newDate, type: newType, notes: newNotes };
+                            <form id="edit-photo-form">
+                                <div class="form-group">
+                                    <label>Fecha</label>
+                                    <input type="date" class="form-control" id="edit-photo-date" value="${photo.date || ''}">
+                                </div>
+                                <div class="form-group">
+                                    <label>Tipo de foto</label>
+                                    <select class="form-control" id="edit-photo-type">
+                                        <option value="before" ${photo.type === 'before' ? 'selected' : ''}>Foto Antes</option>
+                                        <option value="after" ${photo.type === 'after' ? 'selected' : ''}>Foto Después</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Notas</label>
+                                    <textarea class="form-control" id="edit-photo-notes" rows="3" placeholder="Notas sobre esta foto...">${photo.notes || ''}</textarea>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
+                                    <button type="submit" class="btn btn-primary">Guardar</button>
+                                </div>
+                            </form>
+                        `, () => {
+                            document.getElementById('edit-photo-form').addEventListener('submit', async e => {
+                                e.preventDefault();
+                                const newDate = document.getElementById('edit-photo-date').value;
+                                const newType = document.getElementById('edit-photo-type').value;
+                                const newNotes = document.getElementById('edit-photo-notes').value;
+                                
+                                const updatedPhotos = apt.appointmentPhotos.map(p => {
+                                    if (p.id === photoId) {
+                                        return { ...p, date: newDate, type: newType, notes: newNotes };
+                                    }
+                                    return p;
+                                });
+                                
+                                if (await updateAppointmentPhotos(appointmentId, updatedPhotos)) {
+                                    apt.appointmentPhotos = updatedPhotos;
+                                    closeModal();
+                                    container.innerHTML = renderPhotos();
+                                    showToast('Foto actualizada');
+                                    renderRoute();
                                 }
-                                return p;
                             });
-                            
-                            if (await updateAppointmentPhotos(appointmentId, updatedPhotos)) {
-                                apt.appointmentPhotos = updatedPhotos;
-                                closeModal();
-                                container.innerHTML = renderPhotos();
-                                showToast('Foto actualizada');
-                                renderRoute();
-                            }
                         });
-                    });
+                    };
                 });
             }, 100);
             
