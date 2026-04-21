@@ -339,7 +339,6 @@ document.addEventListener('DOMContentLoaded', () => {
             phone: data.phone, 
             email: data.email,
             enviar_was: data.enviar_was,
-            photos: data.photos,
             observations: data.observations 
         }).eq('id', data.id);
         if (error) { 
@@ -424,6 +423,39 @@ document.addEventListener('DOMContentLoaded', () => {
         State.appointments = State.appointments.filter(a => a.id !== id);
         showToast('Cita cancelada');
         return true;
+    }
+
+    async function updateAppointmentPhotos(appointmentId, photos) {
+        const { error } = await supabase.from('appointments').update({ appointment_photos: photos }).eq('id', appointmentId);
+        if (error) {
+            console.error('Error updating photos:', error);
+            showToast('Error al actualizar fotos: ' + error.message, 'error');
+            return false;
+        }
+        const apt = State.appointments.find(a => a.id === appointmentId);
+        if (apt) apt.appointmentPhotos = photos;
+        return true;
+    }
+
+    async function uploadAppointmentPhoto(file, appointmentId) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `appointments/${appointmentId}/${generateId()}.${fileExt}`;
+        
+        const { data, error } = await supabase.storage
+            .from('client-photos')
+            .upload(fileName, file);
+
+        if (error) {
+            console.error('Error uploading photo:', error);
+            showToast('Error al subir foto: ' + error.message, 'error');
+            throw error;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('client-photos')
+            .getPublicUrl(fileName);
+        
+        return publicUrl;
     }
 
     /* ═══════════════════════════════════════
@@ -601,21 +633,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 const service = State.services.find(s => s.id === apt.serviceId) || { name: 'Eliminado', duration: 0 };
                 const endTime = new Date(new Date(`${apt.date}T${apt.time}`).getTime() + (service.duration || 0) * 60000);
                 const endStr = endTime.toTimeString().substring(0, 5);
-
+                
+                const photos = apt.appointmentPhotos || [];
+                const photosBefore = photos.filter(p => p.type === 'before');
+                const photosAfter = photos.filter(p => p.type === 'after');
+                
                 detailHtml += `
                     <div class="day-detail-item">
                         <div class="day-detail-time">${apt.time} – ${endStr}</div>
                         <div class="day-detail-info">
                             <strong>${client.name}</strong>
-                            <div style="margin-top: 4px; margin-bottom: 4px;">
-                                ${Array.isArray(client.photos) && client.photos.length > 0 ? `
-                                    <div class="client-photos-mini">
-                                        ${client.photos.slice(0, 5).map(url => `<img src="${url}" class="mini-photo" onclick="event.stopPropagation(); window.open('${url}', '_blank')">`).join('')}
-                                        ${client.photos.length > 5 ? `<span class="more-photos">+${client.photos.length - 5}</span>` : ''}
-                                    </div>
-                                ` : ''}
-                            </div>
                             <span>${service.name} · ${service.duration} min${apt.notes ? ' · ' + apt.notes : ''}</span>
+                            ${(photosBefore.length > 0 || photosAfter.length > 0) ? `
+                                <div class="day-detail-photos">
+                                    ${photosBefore.map(p => `
+                                        <div class="day-photo-container">
+                                            <img src="${p.url}" class="day-photo-thumb" onclick="window.open('${p.url}', '_blank')">
+                                            <span class="day-photo-label before">Antes</span>
+                                        </div>
+                                    `).join('')}
+                                    ${photosAfter.map(p => `
+                                        <div class="day-photo-container">
+                                            <img src="${p.url}" class="day-photo-thumb" onclick="window.open('${p.url}', '_blank')">
+                                            <span class="day-photo-label after">Después</span>
+                                        </div>
+                                    `).join('')}
+                                    <button type="button" class="edit-apt-photos-btn" data-id="${apt.id}" title="Gestionar fotos">
+                                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                        Editar
+                                    </button>
+                                </div>
+                            ` : ''}
                         </div>
                         <div class="day-detail-actions">
                             <button class="delete-btn" data-id="${apt.id}" title="Eliminar cita">
@@ -772,7 +820,7 @@ document.addEventListener('DOMContentLoaded', () => {
             rows = `
             <div class="data-card">
                 <table class="table">
-                    <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>ENVIAR WAS</th><th>Fotos</th><th>Observaciones</th><th>Acciones</th></tr></thead>
+                    <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>ENVIAR WAS</th><th>Observaciones</th><th>Acciones</th></tr></thead>
                     <tbody>
                     ${State.clients.map(c => `
                         <tr>
@@ -784,13 +832,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             </td>
                             <td>${c.email || '—'}</td>
                             <td>${(c.enviar_was === true || c.enviar_was === 'true' || c.enviar_was === 1) ? '<span class="status-badge status-success">Sí</span>' : '<span class="status-badge status-danger">No</span>'}</td>
-                             <td>
-                                <div class="client-photos-mini">
-                                    ${Array.isArray(c.photos) ? c.photos.slice(0, 3).map(url => `<img src="${url}" class="mini-photo" onclick="event.stopPropagation(); window.open('${url}', '_blank')">`).join('') : ''}
-                                    ${Array.isArray(c.photos) && c.photos.length > 3 ? `<span class="more-photos">+${c.photos.length - 3}</span>` : ''}
-                                    ${(!Array.isArray(c.photos) || c.photos.length === 0) ? '<span style="color:var(--text-secondary);opacity:0.5">—</span>' : ''}
-                                </div>
-                            </td>
                             <td title="${c.observations || ''}" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); font-size: 0.85rem;">${c.observations || '—'}</td>
                             <td>
                                 <div class="actions">
@@ -944,12 +985,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         </td>
                         <td>
                             <div style="font-weight:600">${client.name}</div>
-                            ${Array.isArray(client.photos) && client.photos.length > 0 ? `
-                                <div class="client-photos-mini" style="margin-top:4px">
-                                    ${client.photos.slice(0, 3).map(url => `<img src="${url}" class="mini-photo" style="width:24px;height:24px" onclick="event.stopPropagation(); window.open('${url}', '_blank')">`).join('')}
-                                    ${client.photos.length > 3 ? `<span class="more-photos" style="font-size:0.6rem">+${client.photos.length - 3}</span>` : ''}
-                                </div>
-                            ` : ''}
                         </td>
                         <td>
                             <span class="monthly-service-badge">${service.name}</span>
@@ -1286,6 +1321,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
+        // Edit appointment photos buttons
+        document.querySelectorAll('.edit-apt-photos-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                const id = e.currentTarget.dataset.id;
+                showAppointmentPhotosForm(id);
+            });
+        });
+
         // WhatsApp Reminder direct buttons
         document.querySelectorAll('.send-reminder-btn').forEach(btn => {
             btn.addEventListener('click', async e => {
@@ -1333,18 +1376,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Fotos (puedes seleccionar varias)</label>
-                    <input type="file" class="form-control" id="client-photos-input" multiple accept="image/*">
-                    <div id="photos-preview" class="photos-preview-grid">
-                        ${isEdit && info.photos ? info.photos.map(url => `
-                            <div class="preview-item">
-                                <img src="${url}">
-                                <button type="button" class="remove-photo" data-url="${url}">&times;</button>
-                            </div>
-                        `).join('') : ''}
-                    </div>
-                </div>
-                <div class="form-group">
                     <label>Observaciones</label>
                     <textarea class="form-control" name="observations" rows="3" placeholder="Notas sobre el cliente...">${isEdit ? (info.observations || '') : ''}</textarea>
                 </div>
@@ -1355,39 +1386,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </form>`;
 
         openModal(isEdit ? 'Editar Cliente' : 'Nuevo Cliente', html, () => {
-            let currentPhotos = isEdit ? [...(info.photos || [])] : [];
-            
-            const fileInput = document.getElementById('client-photos-input');
-            const previewContainer = document.getElementById('photos-preview');
-
-            // Handle new file selection preview
-            fileInput.addEventListener('change', () => {
-                // Keep existing photo previews, but clear old "new" previews
-                const existingPreviews = previewContainer.querySelectorAll('.preview-item:not(.new-preview)');
-                previewContainer.innerHTML = '';
-                existingPreviews.forEach(p => previewContainer.appendChild(p));
-
-                Array.from(fileInput.files).forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const div = document.createElement('div');
-                        div.className = 'preview-item new-preview';
-                        div.innerHTML = `<img src="${e.target.result}"><span class="new-badge">Nuevo</span>`;
-                        previewContainer.appendChild(div);
-                    };
-                    reader.readAsDataURL(file);
-                });
-            });
-
-            // Handle photo removal (existing ones)
-            document.querySelectorAll('.remove-photo').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const url = btn.dataset.url;
-                    currentPhotos = currentPhotos.filter(u => u !== url);
-                    btn.parentElement.remove();
-                });
-            });
-
             document.getElementById('client-form').addEventListener('submit', async e => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
@@ -1395,21 +1393,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.textContent = 'Guardando…';
 
                 const fd = new FormData(e.target);
-                const fileInput = document.getElementById('client-photos-input');
                 const clientId = isEdit ? info.id : generateId();
-
-                // Upload new photos if any
-                let newPhotosUrls = [];
-                try {
-                    if (fileInput.files.length > 0) {
-                        newPhotosUrls = await uploadClientPhotos(fileInput.files, clientId);
-                    }
-                } catch (err) {
-                    // El error ya fue reportado por uploadClientPhotos via showToast
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = isEdit ? 'Guardar' : 'Añadir';
-                    return; // Detener el guardado si falla la subida
-                }
 
                 const data = { 
                     id: clientId, 
@@ -1417,7 +1401,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     phone: fd.get('phone'), 
                     email: fd.get('email'),
                     enviar_was: fd.get('enviar_was') === 'true',
-                    photos: [...currentPhotos, ...newPhotosUrls],
                     observations: fd.get('observations')
                 };
 
@@ -1513,6 +1496,195 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function showAppointmentPhotosForm(appointmentId) {
+        const apt = State.appointments.find(a => a.id === appointmentId);
+        if (!apt) return;
+        
+        const photos = apt.appointmentPhotos || [];
+        const photosBefore = photos.filter(p => p.type === 'before');
+        const photosAfter = photos.filter(p => p.type === 'after');
+
+        const renderPhotos = () => {
+            const currentPhotos = document.getElementById('apt-photos-container');
+            if (!currentPhotos) return '';
+            
+            const allPhotos = apt.appointmentPhotos || [];
+            const beforePhotos = allPhotos.filter(p => p.type === 'before');
+            const afterPhotos = allPhotos.filter(p => p.type === 'after');
+            
+            let html = '';
+            
+            html += `<div class="apt-photos-section">
+                <h4>Foto Antes (${beforePhotos.length})</h4>
+                <div class="apt-photos-grid">
+                    ${beforePhotos.length === 0 ? '<p class="no-photos">No hay fotos "antes"</p>' : ''}
+                    ${beforePhotos.map(p => `
+                        <div class="apt-photo-item" data-photo-id="${p.id}">
+                            <img src="${p.url}" onclick="window.open('${p.url}', '_blank')">
+                            <div class="apt-photo-overlay">
+                                <button type="button" class="apt-photo-edit-btn" data-photo-id="${p.id}">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                </button>
+                                <button type="button" class="apt-photo-delete-btn" data-photo-id="${p.id}">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
+                            ${p.date ? `<span class="apt-photo-date">${p.date}</span>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+                <input type="file" class="form-control apt-new-photo" id="apt-new-before" accept="image/*" data-type="before" style="margin-top:10px">
+            </div>`;
+            
+            html += `<div class="apt-photos-section">
+                <h4>Foto Después (${afterPhotos.length})</h4>
+                <div class="apt-photos-grid">
+                    ${afterPhotos.length === 0 ? '<p class="no-photos">No hay fotos "después"</p>' : ''}
+                    ${afterPhotos.map(p => `
+                        <div class="apt-photo-item" data-photo-id="${p.id}">
+                            <img src="${p.url}" onclick="window.open('${p.url}', '_blank')">
+                            <div class="apt-photo-overlay">
+                                <button type="button" class="apt-photo-edit-btn" data-photo-id="${p.id}">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                </button>
+                                <button type="button" class="apt-photo-delete-btn" data-photo-id="${p.id}">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
+                            ${p.date ? `<span class="apt-photo-date">${p.date}</span>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+                <input type="file" class="form-control apt-new-photo" id="apt-new-after" accept="image/*" data-type="after" style="margin-top:10px">
+            </div>`;
+            
+            return html;
+        };
+
+        const client = State.clients.find(c => c.id === apt.clientId) || { name: 'Cliente' };
+        const service = State.services.find(s => s.id === apt.serviceId) || { name: 'Servicio' };
+
+        const html = `
+            <div id="apt-photos-modal">
+                <p style="margin-bottom:15px;color:var(--text-secondary)">Cita: <strong>${client.name}</strong> - ${service.name}</p>
+                <div id="apt-photos-container">
+                    ${renderPhotos()}
+                </div>
+                <div class="form-actions" style="margin-top:20px">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cerrar</button>
+                </div>
+            </div>
+        `;
+
+        openModal('Gestionar Fotos de la Cita', html, () => {
+            const container = document.getElementById('apt-photos-container');
+            
+            document.querySelectorAll('.apt-photo-delete-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const photoId = btn.dataset.photoId;
+                    if (confirm('¿Eliminar esta foto?')) {
+                        const updatedPhotos = apt.appointmentPhotos.filter(p => p.id !== photoId);
+                        if (await updateAppointmentPhotos(appointmentId, updatedPhotos)) {
+                            apt.appointmentPhotos = updatedPhotos;
+                            container.innerHTML = renderPhotos();
+                            showToast('Foto eliminada');
+                            renderRoute();
+                        }
+                    }
+                });
+            });
+            
+            setTimeout(() => {
+                document.querySelectorAll('.apt-photo-edit-btn').forEach(btn => {
+                    btn.onclick = (e) => {
+                        e.stopPropagation();
+                        const photoId = btn.dataset.photoId;
+                        const photo = apt.appointmentPhotos.find(p => p.id === photoId);
+if (!photo) {
+                            alert('Foto no encontrada: ' + photoId);
+                            return;
+                        }
+                     
+                        openModal('Editar Foto', `
+                        <form id="edit-photo-form">
+                            <div class="form-group">
+                                <label>Fecha</label>
+                                <input type="date" class="form-control" id="edit-photo-date" value="${photo.date || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label>Tipo de foto</label>
+                                <select class="form-control" id="edit-photo-type">
+                                    <option value="before" ${photo.type === 'before' ? 'selected' : ''}>Foto Antes</option>
+                                    <option value="after" ${photo.type === 'after' ? 'selected' : ''}>Foto Después</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Notas</label>
+                                <textarea class="form-control" id="edit-photo-notes" rows="3" placeholder="Notas sobre esta foto...">${photo.notes || ''}</textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Guardar</button>
+                            </div>
+                        </form>
+                    `, () => {
+                        document.getElementById('edit-photo-form').addEventListener('submit', async e => {
+                            e.preventDefault();
+                            const newDate = document.getElementById('edit-photo-date').value;
+                            const newType = document.getElementById('edit-photo-type').value;
+                            const newNotes = document.getElementById('edit-photo-notes').value;
+                            
+                            const updatedPhotos = apt.appointmentPhotos.map(p => {
+                                if (p.id === photoId) {
+                                    return { ...p, date: newDate, type: newType, notes: newNotes };
+                                }
+                                return p;
+                            });
+                            
+                            if (await updateAppointmentPhotos(appointmentId, updatedPhotos)) {
+                                apt.appointmentPhotos = updatedPhotos;
+                                closeModal();
+                                container.innerHTML = renderPhotos();
+                                showToast('Foto actualizada');
+                                renderRoute();
+                            }
+                        });
+                    });
+                });
+            }, 100);
+            
+            document.querySelectorAll('.apt-new-photo').forEach(input => {
+                input.addEventListener('change', async () => {
+                    if (input.files.length === 0) return;
+                    
+                    const type = input.dataset.type;
+                    const file = input.files[0];
+                    
+                    try {
+                        const url = await uploadAppointmentPhoto(file, appointmentId);
+                        const newPhoto = {
+                            id: generateId(),
+                            url: url,
+                            type: type,
+                            date: toLocalDateStr(new Date()),
+                            notes: ''
+                        };
+                        
+                        const updatedPhotos = [...(apt.appointmentPhotos || []), newPhoto];
+                        if (await updateAppointmentPhotos(appointmentId, updatedPhotos)) {
+                            apt.appointmentPhotos = updatedPhotos;
+                            container.innerHTML = renderPhotos();
+                            showToast('Foto añadida');
+                            renderRoute();
+                        }
+                    } catch (err) {
+                        console.error('Error uploading photo:', err);
+                    }
+                });
+            });
+        });
+    }
+
     function findNextAvailableTime(dateStr, durationMinutes) {
         const [startH, startM] = State.settings.startTime.split(':').map(Number);
         const [endH, endM] = State.settings.endTime.split(':').map(Number);
@@ -1583,6 +1755,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     <label>Notas (opcional)</label>
                     <textarea class="form-control" name="notes" rows="2" placeholder="Información adicional..."></textarea>
                 </div>
+                
+                <div class="form-group">
+                    <label>Foto Antes (opcional)</label>
+                    <div class="apt-photo-upload">
+                        <input type="file" class="form-control" id="apt-photo-before" accept="image/*">
+                        <div id="apt-photo-before-preview" class="apt-photo-preview"></div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Foto Después (opcional)</label>
+                    <div class="apt-photo-upload">
+                        <input type="file" class="form-control" id="apt-photo-after" accept="image/*">
+                        <div id="apt-photo-after-preview" class="apt-photo-preview"></div>
+                    </div>
+                </div>
+                
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Agendar Cita</button>
@@ -1594,6 +1783,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const dateInput = form.querySelector('[name="date"]');
             const timeInput = form.querySelector('[name="time"]');
             const serviceSelect = form.querySelector('[name="serviceId"]');
+            const photoBeforeInput = document.getElementById('apt-photo-before');
+            const photoAfterInput = document.getElementById('apt-photo-after');
+            const beforePreview = document.getElementById('apt-photo-before-preview');
+            const afterPreview = document.getElementById('apt-photo-after-preview');
+
+            function showPhotoPreview(input, previewEl) {
+                previewEl.innerHTML = '';
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        previewEl.innerHTML = `<img src="${e.target.result}" class="photo-preview-img">`;
+                    };
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
+
+            photoBeforeInput.addEventListener('change', () => showPhotoPreview(photoBeforeInput, beforePreview));
+            photoAfterInput.addEventListener('change', () => showPhotoPreview(photoAfterInput, afterPreview));
 
             function updateSuggestion() {
                 const selDate = dateInput.value;
@@ -1612,14 +1819,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.textContent = 'Agendando…';
 
                 const fd = new FormData(e.target);
+                const appointmentId = generateId();
                 const data = {
-                    id: generateId(),
+                    id: appointmentId,
                     clientId: fd.get('clientId'),
                     serviceId: fd.get('serviceId'),
                     date: fd.get('date'),
                     time: fd.get('time'),
-                    notes: fd.get('notes')
+                    notes: fd.get('notes'),
+                    appointmentPhotos: []
                 };
+
+                const todayStr = toLocalDateStr(new Date());
+                try {
+                    if (photoBeforeInput.files.length > 0) {
+                        const url = await uploadAppointmentPhoto(photoBeforeInput.files[0], appointmentId);
+                        data.appointmentPhotos.push({
+                            id: generateId(),
+                            url: url,
+                            type: 'before',
+                            date: todayStr,
+                            notes: ''
+                        });
+                    }
+                    if (photoAfterInput.files.length > 0) {
+                        const url = await uploadAppointmentPhoto(photoAfterInput.files[0], appointmentId);
+                        data.appointmentPhotos.push({
+                            id: generateId(),
+                            url: url,
+                            type: 'after',
+                            date: todayStr,
+                            notes: ''
+                        });
+                    }
+                } catch (err) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Agendar Cita';
+                    return;
+                }
 
                 // Validar que no se solape con otra cita existente en el mismo día
                 const [targetHour, targetMin] = data.time.split(':').map(Number);
