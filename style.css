@@ -1333,7 +1333,7 @@ textarea.form-control {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: var(--accent-gradient);
+    background: var(--accent-primary, #6366f1);
     color: #fff;
     display: flex;
     align-items: center;
@@ -1341,6 +1341,7 @@ textarea.form-control {
     font-weight: 700;
     font-size: 1.1rem;
     flex-shrink: 0;
+    transition: background-color 0.3s ease;
 }
 
 .user-info {

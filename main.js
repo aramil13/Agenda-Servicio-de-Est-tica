@@ -28,6 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
         monthlyMonth: new Date().getMonth(),
         // Auth state
         session: null,
+        currentUserEmail: null,
+        currentUserColor: null,
         // Settings
         settings: {
             startTime: localStorage.getItem('nymara_start_time') || '09:00',
@@ -62,9 +64,9 @@ document.addEventListener('DOMContentLoaded', () => {
        HELPERS
        ═══════════════════════════════════════ */
     const USER_COLORS = [
-        '#e74c3c', '#9b59b6', '#3498db', '#1abc9c', '#2ecc71',
-        '#f39c12', '#e67e22', '#1abc9c', '#e91e63', '#00bcd4',
-        '#8bc34a', '#ff5722', '#795548', '#607d8b', '#673ab7'
+        '#e74c3c', '#2ecc71', '#3498db', '#9b59b6', '#f39c12',
+        '#1abc9c', '#e67e22', '#e91e63', '#00bcd4', '#8bc34a',
+        '#ff5722', '#795548', '#607d8b', '#673ab7', '#ff6b6b'
     ];
 
     function getUserColor(email) {
@@ -80,7 +82,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyUserColor(email) {
         if (!userAvatarEl) return;
         const color = getUserColor(email);
+        console.log('User color:', email, '->', color);
         userAvatarEl.style.background = color;
+        if (userEmailEl) userEmailEl.style.color = color;
     }
 
     const generateId = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
@@ -178,6 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 notes: a.notes || '',
                 whatsappSent: a.whatsapp_sent || false,
                 appointmentPhotos: a.appointment_photos || [],
+                userEmail: a.user_email || '',
             }));
 
         } catch (err) {
@@ -244,6 +249,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Update sidebar user profile
             const email = session.user.email;
+            State.currentUserEmail = email;
+            State.currentUserColor = getUserColor(email);
             if (userEmailEl) userEmailEl.textContent = email;
             if (userAvatarEl) {
                 userAvatarEl.textContent = email.charAt(0).toUpperCase();
@@ -421,6 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
             date: data.date,
             time: data.time,
             notes: data.notes,
+            user_email: State.currentUserEmail || '',
             appointment_photos: data.appointmentPhotos || [],
         };
         const { error } = await supabase.from('appointments').insert([dbRow]);
@@ -624,7 +632,8 @@ document.addEventListener('DOMContentLoaded', () => {
             apts.slice(0, maxShow).forEach(apt => {
                 const client = State.clients.find(c => c.id === apt.clientId);
                 const cName = client ? client.name.split(' ')[0] : '??';
-                eventsHtml += `<span class="cal-event">${apt.time} ${cName}</span>`;
+                const aptUserColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-primary)';
+                eventsHtml += `<span class="cal-event" style="border-left:3px solid ${aptUserColor}">${apt.time} ${cName}</span>`;
             });
             if (apts.length > maxShow) {
                 eventsHtml += `<span class="cal-more">+${apts.length - maxShow} más</span>`;
@@ -1616,8 +1625,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const defaultDuration = State.services.length > 0 ? parseInt(State.services[0].duration) : 30;
         const suggestedTime = findNextAvailableTime(defaultDate, defaultDuration);
 
+        const userColor = State.currentUserColor || '#6366f1';
         const html = `
             <form id="appointment-form">
+                <div class="form-user-badge" style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;padding:0.5rem;background:rgba(0,0,0,0.03);border-radius:8px;">
+                    <div style="width:12px;height:12px;border-radius:50%;background:${userColor};flex-shrink:0;"></div>
+                    <span style="font-size:0.8rem;color:var(--text-secondary);">Creando cita como <strong>${State.currentUserEmail || 'usuario'}</strong></span>
+                </div>
                 <div class="form-group">
                     <label>Cliente</label>
                     <select class="form-control" name="clientId" required>
@@ -1691,6 +1705,11 @@ document.addEventListener('DOMContentLoaded', () => {
             photoBeforeInput.addEventListener('change', () => showPhotoPreview(photoBeforeInput, beforePreview));
             photoAfterInput.addEventListener('change', () => showPhotoPreview(photoAfterInput, afterPreview));
 
+            form.querySelectorAll('.form-control').forEach(input => {
+                input.style.borderColor = userColor;
+                input.style.setProperty('caret-color', userColor);
+            });
+
             function updateSuggestion() {
                 const selDate = dateInput.value;
                 const selService = State.services.find(s => s.id === serviceSelect.value);
@@ -1716,6 +1735,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     date: fd.get('date'),
                     time: fd.get('time'),
                     notes: fd.get('notes'),
+                    userEmail: State.currentUserEmail || '',
                     appointmentPhotos: []
                 };
 
