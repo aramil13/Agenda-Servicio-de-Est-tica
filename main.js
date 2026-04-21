@@ -1400,7 +1400,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="form-group">
                     <label>Foto</label>
-                    <input type="url" class="form-control" name="photo" placeholder="https://..." value="${isEdit ? (info.photo || '') : ''}">
+                    <input type="file" class="form-control" name="photo" accept="image/*" id="client-photo-input">
+                    <input type="hidden" name="photo_url" value="${isEdit ? (info.photo || '') : ''}">
+                    <div id="photo-preview" style="margin-top:10px">${isEdit && info.photo ? `<img src="${info.photo}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--accent-primary)">` : ''}</div>
                 </div>
                 <div class="form-group">
                     <label>Teléfono</label>
@@ -1428,6 +1430,20 @@ document.addEventListener('DOMContentLoaded', () => {
             </form>`;
 
         openModal(isEdit ? 'Editar Cliente' : 'Nuevo Cliente', html, () => {
+            const photoInput = document.getElementById('client-photo-input');
+            const photoPreview = document.getElementById('photo-preview');
+            if (photoInput && photoPreview) {
+                photoInput.addEventListener('change', e => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = ev => {
+                            photoPreview.innerHTML = `<img src="${ev.target.result}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--accent-primary)">`;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
             document.getElementById('client-form').addEventListener('submit', async e => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
@@ -1437,12 +1453,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 const fd = new FormData(e.target);
                 const clientId = isEdit ? info.id : generateId();
 
+                let photoUrl = fd.get('photo_url');
+                const photoFile = fd.get('photo');
+                
+                if (photoFile && photoFile.name) {
+                    try {
+                        const urls = await uploadClientPhotos([photoFile], clientId);
+                        photoUrl = urls[0];
+                    } catch (err) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = isEdit ? 'Guardar' : 'Añadir';
+                        return;
+                    }
+                }
+
                 const data = { 
                     id: clientId, 
                     name: fd.get('name'), 
                     phone: fd.get('phone'), 
                     email: fd.get('email'),
-                    photo: fd.get('photo'),
+                    photo: photoUrl,
                     enviar_was: fd.get('enviar_was') === 'true',
                     observations: fd.get('observations')
                 };
