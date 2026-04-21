@@ -672,12 +672,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const photosBefore = photos.filter(p => p.type === 'before');
                 const photosAfter = photos.filter(p => p.type === 'after');
                 
+                const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-primary)';
+                const userInitial = apt.userEmail ? apt.userEmail.charAt(0).toUpperCase() : '?';
+                const userDisplay = apt.userEmail ? apt.userEmail.split('@')[0] : 'Sistema';
+                
                 detailHtml += `
                     <div class="day-detail-item">
-                        <div class="day-detail-time">${apt.time} – ${endStr}</div>
+                        <div class="day-detail-time" style="color:${userColor}">${apt.time} – ${endStr}</div>
                         <div class="day-detail-info">
                             <strong>${client.name}</strong>
                             <span>${service.name} · ${service.duration} min${apt.notes ? ' · ' + apt.notes : ''}</span>
+                            <span class="apt-user-key" style="color:${userColor}" title="${apt.userEmail}">🔑 ${userDisplay}</span>
                             <div class="day-detail-photos">
                                 ${photosBefore.length > 0 ? photosBefore.map(p => `
                                     <div class="day-photo-container">

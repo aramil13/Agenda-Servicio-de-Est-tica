@@ -611,6 +611,15 @@ textarea.form-control {
     color: var(--text-secondary);
 }
 
+.apt-user-key {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-top: 0.25rem;
+}
+
 .day-detail-actions {
     margin-left: auto;
     display: flex;
