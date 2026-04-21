@@ -1583,8 +1583,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (success && pendingFiles.length > 0) {
                     try {
                         await uploadClientPhotos(pendingFiles, clientId);
+                        showToast('Fotos guardadas correctamente');
                     } catch (err) {
                         console.error('Error uploading pending photos:', err);
+                        showToast('Error al guardar fotos', 'error');
                     }
                 }
 
