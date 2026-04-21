@@ -161,24 +161,15 @@ document.addEventListener('DOMContentLoaded', () => {
         renderRoute();
 
         try {
-            const [clientsRes, servicesRes, appointmentsRes, clientPhotosRes] = await Promise.all([
+            const [clientsRes, servicesRes, appointmentsRes] = await Promise.all([
                 supabase.from('clients').select('*').order('name'),
                 supabase.from('services').select('*').order('name'),
                 supabase.from('appointments').select('*').order('date').order('time'),
-                supabase.from('client_photos').select('*').order('created_at', { ascending: false }),
             ]);
 
             if (clientsRes.error) throw clientsRes.error;
             if (servicesRes.error) throw servicesRes.error;
             if (appointmentsRes.error) throw appointmentsRes.error;
-
-            State.clientPhotos = {};
-            if (clientPhotosRes.data) {
-                clientPhotosRes.data.forEach(p => {
-                    if (!State.clientPhotos[p.client_id]) State.clientPhotos[p.client_id] = [];
-                    State.clientPhotos[p.client_id].push(p);
-                });
-            }
 
             State.clients = clientsRes.data;
             State.services = servicesRes.data;
@@ -194,6 +185,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 appointmentPhotos: a.appointment_photos || [],
                 userEmail: a.user_email || '',
             }));
+
+            try {
+                const clientPhotosRes = await supabase.from('client_photos').select('*').order('created_at', { ascending: false });
+                if (!clientPhotosRes.error && clientPhotosRes.data) {
+                    State.clientPhotos = {};
+                    clientPhotosRes.data.forEach(p => {
+                        if (!State.clientPhotos[p.client_id]) State.clientPhotos[p.client_id] = [];
+                        State.clientPhotos[p.client_id].push(p);
+                    });
+                }
+            } catch (e) {
+                console.warn('client_photos table not available yet');
+            }
 
         } catch (err) {
             console.error('Error loading data from Supabase:', err);
@@ -362,12 +366,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 .from('client-photos')
                 .getPublicUrl(fileName);
             
-            const { error: dbError } = await supabase.from('client_photos').insert({
-                client_id: clientId,
-                photo_url: publicUrl
-            });
-            if (dbError) {
-                console.error('Error guardando referencia de foto:', dbError);
+            try {
+                await supabase.from('client_photos').insert({
+                    client_id: clientId,
+                    photo_url: publicUrl
+                });
+            } catch (e) {
+                console.warn('client_photos not available yet');
             }
             
             urls.push(publicUrl);
@@ -376,18 +381,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function deleteClientPhoto(photoId, clientId) {
-        const { error } = await supabase.from('client_photos').delete().eq('id', photoId);
-        if (error) { showToast('Error al eliminar foto: ' + error.message, 'error'); return false; }
-        if (State.clientPhotos[clientId]) {
-            State.clientPhotos[clientId] = State.clientPhotos[clientId].filter(p => p.id !== photoId);
+        try {
+            const { error } = await supabase.from('client_photos').delete().eq('id', photoId);
+            if (error) throw error;
+            if (State.clientPhotos[clientId]) {
+                State.clientPhotos[clientId] = State.clientPhotos[clientId].filter(p => p.id !== photoId);
+            }
+            return true;
+        } catch (e) {
+            showToast('Error al eliminar foto: ' + e.message, 'error');
+            return false;
         }
-        return true;
     }
 
     async function loadClientPhotos(clientId) {
-        const { data, error } = await supabase.from('client_photos').select('*').eq('client_id', clientId).order('created_at', { ascending: false });
-        if (error) { console.error('Error cargando fotos:', error); return []; }
-        return data || [];
+        try {
+            const { data, error } = await supabase.from('client_photos').select('*').eq('client_id', clientId).order('created_at', { ascending: false });
+            if (error) throw error;
+            return data || [];
+        } catch (e) {
+            console.warn('client_photos not available yet');
+            return [];
+        }
     }
 
     async function addClient(data) {
@@ -417,7 +432,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function deleteClient(id) {
-        await supabase.from('client_photos').delete().eq('client_id', id);
+        try {
+            await supabase.from('client_photos').delete().eq('client_id', id);
+        } catch (e) {
+            console.warn('client_photos cleanup skipped');
+        }
         const { error } = await supabase.from('clients').delete().eq('id', id);
         if (error) { showToast('Error al eliminar cliente: ' + error.message, 'error'); return false; }
         State.clients = State.clients.filter(c => c.id !== id);
