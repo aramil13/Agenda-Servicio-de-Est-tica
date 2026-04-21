@@ -155,6 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 time: a.time.substring(0, 5), // "HH:MM:SS" → "HH:MM"
                 notes: a.notes || '',
                 whatsappSent: a.whatsapp_sent || false,
+                appointmentPhotos: a.appointment_photos || [],
             }));
 
         } catch (err) {
@@ -396,6 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
             date: data.date,
             time: data.time,
             notes: data.notes,
+            appointment_photos: data.appointmentPhotos || [],
         };
         const { error } = await supabase.from('appointments').insert([dbRow]);
         if (error) { showToast('Error al agendar cita: ' + error.message, 'error'); return false; }
