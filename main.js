@@ -861,7 +861,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <tbody>
                     ${State.clients.map(c => `
                         <tr>
-                            <td>${c.photo ? `<img src="${c.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : '<span style="color:var(--text-secondary)">—</span>'}</td>
+                            <td>${c.photo && c.photo[0] ? `<img src="${c.photo[0]}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : '<span style="color:var(--text-secondary)">—</span>'}</td>
                             <td style="font-weight:600">${c.name}</td>
                             <td>
                                 <div style="display:flex;align-items:center;gap:8px">
@@ -1399,10 +1399,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input type="text" class="form-control" name="name" required value="${isEdit ? info.name : ''}">
                 </div>
                 <div class="form-group">
-                    <label>Foto</label>
-                    <input type="file" class="form-control" name="photo" accept="image/*" id="client-photo-input">
-                    <input type="hidden" name="photo_url" value="${isEdit ? (info.photo || '') : ''}">
-                    <div id="photo-preview" style="margin-top:10px">${isEdit && info.photo ? `<img src="${info.photo}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--accent-primary)">` : ''}</div>
+                    <label>Fotos</label>
+                    <input type="file" class="form-control" name="photos" accept="image/*" multiple id="client-photos-input">
+                    <input type="hidden" name="photos_array" id="client-photos-array" value="${isEdit && info.photo ? JSON.stringify(info.photo) : '[]'}">
+                    <div id="photos-preview" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px">
+                        ${isEdit && info.photo && Array.isArray(info.photo) ? info.photo.map((url, i) => `<div class="photo-thumb" style="position:relative;width:60px;height:60px"><img src="${url}" style="width:100%;height:100%;border-radius:8px;object-fit:cover"><button type="button" class="remove-photo" data-index="${i}" style="position:absolute;top:-6px;right:-6px;background:red;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">×</button></div>`).join('') : ''}
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Teléfono</label>
@@ -1430,17 +1432,38 @@ document.addEventListener('DOMContentLoaded', () => {
             </form>`;
 
         openModal(isEdit ? 'Editar Cliente' : 'Nuevo Cliente', html, () => {
-            const photoInput = document.getElementById('client-photo-input');
-            const photoPreview = document.getElementById('photo-preview');
-            if (photoInput && photoPreview) {
-                photoInput.addEventListener('change', e => {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = ev => {
-                            photoPreview.innerHTML = `<img src="${ev.target.result}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--accent-primary)">`;
-                        };
-                        reader.readAsDataURL(file);
+            const photosInput = document.getElementById('client-photos-input');
+            const photosPreview = document.getElementById('photos-preview');
+            const photosArrayInput = document.getElementById('client-photos-array');
+            if (photosInput && photosPreview) {
+                photosInput.addEventListener('change', e => {
+                    const files = Array.from(e.target.files);
+                    if (files.length > 0) {
+                        let currentPhotos = [];
+                        try { currentPhotos = JSON.parse(photosArrayInput?.value || '[]'); } catch(e) {}
+                        
+                        files.forEach(file => {
+                            const reader = new FileReader();
+                            reader.onload = ev => {
+                                const div = document.createElement('div');
+                                div.className = 'photo-thumb';
+                                div.style.cssText = 'position:relative;width:60px;height:60px';
+                                div.innerHTML = `<img src="${ev.target.result}" style="width:100%;height:100%;border-radius:8px;object-fit:cover"><button type="button" class="remove-new-photo" style="position:absolute;top:-6px;right:-6px;background:red;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">×</button>`;
+                                photosPreview.appendChild(div);
+                            };
+                            reader.readAsDataURL(file);
+                        });
+                    }
+                });
+                
+                photosPreview.addEventListener('click', e => {
+                    if (e.target.classList.contains('remove-photo')) {
+                        const idx = parseInt(e.target.dataset.index);
+                        let currentPhotos = [];
+                        try { currentPhotos = JSON.parse(photosArrayInput?.value || '[]'); } catch(e) {}
+                        currentPhotos.splice(idx, 1);
+                        photosArrayInput.value = JSON.stringify(currentPhotos);
+                        e.target.parentElement.remove();
                     }
                 });
             }
@@ -1453,13 +1476,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const fd = new FormData(e.target);
                 const clientId = isEdit ? info.id : generateId();
 
-                let photoUrl = fd.get('photo_url');
-                const photoFile = fd.get('photo');
+                let existingPhotos = [];
+                try {
+                    existingPhotos = JSON.parse(fd.get('photos_array') || '[]');
+                } catch (e) { existingPhotos = []; }
+
+                let photosArray = [...existingPhotos];
                 
-                if (photoFile && photoFile.name) {
+                const photoFiles = fd.getAll('photos');
+                if (photoFiles && photoFiles.length > 0 && photoFiles[0].name) {
                     try {
-                        const urls = await uploadClientPhotos([photoFile], clientId);
-                        photoUrl = urls[0];
+                        const urls = await uploadClientPhotos(photoFiles, clientId);
+                        photosArray = [...photosArray, ...urls];
                     } catch (err) {
                         submitBtn.disabled = false;
                         submitBtn.textContent = isEdit ? 'Guardar' : 'Añadir';
@@ -1472,7 +1500,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     name: fd.get('name'), 
                     phone: fd.get('phone'), 
                     email: fd.get('email'),
-                    photo: photoUrl,
+                    photo: photosArray,
                     enviar_was: fd.get('enviar_was') === 'true',
                     observations: fd.get('observations')
                 };
