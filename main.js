@@ -61,6 +61,28 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ═══════════════════════════════════════
        HELPERS
        ═══════════════════════════════════════ */
+    const USER_COLORS = [
+        '#e74c3c', '#9b59b6', '#3498db', '#1abc9c', '#2ecc71',
+        '#f39c12', '#e67e22', '#1abc9c', '#e91e63', '#00bcd4',
+        '#8bc34a', '#ff5722', '#795548', '#607d8b', '#673ab7'
+    ];
+
+    function getUserColor(email) {
+        if (!email) return USER_COLORS[0];
+        let hash = 0;
+        for (let i = 0; i < email.length; i++) {
+            hash = email.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const index = Math.abs(hash) % USER_COLORS.length;
+        return USER_COLORS[index];
+    }
+
+    function applyUserColor(email) {
+        if (!userAvatarEl) return;
+        const color = getUserColor(email);
+        userAvatarEl.style.background = color;
+    }
+
     const generateId = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
 
     /** Returns 'YYYY-MM-DD' in local time */
@@ -223,7 +245,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Update sidebar user profile
             const email = session.user.email;
             if (userEmailEl) userEmailEl.textContent = email;
-            if (userAvatarEl) userAvatarEl.textContent = email.charAt(0).toUpperCase();
+            if (userAvatarEl) {
+                userAvatarEl.textContent = email.charAt(0).toUpperCase();
+                applyUserColor(email);
+            }
 
             // Load data only if it's the first time we realize we are logged in
             if (State.clients.length === 0 && !State.isLoading) {

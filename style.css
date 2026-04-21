@@ -1352,7 +1352,7 @@ textarea.form-control {
 .user-email {
     font-size: 0.85rem;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text-secondary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
