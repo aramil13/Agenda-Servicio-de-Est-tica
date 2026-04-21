@@ -1589,3 +1589,20 @@ textarea.form-control {
     background: var(--accent-primary);
     color: white;
 }
+
+.apt-photo-upload {
+    position: relative;
+}
+
+.apt-photo-preview {
+    margin-top: 8px;
+    min-height: 80px;
+}
+
+.photo-preview-img {
+    max-width: 120px;
+    max-height: 120px;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+    border: 1px solid var(--border-color);
+}

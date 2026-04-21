@@ -1743,12 +1743,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 <div class="form-group">
                     <label>Foto Antes (opcional)</label>
-                    <input type="file" class="form-control" id="apt-photo-before" accept="image/*">
+                    <div class="apt-photo-upload">
+                        <input type="file" class="form-control" id="apt-photo-before" accept="image/*">
+                        <div id="apt-photo-before-preview" class="apt-photo-preview"></div>
+                    </div>
                 </div>
                 
                 <div class="form-group">
                     <label>Foto Después (opcional)</label>
-                    <input type="file" class="form-control" id="apt-photo-after" accept="image/*">
+                    <div class="apt-photo-upload">
+                        <input type="file" class="form-control" id="apt-photo-after" accept="image/*">
+                        <div id="apt-photo-after-preview" class="apt-photo-preview"></div>
+                    </div>
                 </div>
                 
                 <div class="form-actions">
@@ -1764,6 +1770,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const serviceSelect = form.querySelector('[name="serviceId"]');
             const photoBeforeInput = document.getElementById('apt-photo-before');
             const photoAfterInput = document.getElementById('apt-photo-after');
+            const beforePreview = document.getElementById('apt-photo-before-preview');
+            const afterPreview = document.getElementById('apt-photo-after-preview');
+
+            function showPhotoPreview(input, previewEl) {
+                previewEl.innerHTML = '';
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        previewEl.innerHTML = `<img src="${e.target.result}" class="photo-preview-img">`;
+                    };
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
+
+            photoBeforeInput.addEventListener('change', () => showPhotoPreview(photoBeforeInput, beforePreview));
+            photoAfterInput.addEventListener('change', () => showPhotoPreview(photoAfterInput, afterPreview));
 
             function updateSuggestion() {
                 const selDate = dateInput.value;
