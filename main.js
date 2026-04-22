@@ -899,6 +899,18 @@ document.addEventListener('DOMContentLoaded', () => {
        CLIENTS VIEW
        ═══════════════════════════════════════ */
     function getClientsView() {
+        function getClientAppointmentPhotos(clientId) {
+            const clientAppointments = State.appointments.filter(a => a.clientId === clientId);
+            const allPhotos = [];
+            clientAppointments.forEach(apt => {
+                const photos = apt.appointmentPhotos || [];
+                photos.forEach(p => {
+                    allPhotos.push({ ...p, aptDate: apt.date, aptTime: apt.time });
+                });
+            });
+            return allPhotos.sort((a, b) => (b.aptDate + b.aptTime).localeCompare(a.aptDate + a.aptTime));
+        }
+
         let rows = '';
         if (State.clients.length === 0) {
             rows = `
@@ -908,36 +920,47 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p>Añade tu primer cliente pulsando el botón superior.</p>
             </div>`;
         } else {
-            rows = `
-            <div class="data-card">
-                <table class="table">
-                    <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>ENVIAR WAS</th><th>Observaciones</th><th>Acciones</th></tr></thead>
-                    <tbody>
-                    ${State.clients.map(c => `
-                        <tr>
-                            <td style="font-weight:600">${c.name}</td>
-                            <td>
-                                <div style="display:flex;align-items:center;gap:8px">
-                                    ${c.phone ? `<a href="https://wa.me/${c.phone.replace(/\D/g, '')}" target="_blank" class="contact-link" title="Enviar WhatsApp Directo"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle"><path d="M12.031 6.172c-2.32 0-4.516.903-6.183 2.563-3.23 3.23-3.403 8.356-.511 11.777l-1.341 4.904 5.035-1.32c1.077.585 2.29.893 3.522.893h.03c2.321 0 4.516-.903 6.183-2.563 3.413-3.414 3.413-8.948 0-12.362-1.667-1.66-3.863-1.592-6.235-1.592zm5.753 12.185c-.254.71-1.472 1.286-2.028 1.368-.556.082-1.112.122-1.666-.122-.303-.122-.656-.254-1.076-.442-1.812-.816-3.033-2.656-3.13-2.77-.091-.112-.76-.98-.76-1.884 0-.904.47-1.353.64-1.554.17-.2.37-.25.5-.25s.262-.01.373.01c.123 0 .285-.04.444.33.16.38.542 1.312.59 1.41.05.1.08.21.01.34-.07.13-.1.22-.2.34-.1.12-.21.26-.3.37-.1.12-.22.25-.1.44.13.21.57.94 1.22 1.52.84.75 1.55 1 1.77 1.11.22.11.36.09.49-.06.13-.15.54-.62.68-.84.14-.21.29-.18.49-.1.2.08 1.25.59 1.47.69s.36.16.41.25c.05.1.05.57-.2.1.28l-.01.01zM12.031 0C5.386 0 0 5.385 0 12.031c0 2.11.55 4.16 1.59 5.97L0 24l6.19-1.62c1.77 1.04 3.79 1.59 5.84 1.59h.01C18.66 24 24 18.615 24 12.031 24 5.385 18.66 0 12.031 0z"/></svg></a> ${c.phone}` : '—'}
+            rows = `<div class="clients-list">${State.clients.map(c => {
+                const photos = getClientAppointmentPhotos(c.id);
+                return `
+                <div class="client-card" data-client-id="${c.id}">
+                    <div class="client-header">
+                        <div class="client-info">
+                            <h3 style="margin:0;font-weight:600">${c.name}</h3>
+                            <div style="display:flex;align-items:center;gap:12px;font-size:0.85rem;color:var(--text-secondary)">
+                                ${c.phone ? `<span><a href="https://wa.me/${c.phone.replace(/\D/g, '')}" target="_blank" style="color:var(--text-secondary)">📱 ${c.phone}</a></span>` : ''}
+                                ${c.email ? `<span>✉️ ${c.email}</span>` : ''}
+                                <span class="${c.enviar_was ? 'status-success' : 'status-danger'}" style="font-size:0.75rem">WA: ${c.enviar_was ? 'Sí' : 'No'}</span>
+                            </div>
+                            ${c.observations ? `<p style="font-size:0.8rem;color:var(--text-secondary);margin:4px 0 0;font-style:italic">"${c.observations}"</p>` : ''}
+                        </div>
+                        <div class="client-actions">
+                            <button class="edit-btn" data-id="${c.id}" data-type="client" title="Editar">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </button>
+                            <button class="delete-btn" data-id="${c.id}" data-type="client" title="Eliminar">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                    ${photos.length > 0 ? `
+                    <div class="client-photos-container">
+                        <div class="client-photos-header">
+                            <span style="font-size:0.8rem;font-weight:600;color:var(--text-secondary)">📷 Fotos de Citas (${photos.length})</span>
+                        </div>
+                        <div class="client-photos-grid">
+                            ${photos.map((p, idx) => `
+                                <div class="client-photo-item" style="position:relative">
+                                    <img src="${p.url}" class="client-apt-photo" data-url="${p.url}" data-date="${p.aptDate}" data-time="${p.aptTime || ''}" data-type="${p.type}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer">
+                                    <span class="client-photo-badge" style="position:absolute;bottom:2px;left:2px;font-size:0.6rem;background:${p.type === 'before' ? '#f59e0b' : '#10b981'};color:white;padding:1px 4px;border-radius:4px">${p.type === 'before' ? 'Antes' : 'Después'}</span>
+                                    <span class="client-photo-date" style="position:absolute;top:2px;left:2px;font-size:0.55rem;background:rgba(0,0,0,0.6);color:white;padding:1px 4px;border-radius:4px">${p.aptDate}</span>
                                 </div>
-                            </td>
-                            <td>${c.email || '—'}</td>
-                            <td>${(c.enviar_was === true || c.enviar_was === 'true' || c.enviar_was === 1) ? '<span class="status-badge status-success">Sí</span>' : '<span class="status-badge status-danger">No</span>'}</td>
-                            <td title="${c.observations || ''}" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); font-size: 0.85rem;">${c.observations || '—'}</td>
-                            <td>
-                                <div class="actions">
-                                    <button class="edit-btn" data-id="${c.id}" data-type="client" title="Editar">
-                                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                    </button>
-                                    <button class="delete-btn" data-id="${c.id}" data-type="client" title="Eliminar">
-                                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>`).join('')}
-                    </tbody>
-                </table>
-            </div>`;
+                            `).join('')}
+                        </div>
+                    </div>
+                    ` : `<div class="client-photos-empty" style="padding:8px;font-size:0.8rem;color:var(--text-secondary)">Sin fotos de citas</div>`}
+                </div>`;
+            }).join('')}</div>`;
         }
 
         return `
@@ -1420,6 +1443,18 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
+        // Client appointment photos click - show full size
+        document.querySelectorAll('.client-apt-photo').forEach(img => {
+            img.addEventListener('click', e => {
+                const url = e.currentTarget.dataset.url;
+                const date = e.currentTarget.dataset.date;
+                const time = e.currentTarget.dataset.time;
+                const type = e.currentTarget.dataset.type;
+                const title = `${type === 'before' ? 'Foto Antes' : 'Foto Después'} - ${date}${time ? ' ' + time : ''}`;
+                openModal(title, `<div style="text-align:center"><img src="${url}" style="max-width:100%;max-height:70vh;border-radius:8px"></div>`);
+            });
+        });
+
         // WhatsApp Reminder direct buttons
         document.querySelectorAll('.send-reminder-btn').forEach(btn => {
             btn.addEventListener('click', async e => {
@@ -1472,7 +1507,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="form-group">
                     <label>Fotos</label>
-                    <input type="file" class="form-control" name="photos" accept="image/*" multiple id="client-photos-input" style="display:none">
+                    <input type="file" class="form-control" name="photos" accept="image/*" capture="environment" multiple id="client-photos-input" style="display:none">
                     <button type="button" class="btn btn-secondary" id="btn-add-photo" style="margin-bottom:10px">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                         Añadir Fotos

@@ -1694,3 +1694,65 @@ textarea.form-control {
     background: var(--accent-primary);
     color: white;
 }
+
+/* ── Cliente Cards ── */
+.clients-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.client-card {
+    background: var(--bg-surface);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.client-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.client-info {
+    flex: 1;
+}
+
+.client-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.client-photos-container {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+}
+
+.client-photos-header {
+    margin-bottom: 8px;
+}
+
+.client-photos-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.client-photo-item {
+    position: relative;
+}
+
+.client-photo-item img:hover {
+    opacity: 0.85;
+}
+
+.client-photos-empty {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+}
