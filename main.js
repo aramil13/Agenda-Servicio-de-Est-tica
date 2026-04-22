@@ -1590,10 +1590,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="form-group">
                     <label>Fotos</label>
                     <input type="file" class="form-control" name="photos" accept="image/*" multiple id="client-photos-input" style="display:none">
-                    <button type="button" class="btn btn-secondary" id="btn-add-photo" style="margin-bottom:10px">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                        Añadir Fotos
-                    </button>
+                    <input type="file" accept="image/*" capture="environment" multiple id="client-camera-input" style="display:none">
+                    <div style="display:flex;gap:8px;margin-bottom:10px">
+                        <button type="button" class="btn btn-secondary" id="btn-gallery-photo">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            Galería
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="btn-camera-photo">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+                            Cámara
+                        </button>
+                    </div>
                     <div id="client-photos-gallery" style="display:flex;flex-wrap:wrap;gap:8px"></div>
                 </div>
                 <div class="form-actions">
@@ -1629,11 +1636,16 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             renderPhotos();
 
-            const btnAddPhoto = document.getElementById('btn-add-photo');
+            const btnGalleryPhoto = document.getElementById('btn-gallery-photo');
+            const btnCameraPhoto = document.getElementById('btn-camera-photo');
             const photosInput = document.getElementById('client-photos-input');
+            const cameraInput = document.getElementById('client-camera-input');
             let pendingFiles = [];
-            if (btnAddPhoto && photosInput) {
-                btnAddPhoto.addEventListener('click', () => photosInput.click());
+            if (btnGalleryPhoto && photosInput) {
+                btnGalleryPhoto.addEventListener('click', () => photosInput.click());
+            }
+            if (btnCameraPhoto && cameraInput) {
+                btnCameraPhoto.addEventListener('click', () => cameraInput.click());
             }
             if (photosInput) {
                 photosInput.addEventListener('change', e => {
@@ -1652,6 +1664,27 @@ document.addEventListener('DOMContentLoaded', () => {
                             reader.readAsDataURL(file);
                         });
                         photosInput.value = '';
+                    }
+                });
+            }
+
+            if (cameraInput) {
+                cameraInput.addEventListener('change', e => {
+                    const files = Array.from(e.target.files);
+                    if (files.length > 0) {
+                        pendingFiles = [...pendingFiles, ...files];
+                        files.forEach(file => {
+                            const reader = new FileReader();
+                            reader.onload = ev => {
+                                const div = document.createElement('div');
+                                div.className = 'photo-thumb pending';
+                                div.style.cssText = 'position:relative;width:60px;height:60px';
+                                div.innerHTML = `<img src="${ev.target.result}" style="width:100%;height:100%;border-radius:8px;object-fit:cover"><button type="button" class="remove-pending-photo" style="position:absolute;top:-6px;right:-6px;background:red;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">×</button>`;
+                                gallery.appendChild(div);
+                            };
+                            reader.readAsDataURL(file);
+                        });
+                        cameraInput.value = '';
                     }
                 });
             }
@@ -1955,7 +1988,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="form-group">
                     <label>Foto Antes (opcional)</label>
                     <div class="apt-photo-upload">
-                        <input type="file" class="form-control" id="apt-photo-before" accept="image/*">
+                        <input type="file" class="form-control" id="apt-photo-before" accept="image/*" style="display:none">
+                        <input type="file" accept="image/*" capture="environment" id="apt-photo-before-camera" style="display:none">
+                        <div style="display:flex;gap:8px;margin-bottom:8px">
+                            <button type="button" class="btn btn-sm btn-secondary" id="btn-before-gallery">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                Galería
+                            </button>
+                            <button type="button" class="btn btn-sm btn-secondary" id="btn-before-camera">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+                                Cámara
+                            </button>
+                        </div>
                         <div id="apt-photo-before-preview" class="apt-photo-preview"></div>
                     </div>
                 </div>
@@ -1963,7 +2007,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="form-group">
                     <label>Foto Después (opcional)</label>
                     <div class="apt-photo-upload">
-                        <input type="file" class="form-control" id="apt-photo-after" accept="image/*">
+                        <input type="file" class="form-control" id="apt-photo-after" accept="image/*" style="display:none">
+                        <input type="file" accept="image/*" capture="environment" id="apt-photo-after-camera" style="display:none">
+                        <div style="display:flex;gap:8px;margin-bottom:8px">
+                            <button type="button" class="btn btn-sm btn-secondary" id="btn-after-gallery">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                Galería
+                            </button>
+                            <button type="button" class="btn btn-sm btn-secondary" id="btn-after-camera">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+                                Cámara
+                            </button>
+                        </div>
                         <div id="apt-photo-after-preview" class="apt-photo-preview"></div>
                     </div>
                 </div>
@@ -1984,6 +2039,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const beforePreview = document.getElementById('apt-photo-before-preview');
             const afterPreview = document.getElementById('apt-photo-after-preview');
 
+            const btnBeforeGallery = document.getElementById('btn-before-gallery');
+            const btnBeforeCamera = document.getElementById('btn-before-camera');
+            const btnAfterGallery = document.getElementById('btn-after-gallery');
+            const btnAfterCamera = document.getElementById('btn-after-camera');
+            const photoBeforeCameraInput = document.getElementById('apt-photo-before-camera');
+            const photoAfterCameraInput = document.getElementById('apt-photo-after-camera');
+
+            if (btnBeforeGallery) btnBeforeGallery.addEventListener('click', () => photoBeforeInput.click());
+            if (btnBeforeCamera) btnBeforeCamera.addEventListener('click', () => photoBeforeCameraInput.click());
+            if (btnAfterGallery) btnAfterGallery.addEventListener('click', () => photoAfterInput.click());
+            if (btnAfterCamera) btnAfterCamera.addEventListener('click', () => photoAfterCameraInput.click());
+
             function showPhotoPreview(input, previewEl) {
                 previewEl.innerHTML = '';
                 if (input.files && input.files[0]) {
@@ -1997,6 +2064,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             photoBeforeInput.addEventListener('change', () => showPhotoPreview(photoBeforeInput, beforePreview));
             photoAfterInput.addEventListener('change', () => showPhotoPreview(photoAfterInput, afterPreview));
+            photoBeforeCameraInput.addEventListener('change', () => showPhotoPreview(photoBeforeCameraInput, beforePreview));
+            photoAfterCameraInput.addEventListener('change', () => showPhotoPreview(photoAfterCameraInput, afterPreview));
 
             form.querySelectorAll('.form-control').forEach(input => {
                 input.style.borderColor = userColor;
@@ -2034,8 +2103,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const todayStr = toLocalDateStr(new Date());
                 try {
-                    if (photoBeforeInput.files.length > 0) {
-                        const url = await uploadAppointmentPhoto(photoBeforeInput.files[0], appointmentId);
+                    const beforeFile = photoBeforeInput.files.length > 0 ? photoBeforeInput.files[0] : (photoBeforeCameraInput.files.length > 0 ? photoBeforeCameraInput.files[0] : null);
+                    const afterFile = photoAfterInput.files.length > 0 ? photoAfterInput.files[0] : (photoAfterCameraInput.files.length > 0 ? photoAfterCameraInput.files[0] : null);
+
+                    if (beforeFile) {
+                        const url = await uploadAppointmentPhoto(beforeFile, appointmentId);
                         const photoId = generateId();
                         data.appointmentPhotos.push({
                             id: photoId,
@@ -2044,7 +2116,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             date: todayStr,
                             notes: ''
                         });
-                        // Guardar también en tabla separada para que sobreviva al borrar la cita
                         await supabase.from('client_appointment_photos').insert([{
                             id: photoId,
                             client_id: data.clientId,
@@ -2055,8 +2126,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             notes: ''
                         }]);
                     }
-                    if (photoAfterInput.files.length > 0) {
-                        const url = await uploadAppointmentPhoto(photoAfterInput.files[0], appointmentId);
+                    if (afterFile) {
+                        const url = await uploadAppointmentPhoto(afterFile, appointmentId);
                         const photoId = generateId();
                         data.appointmentPhotos.push({
                             id: photoId,
@@ -2065,7 +2136,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             date: todayStr,
                             notes: ''
                         });
-                        // Guardar también en tabla separada para que sobreviva al borrar la cita
                         await supabase.from('client_appointment_photos').insert([{
                             id: photoId,
                             client_id: data.clientId,
