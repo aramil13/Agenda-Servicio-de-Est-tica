@@ -1589,7 +1589,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="form-group">
                     <label>Fotos</label>
-                    <input type="file" class="form-control" name="photos" accept="image/*" capture="environment" multiple id="client-photos-input" style="display:none">
+                    <input type="file" class="form-control" name="photos" accept="image/*" multiple id="client-photos-input" style="display:none">
                     <button type="button" class="btn btn-secondary" id="btn-add-photo" style="margin-bottom:10px">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                         Añadir Fotos
@@ -1955,7 +1955,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="form-group">
                     <label>Foto Antes (opcional)</label>
                     <div class="apt-photo-upload">
-                        <input type="file" class="form-control" id="apt-photo-before" accept="image/*" capture="environment">
+                        <input type="file" class="form-control" id="apt-photo-before" accept="image/*">
                         <div id="apt-photo-before-preview" class="apt-photo-preview"></div>
                     </div>
                 </div>
@@ -1963,7 +1963,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="form-group">
                     <label>Foto Después (opcional)</label>
                     <div class="apt-photo-upload">
-                        <input type="file" class="form-control" id="apt-photo-after" accept="image/*" capture="environment">
+                        <input type="file" class="form-control" id="apt-photo-after" accept="image/*">
                         <div id="apt-photo-after-preview" class="apt-photo-preview"></div>
                     </div>
                 </div>
@@ -2321,7 +2321,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `).join('')}
             </div>
-            <input type="file" class="form-control apt-new-photo" id="apt-new-before" accept="image/*" capture="environment" data-type="before" style="margin-top:10px">
+            <input type="file" class="form-control apt-new-photo" id="apt-new-before" accept="image/*" data-type="before" style="margin-top:10px">
         </div>`;
         html += `<div class="apt-photos-section">
             <h4>Foto Después (${afterPhotos.length})</h4>
@@ -2342,7 +2342,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `).join('')}
             </div>
-            <input type="file" class="form-control apt-new-photo" id="apt-new-after" accept="image/*" capture="environment" data-type="after" style="margin-top:10px">
+            <input type="file" class="form-control apt-new-photo" id="apt-new-after" accept="image/*" data-type="after" style="margin-top:10px">
         </div>`;
         return html;
     }
