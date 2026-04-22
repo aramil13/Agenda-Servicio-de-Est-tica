@@ -192,8 +192,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!clientPhotosRes.error && clientPhotosRes.data) {
                     State.clientPhotos = {};
                     clientPhotosRes.data.forEach(p => {
-                        if (!State.clientPhotos[p.client_id]) State.clientPhotos[p.client_id] = [];
-                        State.clientPhotos[p.client_id].push(p);
+                        const pid = String(p.client_id);
+                        if (!State.clientPhotos[pid]) State.clientPhotos[pid] = [];
+                        State.clientPhotos[pid].push(p);
                     });
                 }
             } catch (e) {
@@ -934,9 +935,19 @@ document.addEventListener('DOMContentLoaded', () => {
        ═══════════════════════════════════════ */
     function getClientsView() {
         function getClientAppointmentPhotos(clientId) {
-            return State.clientAptPhotos
-                .filter(p => p.client_id === clientId)
+            const clientIdStr = String(clientId);
+            const aptPhotos = State.clientAptPhotos
+                .filter(p => String(p.client_id) === clientIdStr)
                 .sort((a, b) => (b.photo_date + (b.photo_date || '')).localeCompare(a.photo_date + (a.photo_date || '')));
+            // Also include general client photos
+            const generalPhotos = (State.clientPhotos[clientIdStr] || []).map(p => ({
+                id: p.id,
+                photo_url: p.photo_url,
+                photo_date: p.created_at ? p.created_at.split('T')[0] : '',
+                photo_type: 'general',
+                notes: ''
+            }));
+            return [...aptPhotos, ...generalPhotos].sort((a, b) => (b.photo_date || '').localeCompare(a.photo_date || ''));
         }
 
         let rows = '';
@@ -974,23 +985,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${photos.length > 0 ? `
                     <div class="client-photos-container">
                         <div class="client-photos-header">
-                            <span style="font-size:0.8rem;font-weight:600;color:var(--text-secondary)">📷 Fotos de Citas (${photos.length})</span>
+                            <span style="font-size:0.8rem;font-weight:600;color:var(--text-secondary)">📷 Fotos (${photos.length})</span>
                         </div>
                         <div class="client-photos-grid">
-                            ${photos.map((p) => `
-                                <div class="client-photo-item" style="position:relative" data-apt-id="${p.appointment_id || ''}" data-photo-id="${p.id}" data-client-id="${c.id}">
+                            ${photos.map((p) => {
+                                const isGeneral = p.photo_type === 'general';
+                                const badgeColor = isGeneral ? '#6366f1' : (p.photo_type === 'before' ? '#f59e0b' : '#10b981');
+                                const badgeText = isGeneral ? 'Foto' : (p.photo_type === 'before' ? 'Antes' : 'Después');
+                                return `
+                                <div class="client-photo-item" style="position:relative" data-apt-id="${p.appointment_id || ''}" data-photo-id="${p.id}" data-client-id="${c.id}" data-is-general="${isGeneral}">
                                     <img src="${p.photo_url}" class="client-apt-photo view-client-photo" data-url="${p.photo_url}" data-date="${p.photo_date}" data-type="${p.photo_type}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer">
-                                    <span class="client-photo-badge" style="position:absolute;bottom:2px;left:2px;font-size:0.6rem;background:${p.photo_type === 'before' ? '#f59e0b' : '#10b981'};color:white;padding:1px 4px;border-radius:4px">${p.photo_type === 'before' ? 'Antes' : 'Después'}</span>
+                                    <span class="client-photo-badge" style="position:absolute;bottom:2px;left:2px;font-size:0.6rem;background:${badgeColor};color:white;padding:1px 4px;border-radius:4px">${badgeText}</span>
                                     <span class="client-photo-date" style="position:absolute;top:2px;left:2px;font-size:0.55rem;background:rgba(0,0,0,0.6);color:white;padding:1px 4px;border-radius:4px">${p.photo_date || ''}</span>
                                     <div class="client-photo-actions" style="position:absolute;top:0;right:0;display:flex;gap:2px">
-                                        <button type="button" class="edit-client-photo-btn" data-apt-id="${p.appointment_id || ''}" data-photo-id="${p.id}" data-date="${p.photo_date || ''}" data-notes="${p.notes || ''}" data-type="${p.photo_type}" title="Editar" style="background:rgba(0,0,0,0.5);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px">✏️</button>
-                                        <button type="button" class="delete-client-photo-btn" data-apt-id="${p.appointment_id || ''}" data-photo-id="${p.id}" data-client-id="${c.id}" title="Eliminar" style="background:rgba(0,0,0,0.5);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px">🗑️</button>
+                                        <button type="button" class="edit-client-photo-btn" data-is-general="${isGeneral}" data-apt-id="${p.appointment_id || ''}" data-photo-id="${p.id}" data-client-id="${c.id}" data-date="${p.photo_date || ''}" data-notes="${p.notes || ''}" data-type="${p.photo_type}" title="Editar" style="background:rgba(0,0,0,0.5);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px">✏️</button>
+                                        <button type="button" class="delete-client-photo-btn" data-is-general="${isGeneral}" data-apt-id="${p.appointment_id || ''}" data-photo-id="${p.id}" data-client-id="${c.id}" title="Eliminar" style="background:rgba(0,0,0,0.5);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px">🗑️</button>
                                     </div>
-                                </div>
-                            `).join('')}
+                                </div>`;
+                            }).join('')}
                         </div>
                     </div>
-                    ` : `<div class="client-photos-empty" style="padding:8px;font-size:0.8rem;color:var(--text-secondary)">Sin fotos de citas</div>`}
+                    ` : `<div class="client-photos-empty" style="padding:8px;font-size:0.8rem;color:var(--text-secondary)">Sin fotos</div>`}
                 </div>`;
             }).join('')}</div>`;
         }
@@ -1493,10 +1508,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.stopPropagation();
                 const aptId = e.currentTarget.dataset.aptId;
                 const photoId = e.currentTarget.dataset.photoId;
+                const clientId = e.currentTarget.dataset.clientId;
                 const currentDate = e.currentTarget.dataset.date;
                 const currentNotes = e.currentTarget.dataset.notes;
                 const currentType = e.currentTarget.dataset.type;
-                editClientAppointmentPhoto(aptId, photoId, currentDate, currentNotes, currentType);
+                const isGeneral = e.currentTarget.dataset.isGeneral === 'true';
+                if (isGeneral) {
+                    editGeneralClientPhoto(photoId, clientId);
+                } else {
+                    editClientAppointmentPhoto(aptId, photoId, currentDate, currentNotes, currentType);
+                }
             });
         });
 
@@ -1507,7 +1528,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const aptId = e.currentTarget.dataset.aptId;
                 const photoId = e.currentTarget.dataset.photoId;
                 const clientId = e.currentTarget.dataset.clientId;
-                deleteClientAppointmentPhoto(aptId, photoId, clientId);
+                const isGeneral = e.currentTarget.dataset.isGeneral === 'true';
+                if (isGeneral) {
+                    deleteGeneralClientPhoto(photoId, clientId);
+                } else {
+                    deleteClientAppointmentPhoto(aptId, photoId, clientId);
+                }
             });
         });
 

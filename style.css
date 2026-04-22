@@ -1775,3 +1775,15 @@ textarea.form-control {
 .client-photo-item:hover .client-photo-date {
     opacity: 0.7;
 }
+
+.client-apt-photo {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.client-apt-photo:hover {
+    opacity: 0.85;
+}
