@@ -1756,3 +1756,22 @@ textarea.form-control {
     border-top: 1px solid var(--border-color);
     text-align: center;
 }
+
+.client-photo-actions {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.client-photo-item:hover .client-photo-actions {
+    opacity: 1;
+}
+
+.client-photo-item:hover .client-photo-badge,
+.client-photo-item:hover .client-photo-date {
+    opacity: 0;
+}
+
+.client-photo-item:hover .client-photo-badge,
+.client-photo-item:hover .client-photo-date {
+    opacity: 0.7;
+}

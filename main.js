@@ -950,10 +950,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <div class="client-photos-grid">
                             ${photos.map((p, idx) => `
-                                <div class="client-photo-item" style="position:relative">
-                                    <img src="${p.url}" class="client-apt-photo" data-url="${p.url}" data-date="${p.aptDate}" data-time="${p.aptTime || ''}" data-type="${p.type}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer">
+                                <div class="client-photo-item" style="position:relative" data-apt-id="${p.aptId || ''}" data-photo-id="${p.id}" data-client-id="${c.id}">
+                                    <img src="${p.url}" class="client-apt-photo view-client-photo" data-url="${p.url}" data-date="${p.aptDate}" data-time="${p.aptTime || ''}" data-type="${p.type}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer">
                                     <span class="client-photo-badge" style="position:absolute;bottom:2px;left:2px;font-size:0.6rem;background:${p.type === 'before' ? '#f59e0b' : '#10b981'};color:white;padding:1px 4px;border-radius:4px">${p.type === 'before' ? 'Antes' : 'Después'}</span>
                                     <span class="client-photo-date" style="position:absolute;top:2px;left:2px;font-size:0.55rem;background:rgba(0,0,0,0.6);color:white;padding:1px 4px;border-radius:4px">${p.aptDate}</span>
+                                    <div class="client-photo-actions" style="position:absolute;top:0;right:0;display:flex;gap:2px">
+                                        <button type="button" class="edit-client-photo-btn" data-apt-id="${p.aptId || ''}" data-photo-id="${p.id}" data-date="${p.aptDate || ''}" data-notes="${p.notes || ''}" data-type="${p.type}" title="Editar" style="background:rgba(0,0,0,0.5);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px">✏️</button>
+                                        <button type="button" class="delete-client-photo-btn" data-apt-id="${p.aptId || ''}" data-photo-id="${p.id}" data-client-id="${c.id}" title="Eliminar" style="background:rgba(0,0,0,0.5);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px">🗑️</button>
+                                    </div>
                                 </div>
                             `).join('')}
                         </div>
@@ -1452,6 +1456,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 const type = e.currentTarget.dataset.type;
                 const title = `${type === 'before' ? 'Foto Antes' : 'Foto Después'} - ${date}${time ? ' ' + time : ''}`;
                 openModal(title, `<div style="text-align:center"><img src="${url}" style="max-width:100%;max-height:70vh;border-radius:8px"></div>`);
+            });
+        });
+
+        // Edit client photo button
+        document.querySelectorAll('.edit-client-photo-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                const aptId = e.currentTarget.dataset.aptId;
+                const photoId = e.currentTarget.dataset.photoId;
+                const currentDate = e.currentTarget.dataset.date;
+                const currentNotes = e.currentTarget.dataset.notes;
+                const currentType = e.currentTarget.dataset.type;
+                editClientAppointmentPhoto(aptId, photoId, currentDate, currentNotes, currentType);
+            });
+        });
+
+        // Delete client photo button
+        document.querySelectorAll('.delete-client-photo-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                const aptId = e.currentTarget.dataset.aptId;
+                const photoId = e.currentTarget.dataset.photoId;
+                const clientId = e.currentTarget.dataset.clientId;
+                deleteClientAppointmentPhoto(aptId, photoId, clientId);
             });
         });
 
@@ -2086,6 +2114,71 @@ document.addEventListener('DOMContentLoaded', () => {
                     return p;
                 });
                 if (await updateAppointmentPhotos(window.currentAptId, updatedPhotos)) {
+                    apt.appointmentPhotos = updatedPhotos;
+                    closeModal();
+                    showToast('Foto actualizada');
+                    renderRoute();
+                }
+            });
+        });
+    };
+
+    window.deleteClientAppointmentPhoto = async function(aptId, photoId, clientId) {
+        if (!confirm('¿Eliminar esta foto?')) return;
+        const apt = State.appointments.find(a => a.id === aptId);
+        if (!apt) {
+            showToast('Cita no encontrada', 'error');
+            return;
+        }
+        const updatedPhotos = apt.appointmentPhotos.filter(p => p.id !== photoId);
+        if (await updateAppointmentPhotos(aptId, updatedPhotos)) {
+            apt.appointmentPhotos = updatedPhotos;
+            showToast('Foto eliminada');
+            renderRoute();
+        }
+    };
+
+    function editClientAppointmentPhoto(aptId, photoId, currentDate, currentNotes, currentType) {
+        openModal('Editar Foto', `
+            <form id="edit-client-photo-form">
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <input type="date" class="form-control" id="edit-client-photo-date" value="${currentDate}">
+                </div>
+                <div class="form-group">
+                    <label>Tipo de foto</label>
+                    <select class="form-control" id="edit-client-photo-type">
+                        <option value="before" ${currentType === 'before' ? 'selected' : ''}>Foto Antes</option>
+                        <option value="after" ${currentType === 'after' ? 'selected' : ''}>Foto Después</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notas</label>
+                    <textarea class="form-control" id="edit-client-photo-notes" rows="3">${currentNotes}</textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        `, () => {
+            document.getElementById('edit-client-photo-form').addEventListener('submit', async e => {
+                e.preventDefault();
+                const newDate = document.getElementById('edit-client-photo-date').value;
+                const newType = document.getElementById('edit-client-photo-type').value;
+                const newNotes = document.getElementById('edit-client-photo-notes').value;
+                const apt = State.appointments.find(a => a.id === aptId);
+                if (!apt) {
+                    showToast('Cita no encontrada', 'error');
+                    return;
+                }
+                const updatedPhotos = apt.appointmentPhotos.map(p => {
+                    if (p.id === photoId) {
+                        return { ...p, date: newDate, type: newType, notes: newNotes };
+                    }
+                    return p;
+                });
+                if (await updateAppointmentPhotos(aptId, updatedPhotos)) {
                     apt.appointmentPhotos = updatedPhotos;
                     closeModal();
                     showToast('Foto actualizada');
