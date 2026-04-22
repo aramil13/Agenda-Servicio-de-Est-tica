@@ -15,3 +15,18 @@ CREATE TABLE IF NOT EXISTS client_photos (
 
 -- Agregar índice para buscar fotos por cliente
 CREATE INDEX IF NOT EXISTS idx_client_photos_client_id ON client_photos(client_id);
+
+-- Crear tabla de fotos de citas vinculadas al cliente (sobrevive al borrar la cita)
+CREATE TABLE IF NOT EXISTS client_appointment_photos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_id TEXT NOT NULL,
+    appointment_id TEXT,
+    photo_url TEXT NOT NULL,
+    photo_date TEXT,
+    photo_type TEXT CHECK (photo_type IN ('before', 'after')),
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Índice para buscar fotos por cliente
+CREATE INDEX IF NOT EXISTS idx_client_apt_photos_client_id ON client_appointment_photos(client_id);

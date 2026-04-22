@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
         services: [],
         appointments: [],
         clientPhotos: {},
+        clientAptPhotos: [],
         // Calendar state
         calYear: new Date().getFullYear(),
         calMonth: new Date().getMonth(),
@@ -196,7 +197,40 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
             } catch (e) {
-                console.warn('client_photos table not available yet');
+
+            }
+
+            // Cargar fotos de citas vinculadas al cliente (sobrevive al borrar la cita)
+            try {
+                const clientAptPhotosRes = await supabase.from('client_appointment_photos').select('*').order('created_at', { ascending: false });
+                if (!clientAptPhotosRes.error && clientAptPhotosRes.data) {
+                    State.clientAptPhotos = clientAptPhotosRes.data;
+                }
+                // Migrar fotos de appointments que no estén en client_appointment_photos
+                for (const apt of State.appointments) {
+                    const photos = apt.appointmentPhotos || [];
+                    for (const p of photos) {
+                        const exists = State.clientAptPhotos.some(cp => cp.id === p.id);
+                        if (!exists) {
+                            await supabase.from('client_appointment_photos').insert([{
+                                id: p.id,
+                                client_id: apt.clientId,
+                                appointment_id: apt.id,
+                                photo_url: p.url,
+                                photo_date: p.date,
+                                photo_type: p.type,
+                                notes: p.notes
+                            }]);
+                        }
+                    }
+                }
+                // Recargar fotos migradas
+                const refreshedPhotos = await supabase.from('client_appointment_photos').select('*').order('created_at', { ascending: false });
+                if (!refreshedPhotos.error && refreshedPhotos.data) {
+                    State.clientAptPhotos = refreshedPhotos.data;
+                }
+            } catch (e) {
+                console.warn('client_appointment_photos table not available yet, ejecuta la migración SQL');
             }
 
         } catch (err) {
@@ -900,15 +934,9 @@ document.addEventListener('DOMContentLoaded', () => {
        ═══════════════════════════════════════ */
     function getClientsView() {
         function getClientAppointmentPhotos(clientId) {
-            const clientAppointments = State.appointments.filter(a => a.clientId === clientId);
-            const allPhotos = [];
-            clientAppointments.forEach(apt => {
-                const photos = apt.appointmentPhotos || [];
-                photos.forEach(p => {
-                    allPhotos.push({ ...p, aptDate: apt.date, aptTime: apt.time });
-                });
-            });
-            return allPhotos.sort((a, b) => (b.aptDate + b.aptTime).localeCompare(a.aptDate + a.aptTime));
+            return State.clientAptPhotos
+                .filter(p => p.client_id === clientId)
+                .sort((a, b) => (b.photo_date + (b.photo_date || '')).localeCompare(a.photo_date + (a.photo_date || '')));
         }
 
         let rows = '';
@@ -949,14 +977,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span style="font-size:0.8rem;font-weight:600;color:var(--text-secondary)">📷 Fotos de Citas (${photos.length})</span>
                         </div>
                         <div class="client-photos-grid">
-                            ${photos.map((p, idx) => `
-                                <div class="client-photo-item" style="position:relative" data-apt-id="${p.aptId || ''}" data-photo-id="${p.id}" data-client-id="${c.id}">
-                                    <img src="${p.url}" class="client-apt-photo view-client-photo" data-url="${p.url}" data-date="${p.aptDate}" data-time="${p.aptTime || ''}" data-type="${p.type}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer">
-                                    <span class="client-photo-badge" style="position:absolute;bottom:2px;left:2px;font-size:0.6rem;background:${p.type === 'before' ? '#f59e0b' : '#10b981'};color:white;padding:1px 4px;border-radius:4px">${p.type === 'before' ? 'Antes' : 'Después'}</span>
-                                    <span class="client-photo-date" style="position:absolute;top:2px;left:2px;font-size:0.55rem;background:rgba(0,0,0,0.6);color:white;padding:1px 4px;border-radius:4px">${p.aptDate}</span>
+                            ${photos.map((p) => `
+                                <div class="client-photo-item" style="position:relative" data-apt-id="${p.appointment_id || ''}" data-photo-id="${p.id}" data-client-id="${c.id}">
+                                    <img src="${p.photo_url}" class="client-apt-photo view-client-photo" data-url="${p.photo_url}" data-date="${p.photo_date}" data-type="${p.photo_type}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer">
+                                    <span class="client-photo-badge" style="position:absolute;bottom:2px;left:2px;font-size:0.6rem;background:${p.photo_type === 'before' ? '#f59e0b' : '#10b981'};color:white;padding:1px 4px;border-radius:4px">${p.photo_type === 'before' ? 'Antes' : 'Después'}</span>
+                                    <span class="client-photo-date" style="position:absolute;top:2px;left:2px;font-size:0.55rem;background:rgba(0,0,0,0.6);color:white;padding:1px 4px;border-radius:4px">${p.photo_date || ''}</span>
                                     <div class="client-photo-actions" style="position:absolute;top:0;right:0;display:flex;gap:2px">
-                                        <button type="button" class="edit-client-photo-btn" data-apt-id="${p.aptId || ''}" data-photo-id="${p.id}" data-date="${p.aptDate || ''}" data-notes="${p.notes || ''}" data-type="${p.type}" title="Editar" style="background:rgba(0,0,0,0.5);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px">✏️</button>
-                                        <button type="button" class="delete-client-photo-btn" data-apt-id="${p.aptId || ''}" data-photo-id="${p.id}" data-client-id="${c.id}" title="Eliminar" style="background:rgba(0,0,0,0.5);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px">🗑️</button>
+                                        <button type="button" class="edit-client-photo-btn" data-apt-id="${p.appointment_id || ''}" data-photo-id="${p.id}" data-date="${p.photo_date || ''}" data-notes="${p.notes || ''}" data-type="${p.photo_type}" title="Editar" style="background:rgba(0,0,0,0.5);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px">✏️</button>
+                                        <button type="button" class="delete-client-photo-btn" data-apt-id="${p.appointment_id || ''}" data-photo-id="${p.id}" data-client-id="${c.id}" title="Eliminar" style="background:rgba(0,0,0,0.5);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px">🗑️</button>
                                     </div>
                                 </div>
                             `).join('')}
@@ -1779,8 +1807,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     try {
                         const url = await uploadAppointmentPhoto(file, appointmentId);
+                        const newPhotoId = generateId();
                         const newPhoto = {
-                            id: generateId(),
+                            id: newPhotoId,
                             url: url,
                             type: type,
                             date: toLocalDateStr(new Date()),
@@ -1790,9 +1819,28 @@ document.addEventListener('DOMContentLoaded', () => {
                         const updatedPhotos = [...(apt.appointmentPhotos || []), newPhoto];
                         if (await updateAppointmentPhotos(appointmentId, updatedPhotos)) {
                             apt.appointmentPhotos = updatedPhotos;
+                            // Guardar también en tabla separada para que sobreviva al borrar la cita
+                            await supabase.from('client_appointment_photos').insert([{
+                                id: newPhotoId,
+                                client_id: apt.clientId,
+                                appointment_id: appointmentId,
+                                photo_url: url,
+                                photo_date: newPhoto.date,
+                                photo_type: type,
+                                notes: ''
+                            }]);
+                            // Actualizar State
+                            State.clientAptPhotos.unshift({
+                                id: newPhotoId,
+                                client_id: apt.clientId,
+                                appointment_id: appointmentId,
+                                photo_url: url,
+                                photo_date: newPhoto.date,
+                                photo_type: type,
+                                notes: ''
+                            });
                             container.innerHTML = renderPhotosForApt(apt);
                             showToast('Foto añadida');
-                            renderRoute();
                         }
                     } catch (err) {
                         console.error('Error uploading photo:', err);
@@ -1962,23 +2010,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     if (photoBeforeInput.files.length > 0) {
                         const url = await uploadAppointmentPhoto(photoBeforeInput.files[0], appointmentId);
+                        const photoId = generateId();
                         data.appointmentPhotos.push({
-                            id: generateId(),
+                            id: photoId,
                             url: url,
                             type: 'before',
                             date: todayStr,
                             notes: ''
                         });
+                        // Guardar también en tabla separada para que sobreviva al borrar la cita
+                        await supabase.from('client_appointment_photos').insert([{
+                            id: photoId,
+                            client_id: data.clientId,
+                            appointment_id: appointmentId,
+                            photo_url: url,
+                            photo_date: todayStr,
+                            photo_type: 'before',
+                            notes: ''
+                        }]);
                     }
                     if (photoAfterInput.files.length > 0) {
                         const url = await uploadAppointmentPhoto(photoAfterInput.files[0], appointmentId);
+                        const photoId = generateId();
                         data.appointmentPhotos.push({
-                            id: generateId(),
+                            id: photoId,
                             url: url,
                             type: 'after',
                             date: todayStr,
                             notes: ''
                         });
+                        // Guardar también en tabla separada para que sobreviva al borrar la cita
+                        await supabase.from('client_appointment_photos').insert([{
+                            id: photoId,
+                            client_id: data.clientId,
+                            appointment_id: appointmentId,
+                            photo_url: url,
+                            photo_date: todayStr,
+                            photo_type: 'after',
+                            notes: ''
+                        }]);
                     }
                 } catch (err) {
                     submitBtn.disabled = false;
@@ -2067,6 +2137,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const updatedPhotos = apt.appointmentPhotos.filter(p => p.id !== photoId);
         if (await updateAppointmentPhotos(window.currentAptId, updatedPhotos)) {
             apt.appointmentPhotos = updatedPhotos;
+            // Eliminar también de la tabla separada
+            await supabase.from('client_appointment_photos').delete().eq('id', photoId);
+            State.clientAptPhotos = State.clientAptPhotos.filter(p => p.id !== photoId);
             showToast('Foto eliminada');
             renderRoute();
             const container = document.getElementById('apt-photos-container');
@@ -2115,6 +2188,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 if (await updateAppointmentPhotos(window.currentAptId, updatedPhotos)) {
                     apt.appointmentPhotos = updatedPhotos;
+                    // También actualizar en la tabla separada
+                    await supabase.from('client_appointment_photos').update({
+                        photo_date: newDate,
+                        photo_type: newType,
+                        notes: newNotes
+                    }).eq('id', photoId);
+                    const cap = State.clientAptPhotos.find(p => p.id === photoId);
+                    if (cap) {
+                        cap.photo_date = newDate;
+                        cap.photo_type = newType;
+                        cap.notes = newNotes;
+                    }
                     closeModal();
                     showToast('Foto actualizada');
                     renderRoute();
@@ -2125,17 +2210,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.deleteClientAppointmentPhoto = async function(aptId, photoId, clientId) {
         if (!confirm('¿Eliminar esta foto?')) return;
-        const apt = State.appointments.find(a => a.id === aptId);
-        if (!apt) {
-            showToast('Cita no encontrada', 'error');
+        const { error } = await supabase.from('client_appointment_photos').delete().eq('id', photoId);
+        if (error) {
+            showToast('Error al eliminar', 'error');
             return;
         }
-        const updatedPhotos = apt.appointmentPhotos.filter(p => p.id !== photoId);
-        if (await updateAppointmentPhotos(aptId, updatedPhotos)) {
-            apt.appointmentPhotos = updatedPhotos;
-            showToast('Foto eliminada');
-            renderRoute();
-        }
+        State.clientAptPhotos = State.clientAptPhotos.filter(p => p.id !== photoId);
+        showToast('Foto eliminada');
+        renderRoute();
     };
 
     function editClientAppointmentPhoto(aptId, photoId, currentDate, currentNotes, currentType) {
@@ -2167,23 +2249,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 const newDate = document.getElementById('edit-client-photo-date').value;
                 const newType = document.getElementById('edit-client-photo-type').value;
                 const newNotes = document.getElementById('edit-client-photo-notes').value;
-                const apt = State.appointments.find(a => a.id === aptId);
-                if (!apt) {
-                    showToast('Cita no encontrada', 'error');
+                const { error } = await supabase.from('client_appointment_photos').update({
+                    photo_date: newDate,
+                    photo_type: newType,
+                    notes: newNotes
+                }).eq('id', photoId);
+                if (error) {
+                    showToast('Error al actualizar', 'error');
                     return;
                 }
-                const updatedPhotos = apt.appointmentPhotos.map(p => {
-                    if (p.id === photoId) {
-                        return { ...p, date: newDate, type: newType, notes: newNotes };
-                    }
-                    return p;
-                });
-                if (await updateAppointmentPhotos(aptId, updatedPhotos)) {
-                    apt.appointmentPhotos = updatedPhotos;
-                    closeModal();
-                    showToast('Foto actualizada');
-                    renderRoute();
+                const photo = State.clientAptPhotos.find(p => p.id === photoId);
+                if (photo) {
+                    photo.photo_date = newDate;
+                    photo.photo_type = newType;
+                    photo.notes = newNotes;
                 }
+                closeModal();
+                showToast('Foto actualizada');
+                renderRoute();
             });
         });
     };
