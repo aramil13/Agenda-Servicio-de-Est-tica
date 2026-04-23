@@ -209,30 +209,35 @@
         function validateImage(img) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            canvas.width = 40; canvas.height = 40; // Mayor resolución para detectar textura
-            ctx.drawImage(img, 0, 0, 40, 40);
-            const data = ctx.getImageData(0, 0, 40, 40).data;
+            canvas.width = 60; canvas.height = 60; // Mayor resolución para análisis de bordes
+            ctx.drawImage(img, 0, 0, 60, 60);
+            const data = ctx.getImageData(0, 0, 60, 60).data;
             
-            let rSum = 0, gSum = 0, bSum = 0;
-            let rSqSum = 0, gSqSum = 0, bSqSum = 0;
+            let rSum = 0, gSum = 0, bSum = 0, rSqSum = 0, gSqSum = 0, bSqSum = 0;
+            let edges = 0;
             const n = data.length / 4;
             
             for (let i = 0; i < data.length; i += 4) {
                 const r = data[i], g = data[i+1], b = data[i+2];
                 rSum += r; gSum += g; bSum += b;
                 rSqSum += r*r; gSqSum += g*g; bSqSum += b*b;
+                
+                // Análisis de bordes (Detección de fotos NO microscópicas)
+                if (i < data.length - 4) {
+                    const r2 = data[i+4], g2 = data[i+5], b2 = data[i+6];
+                    const diff = Math.abs(r-r2) + Math.abs(g-g2) + Math.abs(b-b2);
+                    if (diff > 25) edges++; // Detecta micro-textura
+                }
             }
             
-            // Promedios y Varianza (Detección de textura/detalle)
+            const edgeDensity = edges / n;
             const rAvg = rSum / n, gAvg = gSum / n, bAvg = bSum / n;
             const variance = ((rSqSum/n - (rAvg*rAvg)) + (gSqSum/n - (gAvg*gAvg)) + (bSqSum/n - (bAvg*bAvg))) / 3;
             
-            // HSL del color promedio
             const r = rAvg/255, g = gAvg/255, b = bAvg/255;
             const max = Math.max(r, g, b), min = Math.min(r, g, b);
             const d = max - min;
             let h = 0, s = 0, l = (max + min) / 2;
-
             if (max !== min) {
                 s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
                 if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
@@ -242,28 +247,28 @@
             }
             const hueDeg = h * 360;
             
-            // --- SENSIBILIDAD ALTA ---
-            
-            // 1. Rango Cromático Estricto (Castaños, piel, beige, rojizos o neutros)
-            const isBiologicalHue = (hueDeg < 50 || hueDeg > 340);
-            
-            // 2. Saturación Natural (Lo artificial suele ser muy vibrante)
-            const isNaturalSaturation = s < 0.55;
-            
-            // 3. Presencia de Textura (Un cuero cabelludo macro NUNCA es liso)
-            // Si la varianza es muy baja, es una superficie artificial (papel, plástico, pantalla)
-            const hasMacroTexture = variance > 180; 
-            
-            // 4. Caso especial: Canas o mucha luz (Muy claro pero con textura)
-            const isBrightBiological = l > 0.8 && variance > 120;
+            console.log(`Análisis - Hue:${hueDeg.toFixed(0)}°, Sat:${(s*100).toFixed(0)}%, Var:${variance.toFixed(0)}, Edges:${(edgeDensity*100).toFixed(1)}%`);
 
-            console.log(`Sensibilidad - Hue:${hueDeg.toFixed(0)}°, Sat:${(s*100).toFixed(0)}%, Var:${variance.toFixed(0)}`);
+            // --- FILTRO MICROSCÓPICO ESTRICTO ---
             
-            // Para ser válido debe cumplir el color biológico Y tener textura de foto real
-            // O ser una muestra muy clara (luz) pero con detalle macro.
-            const isValid = (isBiologicalHue && isNaturalSaturation && hasMacroTexture) || isBrightBiological;
+            // 1. Debe tener color biológico
+            const isBiological = (hueDeg < 50 || hueDeg > 340) && s < 0.6;
             
-            return isValid;
+            // 2. Debe tener ALTA densidad de bordes (Textura microscópica)
+            // Las fotos normales de cara o pelo desde lejos son mucho más "suaves" a nivel de píxel
+            const isMicroscopic = edgeDensity > 0.08; 
+            
+            // 3. Debe tener varianza de textura
+            const hasTexture = variance > 250;
+
+            // Alerta personalizada si falla
+            if (!(isBiological && isMicroscopic && hasTexture)) {
+                alert('⚠️ Muestra no válida.\n\nLa imagen no tiene el nivel de detalle microscópico requerido. Por favor, utiliza un microscopio capilar y asegúrate de que la toma sea de muy cerca para poder realizar el análisis de tejidos.');
+                location.reload();
+                return false;
+            }
+            
+            return true;
         }
 
         // Interceptar el cambio del input original
