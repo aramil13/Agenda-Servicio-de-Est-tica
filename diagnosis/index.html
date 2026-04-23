@@ -183,17 +183,68 @@
             }, 'image/jpeg', 0.95);
         };
 
-        // Función para procesar el archivo
+        // Función para procesar y VALIDAR el archivo
         async function processFile(file) {
             if (!file || !file.type.startsWith('image/')) return;
 
-            // Simular el cambio en el input de archivos para que el bundle JS lo procese
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            fileInput.files = dataTransfer.files;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    if (validateImage(img)) {
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(file);
+                        fileInput.files = dataTransfer.files;
+                        fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+                    } else {
+                        alert('⚠️ Imagen no válida para diagnóstico.\n\nLa muestra no parece contener tejidos capilares o cuero cabelludo. Por favor, asegúrate de que la foto sea una toma clara y de cerca.');
+                        location.reload();
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function validateImage(img) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 20; canvas.height = 20;
+            ctx.drawImage(img, 0, 0, 20, 20);
+            const data = ctx.getImageData(0, 0, 20, 20).data;
             
-            // Disparar el evento change
-            fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+            let r = 0, g = 0, b = 0;
+            for (let i = 0; i < data.length; i += 4) {
+                r += data[i]; g += data[i+1]; b += data[i+2];
+            }
+            r /= 400; g /= 400; b /= 400;
+            
+            // Análisis de color promedio (HSL)
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            const d = max - min;
+            let h = 0, s = 0, l = (max + min) / 2;
+
+            if (max !== min) {
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+                else if (max === g) h = (b - r) / d + 2;
+                else h = (r - g) / d + 4;
+                h /= 6;
+            }
+            
+            const hueDeg = h * 360;
+            
+            // Criterios de "Imagen Natural/Biológica":
+            // 1. Tonos cálidos (piel, cabello castaño/rubio/pelirrojo): Hue 0-60
+            const isWarm = (hueDeg < 60 || hueDeg > 330);
+            // 2. Baja saturación (pelo negro, gris, blanco o fotos muy neutras)
+            const isDesaturated = s < 0.35;
+            // 3. Muy oscuro o muy claro (pelo azabache o canas puras)
+            const isExtreme = l < 0.15 || l > 0.9;
+            
+            console.log(`Debug - H:${hueDeg.toFixed(1)}, S:${(s*100).toFixed(1)}%, L:${(l*100).toFixed(1)}%`);
+            
+            return isWarm || isDesaturated || isExtreme;
         }
 
         // Interceptar el cambio del input original
@@ -203,7 +254,7 @@
         
         newFileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
-            if (file) {
+            if (file && file.name !== "camera_capture.jpg") {
                 processFile(file);
             }
         });
