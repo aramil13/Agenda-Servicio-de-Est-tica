@@ -42,6 +42,20 @@
                     <button id="analyze-btn" class="primary-btn">Iniciar Análisis</button>
                     <button id="reset-btn" class="secondary-btn">Cambiar Imagen</button>
                 </div>
+
+                <!-- Botón de Cámara para Tablets -->
+                <button id="camera-btn" class="primary-btn" style="margin-top: 1rem; background: var(--accent-color); color: #000; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><circle cx="12" cy="13" r="3"></circle></svg>
+                    Sacar Foto
+                </button>
+                
+                <div id="camera-container" style="display:none; margin-top: 1rem;">
+                    <video id="video" autoplay playsinline style="width:100%; border-radius:12px; background: #000;"></video>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                        <button id="shutter-btn" class="primary-btn">Capturar</button>
+                        <button id="cancel-camera-btn" class="secondary-btn">Cancelar</button>
+                    </div>
+                </div>
             </section>
 
             <!-- Columna Derecha: Resultados -->
@@ -120,5 +134,63 @@
         h3 { font-size: 1.2rem; margin-bottom: 0.5rem; }
     </style>
 
+    <script>
+        // Lógica de Cámara Integrada
+        const cameraBtn = document.getElementById('camera-btn');
+        const cameraContainer = document.getElementById('camera-container');
+        const video = document.getElementById('video');
+        const shutterBtn = document.getElementById('shutter-btn');
+        const cancelCameraBtn = document.getElementById('cancel-camera-btn');
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+
+        cameraBtn.onclick = async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } 
+                });
+                video.srcObject = stream;
+                cameraContainer.style.display = 'block';
+                cameraBtn.style.display = 'none';
+                dropZone.style.display = 'none';
+            } catch (err) {
+                console.error(err);
+                alert('No se pudo acceder a la cámara. Asegúrate de dar permisos.');
+            }
+        };
+
+        function stopCamera() {
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+            }
+            cameraContainer.style.display = 'none';
+            cameraBtn.style.display = 'flex';
+            dropZone.style.display = 'block';
+        }
+
+        cancelCameraBtn.onclick = stopCamera;
+
+        shutterBtn.onclick = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            canvas.toBlob((blob) => {
+                const file = new File([blob], "camera_capture.jpg", { type: "image/jpeg" });
+                
+                // Simular el cambio en el input de archivos
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+                
+                // Disparar el evento change para que el bundle JS lo procese
+                fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+                
+                stopCamera();
+                cameraBtn.style.display = 'none'; // Ocultar tras capturar
+            }, 'image/jpeg', 0.95);
+        };
+    </script>
 </body>
 </html>

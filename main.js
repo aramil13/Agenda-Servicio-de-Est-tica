@@ -1395,7 +1395,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
             <div class="diagnosis-container">
-                <iframe src="diagnosis/index.html" class="diagnosis-iframe"></iframe>
+                <iframe src="diagnosis/index.html" class="diagnosis-iframe" allow="camera"></iframe>
             </div>
         `;
     }
