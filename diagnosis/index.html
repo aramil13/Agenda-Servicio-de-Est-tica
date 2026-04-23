@@ -209,17 +209,26 @@
         function validateImage(img) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            canvas.width = 20; canvas.height = 20;
-            ctx.drawImage(img, 0, 0, 20, 20);
-            const data = ctx.getImageData(0, 0, 20, 20).data;
+            canvas.width = 40; canvas.height = 40; // Mayor resolución para detectar textura
+            ctx.drawImage(img, 0, 0, 40, 40);
+            const data = ctx.getImageData(0, 0, 40, 40).data;
             
-            let r = 0, g = 0, b = 0;
+            let rSum = 0, gSum = 0, bSum = 0;
+            let rSqSum = 0, gSqSum = 0, bSqSum = 0;
+            const n = data.length / 4;
+            
             for (let i = 0; i < data.length; i += 4) {
-                r += data[i]; g += data[i+1]; b += data[i+2];
+                const r = data[i], g = data[i+1], b = data[i+2];
+                rSum += r; gSum += g; bSum += b;
+                rSqSum += r*r; gSqSum += g*g; bSqSum += b*b;
             }
-            r /= 400; g /= 400; b /= 400;
             
-            // Análisis de color promedio (HSL)
+            // Promedios y Varianza (Detección de textura/detalle)
+            const rAvg = rSum / n, gAvg = gSum / n, bAvg = bSum / n;
+            const variance = ((rSqSum/n - (rAvg*rAvg)) + (gSqSum/n - (gAvg*gAvg)) + (bSqSum/n - (bAvg*bAvg))) / 3;
+            
+            // HSL del color promedio
+            const r = rAvg/255, g = gAvg/255, b = bAvg/255;
             const max = Math.max(r, g, b), min = Math.min(r, g, b);
             const d = max - min;
             let h = 0, s = 0, l = (max + min) / 2;
@@ -231,20 +240,30 @@
                 else h = (r - g) / d + 4;
                 h /= 6;
             }
-            
             const hueDeg = h * 360;
             
-            // Criterios de "Imagen Natural/Biológica":
-            // 1. Tonos cálidos (piel, cabello castaño/rubio/pelirrojo): Hue 0-60
-            const isWarm = (hueDeg < 60 || hueDeg > 330);
-            // 2. Baja saturación (pelo negro, gris, blanco o fotos muy neutras)
-            const isDesaturated = s < 0.35;
-            // 3. Muy oscuro o muy claro (pelo azabache o canas puras)
-            const isExtreme = l < 0.15 || l > 0.9;
+            // --- SENSIBILIDAD ALTA ---
             
-            console.log(`Debug - H:${hueDeg.toFixed(1)}, S:${(s*100).toFixed(1)}%, L:${(l*100).toFixed(1)}%`);
+            // 1. Rango Cromático Estricto (Castaños, piel, beige, rojizos o neutros)
+            const isBiologicalHue = (hueDeg < 50 || hueDeg > 340);
             
-            return isWarm || isDesaturated || isExtreme;
+            // 2. Saturación Natural (Lo artificial suele ser muy vibrante)
+            const isNaturalSaturation = s < 0.55;
+            
+            // 3. Presencia de Textura (Un cuero cabelludo macro NUNCA es liso)
+            // Si la varianza es muy baja, es una superficie artificial (papel, plástico, pantalla)
+            const hasMacroTexture = variance > 180; 
+            
+            // 4. Caso especial: Canas o mucha luz (Muy claro pero con textura)
+            const isBrightBiological = l > 0.8 && variance > 120;
+
+            console.log(`Sensibilidad - Hue:${hueDeg.toFixed(0)}°, Sat:${(s*100).toFixed(0)}%, Var:${variance.toFixed(0)}`);
+            
+            // Para ser válido debe cumplir el color biológico Y tener textura de foto real
+            // O ser una muestra muy clara (luz) pero con detalle macro.
+            const isValid = (isBiologicalHue && isNaturalSaturation && hasMacroTexture) || isBrightBiological;
+            
+            return isValid;
         }
 
         // Interceptar el cambio del input original
