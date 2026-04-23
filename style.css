@@ -141,6 +141,23 @@ body {
     z-index: -1;
 }
 
+/* ── Diagnosis Iframe ── */
+.diagnosis-container {
+    width: 100%;
+    height: calc(100vh - 180px);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md);
+}
+
+.diagnosis-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
 /* ── Section Header ── */
 .section-header {
     display: flex;

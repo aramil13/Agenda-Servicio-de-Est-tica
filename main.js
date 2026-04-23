@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('--- Nymara App: Diagnóstico Capilar Integrado ---');
 
     /* ═══════════════════════════════════════
        SUPABASE CLIENT
@@ -646,6 +647,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (currentRoute === 'services') content = getServicesView();
         else if (currentRoute === 'monthly') content = getMonthlyView();
         else if (currentRoute === 'whatsapp') content = getWhatsAppView();
+        else if (currentRoute === 'diagnosis') content = getDiagnosisView();
 
         appContent.innerHTML = `<div class="fade-in">${content}</div>`;
         attachEvents();
@@ -1378,6 +1380,23 @@ document.addEventListener('DOMContentLoaded', () => {
             <p style="margin-top: 1.5rem; color: var(--text-secondary); font-size: 0.85rem; text-align: center; font-style: italic;">
                 * Debes tener abierta esta pestaña para gestionar los recordatorios diarios.
             </p>
+        `;
+    }
+
+    /* ═══════════════════════════════════════
+       DIAGNOSIS VIEW
+       ═══════════════════════════════════════ */
+    function getDiagnosisView() {
+        return `
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">Diagnóstico Capilar</h1>
+                    <p style="color:var(--text-secondary)">Análisis avanzado del cuero cabelludo · <span class="supabase-badge">⚡ IA Vision</span></p>
+                </div>
+            </div>
+            <div class="diagnosis-container">
+                <iframe src="../diagnosis de cabello/index.html" class="diagnosis-iframe"></iframe>
+            </div>
         `;
     }
 
