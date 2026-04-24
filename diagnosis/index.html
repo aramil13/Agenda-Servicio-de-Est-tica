@@ -89,10 +89,18 @@
                 </div>
 
                 <div style="margin-top: 2rem;">
-                    <h3>Recomendaciones</h3>
+                    <h3>Recomendaciones Maria Nila</h3>
                     <ul id="recommendations-list" style="margin-top: 1rem; color: var(--text-secondary); line-height: 1.6;">
                         <!-- Se llena dinámicamente -->
                     </ul>
+                </div>
+                
+                <div id="maria-nila-products" style="margin-top: 1.5rem; padding: 1rem; background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(217,70,239,0.08)); border-radius: 12px; border: 1px solid rgba(139,92,246,0.2);">
+                    <h4 style="color: var(--accent-primary); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                        Productos Recomendados
+                    </h4>
+                    <div id="products-grid" style="display: grid; gap: 0.75rem;"></div>
                 </div>
             </section>
         </main>
@@ -132,6 +140,12 @@
             color: var(--text-primary);
         }
         h3 { font-size: 1.2rem; margin-bottom: 0.5rem; }
+
+        .maria-nila-product-card:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+        }
     </style>
 
     <script>
@@ -289,12 +303,74 @@
         const newFileInput = originalFileInput.cloneNode(true);
         originalFileInput.parentNode.replaceChild(newFileInput, originalFileInput);
         
-        newFileInput.addEventListener('change', (e) => {
+newFileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file && file.name !== "camera_capture.jpg") {
                 processFile(file);
             }
         });
+
+        // ── Escuchar cuando el análisis se completa y mostrar productos Maria Nila ──
+        let analysisResults = null;
+        
+        const originalProcessAnalysis = window.processDiagnosisResults;
+        
+        function showMariaNilaProductsAfterAnalysis(diagnosis) {
+            if (typeof generateMariaNilaRecommendations === 'function') {
+                const products = generateMariaNilaRecommendations(diagnosis);
+                if (typeof displayMariaNilaProducts === 'function') {
+                    displayMariaNilaProducts(products);
+                }
+            }
+        }
+
+        // Observer para detectar cuando cambian los resultados
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'childList') {
+                    const recommendationsList = document.getElementById('recommendations-list');
+                    if (recommendationsList && recommendationsList.children.length > 0 && !recommendationsList.dataset.processed) {
+                        recommendationsList.dataset.processed = 'true';
+                        if (analysisResults) {
+                            showMariaNilaProductsAfterAnalysis(analysisResults);
+                        }
+                    }
+                }
+            });
+        });
+
+        // Iniciar observer después de que el DOM cargue
+        setTimeout(() => {
+            const recommendationsList = document.getElementById('recommendations-list');
+            if (recommendationsList) {
+                observer.observe(recommendationsList.parentElement, { childList: true });
+            }
+        }, 1000);
+
+        // Interceptar las actualizaciones de resultados de diagnóstico
+        setInterval(() => {
+            const densityEl = document.getElementById('val-density');
+            const thicknessEl = document.getElementById('val-thickness');
+            const sebumEl = document.getElementById('val-sebum');
+            
+            if (densityEl && thicknessEl && sebumEl) {
+                const density = parseInt(densityEl.textContent) || 0;
+                const thickness = parseFloat(thicknessEl.textContent) || 70;
+                const sebumText = sebumEl.textContent;
+                
+                let sebum = 50;
+                if (sebumText === 'Alto') sebum = 75;
+                else if (sebumText === 'Normal') sebum = 50;
+                else if (sebumText === 'Bajo') sebum = 25;
+                
+                const hydration = Math.max(0, Math.min(100, 100 - sebum * 0.5));
+                
+                if (density > 0 && !analysisResults) {
+                    analysisResults = { density, thickness, hydration, sebum };
+                    showMariaNilaProductsAfterAnalysis(analysisResults);
+                }
+            }
+        }, 500);
     </script>
 </body>
 </html>
