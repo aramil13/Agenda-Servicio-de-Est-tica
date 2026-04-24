@@ -505,12 +505,46 @@ function generateTreatmentsRecommendations(diagnosis) {
             `).join('');
         }
 
-        setTimeout(() => { setInterval(checkAndShowProducts, 300); }, 500);
+        setTimeout(runProductRecommendations, 3000);
 
         // Inicializar análisis cuando se hace clic en el botón
         const analyzeBtn = document.getElementById('analyze-btn');
         const resetBtn = document.getElementById('reset-btn');
         const statusBadge = document.getElementById('status-badge');
+        
+        function runProductRecommendations() {
+            const densityEl = document.getElementById('val-density');
+            const thicknessEl = document.getElementById('val-thickness');
+            const sebumEl = document.getElementById('val-sebum');
+            const coloredCheckbox = document.getElementById('colored-hair-checkbox');
+            const isColored = coloredCheckbox ? coloredCheckbox.checked : false;
+            
+            console.log('Verificando datos para productos:', densityEl?.textContent, thicknessEl?.textContent, sebumEl?.textContent);
+            
+            if (densityEl && thicknessEl && sebumEl) {
+                const density = parseInt(densityEl.textContent) || 0;
+                const thickness = parseFloat(thicknessEl.textContent) || 70;
+                const sebumText = sebumEl.textContent;
+                let sebum = 50;
+                if (sebumText === 'Alto') sebum = 80;
+                else if (sebumText === 'Normal') sebum = 55;
+                else if (sebumText === 'Bajo') sebum = 35;
+                
+                console.log('Generando recomendaciones con:', { density, thickness, sebum, isColored });
+                
+                if (density > 0 && density < 300) {
+                    const diagnosis = { density, thickness, hydration: Math.max(0, 100 - sebum * 0.5), sebum, isColored };
+                    const products = generateMariaNilaRecommendations(diagnosis);
+                    const treatments = generateTreatmentsRecommendations(diagnosis);
+                    
+                    console.log('Productos生成:', products.length);
+                    console.log('Tratamientos生成:', treatments.length);
+                    
+                    displayMariaNilaProducts(products);
+                    displayTreatmentsRecommendations(treatments);
+                }
+            }
+        }
         
         if (analyzeBtn) {
             analyzeBtn.addEventListener('click', async () => {
@@ -527,7 +561,7 @@ function generateTreatmentsRecommendations(diagnosis) {
                         statusBadge.textContent = 'Análisis completado';
                         statusBadge.style.background = '#10b981';
                         
-                        // Forzar actualización de valores de ejemplo
+                        // Establecer valores de ejemplo
                         const valDensity = document.getElementById('val-density');
                         const valThickness = document.getElementById('val-thickness');
                         const valHydration = document.getElementById('val-hydration');
@@ -538,8 +572,8 @@ function generateTreatmentsRecommendations(diagnosis) {
                         if (valHydration) valHydration.textContent = '65';
                         if (valSebum) valSebum.textContent = 'Normal';
                         
-                        // Disparar check de productos
-                        checkAndShowProducts();
+                        // Ejecutar推荐aciones
+                        runProductRecommendations();
                     }
                 }, 8000);
             });
@@ -550,6 +584,9 @@ function generateTreatmentsRecommendations(diagnosis) {
                 location.reload();
             });
         }
+        
+        // También intentar ejecutar cuando se cargue la página
+        setTimeout(runProductRecommendations, 3000);
     </script>
     </script>
 </body>
