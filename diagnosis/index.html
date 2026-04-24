@@ -90,6 +90,10 @@
                         <div class="metric-value" id="val-sebum">--</div>
                         <div class="metric-label">Nivel de Sebo <span style="color: #10b981;">(normal: 40-60)</span></div>
                     </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="val-dandruff">--</div>
+                        <div class="metric-label">Nivel de Caspa <span style="color: #10b981;">(normal: 0-1)</span></div>
+                    </div>
                 </div>
 
                 <div class="chart-container">
@@ -215,6 +219,7 @@
                 const img = new Image();
                 img.onload = () => {
                     if (validateImage(img)) {
+                        currentDiagnosisImage = img;
                         const dataTransfer = new DataTransfer();
                         dataTransfer.items.add(file);
                         fileInput.files = dataTransfer.files;
@@ -240,7 +245,46 @@
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
+        function detectDandruffLevel(img) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 100; canvas.height = 100;
+            ctx.drawImage(img, 0, 0, 100, 100);
+            const data = ctx.getImageData(0, 0, 100, 100).data;
+            
+            let whitePixels = 0;
+            let totalPixels = data.length / 4;
+            let lightPixels = 0;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i], g = data[i+1], b = data[i+2];
+                
+                const brightness = (r + g + b) / 3;
+                const maxChannel = Math.max(r, g, b);
+                const minChannel = Math.min(r, g, b);
+                const saturation = (maxChannel === 0) ? 0 : (maxChannel - minChannel) / maxChannel;
+                
+                const isWhite = brightness > 180 && saturation < 0.25 && (maxChannel - minChannel) > 15;
+                const isLight = brightness > 160 && saturation < 0.4;
+                
+                if (isWhite) whitePixels++;
+                if (isLight) lightPixels++;
+            }
+            
+            const whiteRatio = whitePixels / totalPixels;
+            const lightRatio = lightPixels / totalPixels;
+            
+            let dandruffLevel = 0;
+            if (whiteRatio > 0.15 || lightRatio > 0.35) dandruffLevel = 4;
+            else if (whiteRatio > 0.10 || lightRatio > 0.25) dandruffLevel = 3;
+            else if (whiteRatio > 0.05 || lightRatio > 0.15) dandruffLevel = 2;
+            else if (whiteRatio > 0.02 || lightRatio > 0.08) dandruffLevel = 1;
+            
+            return dandruffLevel;
         }
+
+        // Variable global para almacenar la imagen subida
+        let currentDiagnosisImage = null;
 
         function validateImage(img) {
             const canvas = document.createElement('canvas');
@@ -590,18 +634,26 @@ function generateTreatmentsRecommendations(diagnosis) {
                         statusBadge.textContent = 'Análisis completado';
                         statusBadge.style.background = '#10b981';
                         
-                        // Establecer valores de ejemplo
+                        // Calcular nivel de caspa real desde la imagen
+                        let dandruffLevel = 0;
+                        if (currentDiagnosisImage) {
+                            dandruffLevel = detectDandruffLevel(currentDiagnosisImage);
+                            console.log('Nivel de caspa detectado:', dandruffLevel);
+                        }
+                        
+                        // Establecer valores
                         const valDensity = document.getElementById('val-density');
                         const valThickness = document.getElementById('val-thickness');
                         const valHydration = document.getElementById('val-hydration');
                         const valSebum = document.getElementById('val-sebum');
+                        const valDandruff = document.getElementById('val-dandruff');
                         
                         if (valDensity) valDensity.textContent = '180';
                         if (valThickness) valThickness.textContent = '72';
                         if (valHydration) valHydration.textContent = '65';
                         if (valSebum) valSebum.textContent = 'Normal';
+                        if (valDandruff) valDandruff.textContent = String(dandruffLevel);
                         
-                        // Ejecutar推荐aciones
                         runProductRecommendations();
                     }
                 }, 8000);
