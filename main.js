@@ -1477,8 +1477,12 @@ function getClientAppointmentPhotos(clientId) {
     }
 
     /* ═══════════════════════════════════════
-       DIAGNOSIS VIEW
-       ═══════════════════════════════════════ */
+DIAGNOSIS VIEW - OPTIMIZED
+        ═══════════════════════════════════════ */
+    let diagnosisImage = null;
+    let diagnosisClientId = null;
+    let diagnosisClientName = '';
+    
     function getDiagnosisView() {
         const clientsHtml = State.clients.map(c => `
             <div class="diagnosis-client-card" data-client-id="${c.id}">
@@ -1503,7 +1507,7 @@ function getClientAppointmentPhotos(clientId) {
             <div id="diagnosis-client-selection">
                 <div class="data-card" style="margin-bottom:1.5rem;">
                     <h3 style="margin-bottom:1rem;">
-                        <svg width="20" height="20" fill="none stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:8px;"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:8px;"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                         Seleccionar Cliente
                     </h3>
                     <p style="color:var(--text-secondary);margin-bottom:1rem;font-size:0.9rem;">¿Para quién realizarás el diagnóstico?</p>
@@ -1541,8 +1545,9 @@ function getClientAppointmentPhotos(clientId) {
                         </button>
                     </div>
                 </div>
-                <div class="diagnosis-container">
-                    <iframe id="diagnosis-iframe" src="diagnosis/index.html" class="diagnosis-iframe" allow="camera"></iframe>
+                
+                <div class="diagnosis-container" style="min-height:500px;">
+                    <iframe id="diagnosis-iframe" src="diagnosis/index.html" class="diagnosis-iframe" allow="camera *; microphone *" style="width:100%;height:600px;border:none;border-radius:16px;background:var(--bg-surface);"></iframe>
                 </div>
             </div>
         `;
