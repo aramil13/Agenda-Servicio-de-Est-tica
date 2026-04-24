@@ -23,6 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
         clientAptPhotos: [],
         // Cache de fotos en localStorage para recuperación
         photosCache: JSON.parse(localStorage.getItem('nymara_photos_cache') || '[]'),
+        // Cache de fotos de diagnóstico
+        diagnosisPhotosCache: JSON.parse(localStorage.getItem('nymara_diagnosis_photos_cache') || '[]'),
         // Calendar state
         calYear: new Date().getFullYear(),
         calMonth: new Date().getMonth(),
@@ -192,16 +194,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 const clientPhotosRes = await supabase.from('client_photos').select('*').order('created_at', { ascending: false });
-                if (!clientPhotosRes.error && clientPhotosRes.data) {
+                if (!clientPhotosRes.error && clientPhotosRes.data && clientPhotosRes.data.length > 0) {
                     State.clientPhotos = {};
                     clientPhotosRes.data.forEach(p => {
                         const pid = String(p.client_id);
                         if (!State.clientPhotos[pid]) State.clientPhotos[pid] = [];
                         State.clientPhotos[pid].push(p);
                     });
+                    // Guardar en cache de diagnóstico
+                    localStorage.setItem('nymara_diagnosis_photos_cache', JSON.stringify(clientPhotosRes.data));
+                } else if (State.diagnosisPhotosCache.length > 0) {
+                    // Usar cache local si datos remotos están vacíos
+                    State.clientPhotos = {};
+                    State.diagnosisPhotosCache.forEach(p => {
+                        const pid = String(p.client_id);
+                        if (!State.clientPhotos[pid]) State.clientPhotos[pid] = [];
+                        State.clientPhotos[pid].push(p);
+                    });
                 }
             } catch (e) {
-
+                console.warn('Error cargando client_photos:', e);
             }
 
             // Cargar fotos de citas vinculadas al cliente (sobrevive al borrar la cita)
@@ -402,6 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function uploadClientPhotos(files, clientId) {
         const urls = [];
+        const newPhotos = [];
         for (const file of files) {
             const fileExt = file.name.split('.').pop();
             const fileName = `${clientId}/${generateId()}.${fileExt}`;
@@ -427,12 +440,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     client_id: clientId,
                     photo_url: publicUrl
                 });
+                // Guardar también en cache local
+                const newPhoto = {
+                    id: generateId(),
+                    client_id: clientId,
+                    photo_url: publicUrl,
+                    created_at: new Date().toISOString()
+                };
+                newPhotos.push(newPhoto);
+                State.diagnosisPhotosCache.push(newPhoto);
             } catch (e) {
                 console.warn('client_photos not available yet');
             }
             
             urls.push(publicUrl);
         }
+        // Guardar cache actualizado
+        localStorage.setItem('nymara_diagnosis_photos_cache', JSON.stringify(State.diagnosisPhotosCache));
         return urls;
     }
 
@@ -454,10 +478,16 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const { data, error } = await supabase.from('client_photos').select('*').eq('client_id', clientId).order('created_at', { ascending: false });
             if (error) throw error;
-            return data || [];
+            if (data && data.length > 0) {
+                return data;
+            }
+            // Si no hay datos remotos, usar cache local
+            const cached = State.diagnosisPhotosCache.filter(p => String(p.client_id) === String(clientId));
+            return cached;
         } catch (e) {
-            console.warn('client_photos not available yet');
-            return [];
+            console.warn('client_photos not available, usando cache local');
+            const cached = State.diagnosisPhotosCache.filter(p => String(p.client_id) === String(clientId));
+            return cached;
         }
     }
 
@@ -1882,13 +1912,18 @@ function getClientAppointmentPhotos(clientId) {
             
             // Actualizar el State local
             if (!State.clientPhotos[clientId]) State.clientPhotos[clientId] = [];
-            State.clientPhotos[clientId].unshift({
+            const newPhoto = {
                 id: photoId,
                 client_id: clientId,
                 photo_url: publicUrl,
                 photo_hash: hash,
                 created_at: now
-            });
+            };
+            State.clientPhotos[clientId].unshift(newPhoto);
+            
+            // Guardar en cache de diagnóstico
+            State.diagnosisPhotosCache.unshift(newPhoto);
+            localStorage.setItem('nymara_diagnosis_photos_cache', JSON.stringify(State.diagnosisPhotosCache));
             
             urls.push(publicUrl);
         }
