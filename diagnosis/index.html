@@ -439,17 +439,15 @@ function generateTreatmentsRecommendations(diagnosis) {
             const { density, thickness, sebum, isColored } = diagnosis;
             const treatments = [];
             
-            // Tratamiento Profesional Olaplex 1+2 - Recomendado para cabello dañado o tratado
-            if (thickness < 70 || density < 150 || isColored) {
-                treatments.push({ 
-                    title: "Olaplex 1+2 Profesional", 
-                    description: "Tratamiento exclusivo en salón. Reconstruye enlaces de disulfuro. Mezclar 15ml N°1 con 90ml agua, aplicar 5-15 min, luego N°2 otros 15-30 min. El más efectivo para daño químico y térmico.", 
-                    image: "", 
-                    url: "https://www.youtube.com/watch?v=B1I-lvYALqY", 
-                    icon: "💇‍♀️",
-                    isProfessional: true 
-                });
-            }
+            // Tratamiento Olaplex 1+2 - Profesional (SIEMPRE aparece primero)
+            treatments.push({ 
+                title: "Olaplex Nº1 + Nº2 Profesional", 
+                description: "Sistema de reparación profesional. Mezclar 15ml N°1 con 90ml agua. Aplicar de raíces a puntas. Dejar actuar 5-15 min. Añadir N°2 sin enjuagar. Dejar 15-30 min. Enjuagar y lavar. REPARACIÓN MÁXIMA.", 
+                image: "", 
+                url: "https://www.youtube.com/watch?v=B1I-lvYALqY", 
+                icon: "💇‍♀️",
+                isProfessional: true 
+            });
             
             if (density < 150) {
                 treatments.push({ title: "Olaplex N°3PLUS Complete Repair Treatment", description: "Tratamiento pre-shampoo reparador. Repara y fortalece en solo 3 minutos. rebuilds enlaces rotos.", image: "", url: "https://olaplex.com/products/no-3-hair-perfector", icon: "🔗" });
@@ -479,7 +477,7 @@ function generateTreatmentsRecommendations(diagnosis) {
                 treatments.push({ title: "Olaplex N°6 Bond Smoother", description: "Crema anti-frizz. Suaviza, hidrata y reduce rotura. Protection calor 450°F.", image: "", url: "https://olaplex.com/products/olaplex-no-6-bond-smoother", icon: "✨" });
                 treatments.push({ title: "Olaplex N°7 Bonding Oil", description: "Aceite weightless. Brillo instantáneo, anti-frizz. Protection calor 450°F.", image: "", url: "https://olaplex.com/products/olaplex-no-7-bonding-oil", icon: "🌟" });
             }
-            treatments.push({ title: "Olaplex Hair Repair Treatment Kit", description: "Kit inicio reparación profunda. N°0, N°3, N°4, N°5 y N°8. El set más completo.", image: "", url: "https://olaplex.com/products/olaplex-hair-repair-treatment-kit-us-2024", icon: "📦" });
+            
             
             if (treatments.length === 0) {
                 return [{ title: "Olaplex Bond Repair Starter Set", description: "Kit iniciación (N°3 + N°4 + N°5). El sistema básico para reparar y fortalecer.", image: "", url: "https://olaplex.com/products/bond-repair-starter-set-us", icon: "🔗" }];
