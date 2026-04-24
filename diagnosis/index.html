@@ -92,7 +92,7 @@
                     </div>
                     <div class="metric-card">
                         <div class="metric-value" id="val-dandruff">--</div>
-                        <div class="metric-label">Nivel de Caspa <span style="color: #10b981;">(normal: 0-1)</span></div>
+                        <div class="metric-label">Nivel de Caspa <span style="color: #10b981;">(normal: 0-10)</span></div>
                     </div>
                 </div>
 
@@ -258,28 +258,19 @@
             let totalPixels = data.length / 4;
             let skinPixels = 0;
             
-            // Analizar cada píxel
             for (let i = 0; i < data.length; i += 4) {
                 const r = data[i], g = data[i+1], b = data[i+2];
                 
-                // Calcular características del píxel
                 const brightness = (r + g + b) / 3;
                 const maxChannel = Math.max(r, g, b);
                 const minChannel = Math.min(r, g, b);
                 const saturation = (maxChannel === 0) ? 0 : (maxChannel - minChannel) / maxChannel;
                 
-                // DetectarPIELES CLARAS (no caspa) -skin tone promedio
-                // Los tonos de piel tienen cierta rojitud
                 const hasRed = r > g && r > b;
                 const isSkinTone = r > 100 && g > 80 && b > 50 && saturation < 0.4 && hasRed;
                 
                 if (isSkinTone) skinPixels++;
                 
-                // Criterios más estrictos para caspa:
-                // 1. Muy blanco (brillo > 220)
-                // 2. Muy baja saturación (< 0.15) - casi blanco puro
-                // 3. Diferencia alta entre canales - no es gris
-                // 4. NO es un tono de piel
                 const isDandruff = brightness > 220 && 
                                  saturation < 0.15 && 
                                  (maxChannel - minChannel) > 30 &&
@@ -288,22 +279,19 @@
                 if (isDandruff) dandruffPixels++;
             }
             
-            const dandruffRatio = dandruffPixels / totalPixels;
+            const dandruffRatio = (dandruffPixels / totalPixels) * 100;
             const skinRatio = skinPixels / totalPixels;
             
-            // Calcular nivel (ajustado para dar 0-1 como normal)
-            let dandruffLevel = 0;
-            if (dandruffRatio > 0.08 || (dandruffRatio > 0.03 && skinRatio < 0.3)) {
-                dandruffLevel = 4;
-            } else if (dandruffRatio > 0.05 || (dandruffRatio > 0.02 && skinRatio < 0.4)) {
-                dandruffLevel = 3;
-            } else if (dandruffRatio > 0.025 || (dandruffRatio > 0.01 && skinRatio < 0.5)) {
-                dandruffLevel = 2;
-            } else if (dandruffRatio > 0.008) {
-                dandruffLevel = 1;
+            let dandruffPercent = Math.round(dandruffRatio * 100);
+            if (dandruffPercent > 15 || (dandruffPercent > 5 && skinRatio < 0.3)) {
+                dandruffPercent = Math.min(100, 15 + Math.round(dandruffRatio * 300));
+            } else if (dandruffPercent > 8 || (dandruffPercent > 3 && skinRatio < 0.4)) {
+                dandruffPercent = Math.min(100, 8 + Math.round(dandruffRatio * 200));
+            } else if (dandruffPercent > 3 || (dandruffPercent > 1 && skinRatio < 0.5)) {
+                dandruffPercent = Math.min(100, 3 + Math.round(dandruffRatio * 150));
             }
             
-            return dandruffLevel;
+            return Math.round(dandruffRatio * 100);
         }
 
         // Variable global para almacenar la imagen subida
