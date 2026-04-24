@@ -245,6 +245,8 @@
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
+        }
+
         function detectDandruffLevel(img) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
@@ -580,7 +582,9 @@ function generateTreatmentsRecommendations(diagnosis) {
         const statusBadge = document.getElementById('status-badge');
         
         function runProductRecommendations() {
-            console.log('=== runProductRecommendations INICIADO ===');
+console.log('=== runProductRecommendations INICIADO ===');
+            console.log('Buscando elementos del DOM...');
+            
             const densityEl = document.getElementById('val-density');
             const thicknessEl = document.getElementById('val-thickness');
             const sebumEl = document.getElementById('val-sebum');
@@ -594,6 +598,12 @@ function generateTreatmentsRecommendations(diagnosis) {
                 productsGrid: !!productsGrid,
                 treatmentsGrid: !!treatmentsGrid
             });
+            
+            if (!productsGrid || !treatmentsGrid) {
+                console.error('CRÍTICO: No se encuentran los contenedores de productos/tratamientos');
+                alert('Error: Contenedores no encontrados. Revisa el HTML.');
+                return;
+            }
             
             let density = 180;
             let thickness = 72;
