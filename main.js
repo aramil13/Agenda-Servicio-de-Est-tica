@@ -641,7 +641,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
-    async function uploadAppointmentPhoto(file, appointmentId) {
+    async function uploadAppointmentPhoto(file, appointmentId, clientId) {
+        // Calcular hash para deduplicación
+        const buffer = await file.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        const hash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        
+        // Verificar duplicados en client_appointment_photos
+        const existingPhoto = State.clientAptPhotos.find(p => p.client_id === clientId && p.photo_hash === hash);
+        if (existingPhoto) {
+            showToast('Esta foto ya existe en el historial del cliente');
+            return null;
+        }
+        
         const fileExt = file.name.split('.').pop();
         const fileName = `appointments/${appointmentId}/${generateId()}.${fileExt}`;
         
@@ -659,7 +671,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .from('client-photos')
             .getPublicUrl(fileName);
         
-        return publicUrl;
+        return { url: publicUrl, hash };
     }
 
     /* ═══════════════════════════════════════
@@ -2093,6 +2105,29 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         
         displayDiagnosisProducts(generateMariaNilaRecs(diagnosis));
         displayDiagnosisTreatments(generateTreatmentsRecs(diagnosis));
+        
+        // Guardar foto de diagnóstico en la base de datos del cliente
+        if (currentDiagnosisImage) {
+            const canvas = document.createElement('canvas');
+            canvas.width = currentDiagnosisImage.width;
+            canvas.height = currentDiagnosisImage.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(currentDiagnosisImage, 0, 0);
+            canvas.toBlob(async blob => {
+                const clientId = sessionStorage.getItem('nymara_diagnosis_client_id');
+                if (clientId && blob) {
+                    const hash = await generateFileHash(blob);
+                    const existingPhotos = State.clientPhotos[clientId] || [];
+                    const duplicateHash = existingPhotos.find(p => p.photo_hash === hash);
+                    if (!duplicateHash) {
+                        const file = new File([blob], `diagnosis_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                        const clientName = sessionStorage.getItem('nymara_diagnosis_client_name');
+                        await uploadClientPhotosWithHash([file], clientId, hash);
+                        showToast(`Foto de diagnóstico guardada para ${clientName}`);
+                    }
+                }
+            }, 'image/jpeg', 0.95);
+        }
     }
 
     function validateDiagnosisImage(img) {
@@ -2352,13 +2387,11 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                         return;
                     }
                     
-                    // Verificar en base de datos si el cliente ya tiene esta foto en los últimos 10 segundos
+                    // Verificar en base de datos si el cliente ya tiene esta foto por su hash (sin límite de tiempo)
                     const existingPhotos = State.clientPhotos[clientId] || [];
-                    const recentDB = existingPhotos.find(p => {
-                        const photoTime = new Date(p.created_at).getTime();
-                        return now - photoTime < 10000 && p.photo_hash === hash;
-                    });
-                    if (recentDB) {
+                    const duplicateHash = existingPhotos.find(p => p.photo_hash === hash);
+                    if (duplicateHash) {
+                        showToast('Esta foto ya existe en el historial del cliente');
                         return;
                     }
                     
@@ -2755,7 +2788,9 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     const file = input.files[0];
                     
                     try {
-                        const url = await uploadAppointmentPhoto(file, appointmentId);
+                        const result = await uploadAppointmentPhoto(file, appointmentId, apt.clientId);
+                        if (!result) return; // Duplicate detected
+                        const { url, hash } = result;
                         const newPhotoId = generateId();
                         const newPhoto = {
                             id: newPhotoId,
@@ -2776,7 +2811,8 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                                 photo_url: url,
                                 photo_date: newPhoto.date,
                                 photo_type: type,
-                                notes: ''
+                                notes: '',
+                                photo_hash: hash
                             }]);
                             // Actualizar State
                             State.clientAptPhotos.unshift({
@@ -2786,7 +2822,8 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                                 photo_url: url,
                                 photo_date: newPhoto.date,
                                 photo_type: type,
-                                notes: ''
+                                notes: '',
+                                photo_hash: hash
                             });
                             container.innerHTML = renderPhotosForApt(apt);
                             showToast('Foto añadida');
@@ -2997,68 +3034,78 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     const afterFile = photoAfterInput.files.length > 0 ? photoAfterInput.files[0] : (photoAfterCameraInput.files.length > 0 ? photoAfterCameraInput.files[0] : null);
 
                     if (beforeFile) {
-                        const url = await uploadAppointmentPhoto(beforeFile, appointmentId);
-                        const photoId = generateId();
-                        data.appointmentPhotos.push({
-                            id: photoId,
-                            url: url,
-                            type: 'before',
-                            date: todayStr,
-                            notes: ''
-                        });
-                        await supabase.from('client_appointment_photos').insert([{
-                            id: photoId,
-                            client_id: data.clientId,
-                            appointment_id: appointmentId,
-                            photo_url: url,
-                            photo_date: todayStr,
-                            photo_type: 'before',
-                            notes: ''
-                        }]);
-                        // Actualizar cache local
-                        State.photosCache.push({
-                            id: photoId,
-                            client_id: data.clientId,
-                            appointment_id: appointmentId,
-                            photo_url: url,
-                            photo_date: todayStr,
-                            photo_type: 'before',
-                            notes: '',
-                            created_at: new Date().toISOString()
-                        });
-                        localStorage.setItem('nymara_photos_cache', JSON.stringify(State.photosCache));
+                        const result = await uploadAppointmentPhoto(beforeFile, appointmentId, data.clientId);
+                        if (result) {
+                            const { url, hash } = result;
+                            const photoId = generateId();
+                            data.appointmentPhotos.push({
+                                id: photoId,
+                                url: url,
+                                type: 'before',
+                                date: todayStr,
+                                notes: ''
+                            });
+                            await supabase.from('client_appointment_photos').insert([{
+                                id: photoId,
+                                client_id: data.clientId,
+                                appointment_id: appointmentId,
+                                photo_url: url,
+                                photo_date: todayStr,
+                                photo_type: 'before',
+                                notes: '',
+                                photo_hash: hash
+                            }]);
+                            // Actualizar cache local
+                            State.photosCache.push({
+                                id: photoId,
+                                client_id: data.clientId,
+                                appointment_id: appointmentId,
+                                photo_url: url,
+                                photo_date: todayStr,
+                                photo_type: 'before',
+                                notes: '',
+                                photo_hash: hash,
+                                created_at: new Date().toISOString()
+                            });
+                            localStorage.setItem('nymara_photos_cache', JSON.stringify(State.photosCache));
+                        }
                     }
                     if (afterFile) {
-                        const url = await uploadAppointmentPhoto(afterFile, appointmentId);
-                        const photoId = generateId();
-                        data.appointmentPhotos.push({
-                            id: photoId,
-                            url: url,
-                            type: 'after',
-                            date: todayStr,
-                            notes: ''
-                        });
-                        await supabase.from('client_appointment_photos').insert([{
-                            id: photoId,
-                            client_id: data.clientId,
-                            appointment_id: appointmentId,
-                            photo_url: url,
-                            photo_date: todayStr,
-                            photo_type: 'after',
-                            notes: ''
-                        }]);
-                        // Actualizar cache local
-                        State.photosCache.push({
-                            id: photoId,
-                            client_id: data.clientId,
-                            appointment_id: appointmentId,
-                            photo_url: url,
-                            photo_date: todayStr,
-                            photo_type: 'after',
-                            notes: '',
-                            created_at: new Date().toISOString()
-                        });
-                        localStorage.setItem('nymara_photos_cache', JSON.stringify(State.photosCache));
+                        const result = await uploadAppointmentPhoto(afterFile, appointmentId, data.clientId);
+                        if (result) {
+                            const { url, hash } = result;
+                            const photoId = generateId();
+                            data.appointmentPhotos.push({
+                                id: photoId,
+                                url: url,
+                                type: 'after',
+                                date: todayStr,
+                                notes: ''
+                            });
+                            await supabase.from('client_appointment_photos').insert([{
+                                id: photoId,
+                                client_id: data.clientId,
+                                appointment_id: appointmentId,
+                                photo_url: url,
+                                photo_date: todayStr,
+                                photo_type: 'after',
+                                notes: '',
+                                photo_hash: hash
+                            }]);
+                            // Actualizar cache local
+                            State.photosCache.push({
+                                id: photoId,
+                                client_id: data.clientId,
+                                appointment_id: appointmentId,
+                                photo_url: url,
+                                photo_date: todayStr,
+                                photo_type: 'after',
+                                notes: '',
+                                photo_hash: hash,
+                                created_at: new Date().toISOString()
+                            });
+                            localStorage.setItem('nymara_photos_cache', JSON.stringify(State.photosCache));
+                        }
                     }
                 } catch (err) {
                     submitBtn.disabled = false;
