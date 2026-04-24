@@ -446,28 +446,29 @@
         function generateTreatmentsRecommendations(diagnosis) {
             const { density, thickness, sebum, isColored } = diagnosis;
             const treatments = [];
+            const olaplexBase = "https://olaplex.com/cdn/shop/files";
             if (density < 150) {
-                treatments.push({ title: "Olaplex Bond Perfector", description: "Tratamiento reparador de enlaces que fortalece la estructura del cabello dañado.", icon: "🔗" });
-                treatments.push({ title: "Olaplex No.3 Hair Perfector", description: "Tratamiento semanal sin aclarado para mantenimiento en casa.", icon: "🏠" });
+                treatments.push({ title: "Olaplex No.3 Hair Perfector", description: "Tratamiento pre-shampoo que repara enlaces rotos. Reduce rotura futura y fortalece el cabello dañado. Aplica 3-5 minutos antes de lavar.", image: `${olaplexBase}/1-No3_product_1440_7cd8abc9-5c07-40be-a7c6-eeb73f63dc32.png?v=1762271835`, url: "https://olaplex.com/products/hair-perfector-us", icon: "🔗" });
+                treatments.push({ title: "Olaplex No.3PLUS", description: "Versión mejorada del No.3. Repara en 3 minutos todo tipo de daño. Fortalece instantáneamente.", image: `${olaplexBase}/3PLUS_product_1440.png`, url: "https://olaplex.com/products/no-3-hair-perfector", icon: "💫" });
             }
             if (thickness < 60) {
-                treatments.push({ title: "Olaplex Bond Building Treatment", description: "Tratamiento intensivo para reconstruir los enlaces capilares.", icon: "💪" });
+                treatments.push({ title: "Olaplex No.1 + No.2 Bond Treatment", description: "Tratamiento de dos pasos para salón. Repara todos los enlaces en 3 minutos después de-coloración.", image: `${olaplexBase}/No1_No2_bond_treatment.png`, url: "https://olaplex.com/products/n-2-bond-perfector-us", icon: "💪" });
             }
             if (sebum > 65) {
-                treatments.push({ title: "Olaplex No.4 Bond Maintenance", description: "Champú reparador suave que no stripped el cabello.", icon: "🧴" });
+                treatments.push({ title: "Olaplex No.4 Bond Maintenance Shampoo", description: "Champú reparador suave que limpia sin stripping. Mantiene los enlaces reparados. No contiene sulfatos agresivos.", image: `${olaplexBase}/No4_shampoo.png`, url: "https://olaplex.com/products/n-4-bond-maintenance-shampoo-us", icon: "🧴" });
             }
             if (sebum < 40) {
-                treatments.push({ title: "Olaplex No.5 Conditioner", description: "Acondicionador nutritivo que repara sin pesar el cabello.", icon: "💧" });
+                treatments.push({ title: "Olaplex No.5 Bond Maintenance Conditioner", description: "Acondicionador que repara linkages sin pesar. Nutre profundamente el cabello seco y dañado.", image: `${olaplexBase}/No5_conditioner.png`, url: "https://olaplex.com/products/n-5-bond-maintenance-conditioner-us", icon: "💧" });
             }
             if (density < 120) {
-                treatments.push({ title: "Olaplex Scalp Serum", description: "Sérum para cuero cabelludo con tecnología bond repair.", icon: "💉" });
+                treatments.push({ title: "Olaplex Scalp Treatment", description: "Tratamiento para cuero cabelludo que fortalecer enlaces desde la raíz. Estimula follicles.", image: `${olaplexBase}/Olaplex_Scalp.png`, url: "https://olaplex.com/collections/scalp-health-us", icon: "💉" });
             }
             if (isColored) {
-                treatments.push({ title: "Olaplex Color Maintenance", description: "Sistema completo para proteger color y enlaces del cabello teñido.", icon: "🎨" });
-                treatments.push({ title: "Olaplex No.4C Bond Maintenance", description: "Champú específico para cabello teñido con color hold.", icon: "🎀" });
+                treatments.push({ title: "Olaplex Color Maintenance System", description: "Sistema completo (No.3 + No.4 + No.5) para proteger color y enlaces simultáneamente.", image: `${olaplexBase}/color_maintenance.png`, url: "https://olaplex.com/collections/color-treated-hair", icon: "🎨" });
+                treatments.push({ title: "Olaplex No.4C Clarifying Shampoo", description: "Champú clarificante suave para cabello teñido. Limpia sin perder color.", image: `${olaplexBase}/No4C_clarifying.png`, url: "https://olaplex.com/products/n-4c-bond-maintenance-clarifying-shampoo-us", icon: "🎀" });
             }
             if (thickness < 65 || density < 140) {
-                treatments.push({ title: "Cronograma Capilar Olaplex", description: "Plan de seguimiento personalizado con sesiones programadas cada 30-60 días.", icon: "📅" });
+                treatments.push({ title: "Cronograma Capilar Olaplex", description: "Plan de aplicación: No.3 semanal + sistema completo (No.4+5) 2 veces por semana cada 30-60 días.", image: `${olaplexBase}/olaplex_routine.png`, url: "https://olaplex.com/pages/the-routine", icon: "📅" });
             }
             return treatments.slice(0, 6);
         }
@@ -480,13 +481,14 @@
                 return;
             }
             container.innerHTML = treatments.map(t => `
-                <div style="display: flex; align-items: flex-start; gap: 1rem; padding: 1rem; background: rgba(16,185,129,0.05); border-radius: 10px; border: 1px solid rgba(16,185,129,0.15);">
-                    <span style="font-size: 2rem;">${t.icon}</span>
-                    <div>
-                        <strong style="color: #10b981; font-size: 1rem; display: block;">${t.title}</strong>
-                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 4px 0 0; line-height: 1.4;">${t.description}</p>
+                <a href="${t.url}" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(16,185,129,0.05); border-radius: 10px; border: 1px solid rgba(16,185,129,0.15); text-decoration: none; transition: all 0.2s;">
+                    <img src="${t.image}" alt="${t.title}" style="width: 80px; height: 80px; object-fit: contain; border-radius: 8px; background: white; flex-shrink: 0;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div style="display: none; width: 80px; height: 80px; background: rgba(16,185,129,0.1); border-radius: 8px; align-items: center; justify-content: center; font-size: 2rem; flex-shrink: 0;">${t.icon}</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <strong style="color: #10b981; font-size: 0.95rem; display: block;">${t.title}</strong>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 4px 0 0; line-height: 1.4;">${t.description}</p>
                     </div>
-                </div>
+                </a>
             `).join('');
         }
 
