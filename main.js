@@ -1389,13 +1389,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function getDiagnosisView() {
         const clientsHtml = State.clients.map(c => `
             <div class="diagnosis-client-card" data-client-id="${c.id}">
+                <button class="btn btn-primary btn-sm select-client-btn" data-client-id="${c.id}" data-client-name="${c.name}">
+                    Seleccionar
+                </button>
                 <div class="diagnosis-client-info">
                     <strong>${c.name}</strong>
                     <span style="font-size:0.8rem;color:var(--text-secondary)">${c.phone || 'Sin teléfono'}</span>
                 </div>
-                <button class="btn btn-primary btn-sm select-client-btn" data-client-id="${c.id}" data-client-name="${c.name}">
-                    Seleccionar
-                </button>
             </div>
         `).join('');
 

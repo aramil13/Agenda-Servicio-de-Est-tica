@@ -354,7 +354,7 @@
             const issues = [];
             if (density < 150) issues.push("low_density", "fine");
             if (thickness < 60) issues.push("fine");
-            if (sebum > 60) issues.push("high_sebum", "oily");
+            if (sebum > 70) issues.push("high_sebum", "oily");
             if (sebum < 40) issues.push("dry", "low_hydration");
             if (isColored) issues.push("colored", "dyed");
             if (issues.includes("low_density") || issues.includes("fine")) {
@@ -366,7 +366,7 @@
             if (issues.includes("high_sebum") || issues.includes("oily")) {
                 selectedProducts.push(MARIA_NILA_PRODUCTS.purifyingCleanseShampoo);
             }
-            if (sebum > 50 && density < 150) {
+            if (sebum > 60 && density < 150) {
                 selectedProducts.push(MARIA_NILA_PRODUCTS.headHairHealMasque);
             }
             if (thickness < 70) {
@@ -417,9 +417,9 @@
                 const thickness = parseFloat(thicknessEl.textContent) || 70;
                 const sebumText = sebumEl.textContent;
                 let sebum = 50;
-                if (sebumText === 'Alto') sebum = 75;
+                if (sebumText === 'Alto') sebum = 70;
                 else if (sebumText === 'Normal') sebum = 50;
-                else if (sebumText === 'Bajo') sebum = 25;
+                else if (sebumText === 'Bajo') sebum = 30;
                 if (density > 0 && density < 300) {
                     const diagnosis = { density, thickness, hydration: Math.max(0, 100 - sebum * 0.5), sebum, isColored };
                     const products = generateMariaNilaRecommendations(diagnosis);
