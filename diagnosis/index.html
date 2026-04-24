@@ -580,11 +580,20 @@ function generateTreatmentsRecommendations(diagnosis) {
         const statusBadge = document.getElementById('status-badge');
         
         function runProductRecommendations() {
+            console.log('=== runProductRecommendations INICIADO ===');
             const densityEl = document.getElementById('val-density');
             const thicknessEl = document.getElementById('val-thickness');
             const sebumEl = document.getElementById('val-sebum');
+            const productsGrid = document.getElementById('products-grid');
+            const treatmentsGrid = document.getElementById('treatments-grid');
             
-            console.log('Verificando datos para productos:', densityEl?.textContent, thicknessEl?.textContent, sebumEl?.textContent);
+            console.log('Elementos encontrados:', {
+                densityEl: !!densityEl,
+                thicknessEl: !!thicknessEl,
+                sebumEl: !!sebumEl,
+                productsGrid: !!productsGrid,
+                treatmentsGrid: !!treatmentsGrid
+            });
             
             let density = 180;
             let thickness = 72;
@@ -630,6 +639,8 @@ function generateTreatmentsRecommendations(diagnosis) {
                 // Timeout de seguridad - forzar completación después de 8 segundos
                 setTimeout(() => {
                     console.log('Análisis forzado a completar');
+                    console.log('currentDiagnosisImage existe:', !!currentDiagnosisImage);
+                    
                     if (statusBadge) {
                         statusBadge.textContent = 'Análisis completado';
                         statusBadge.style.background = '#10b981';
@@ -637,8 +648,14 @@ function generateTreatmentsRecommendations(diagnosis) {
                         // Calcular nivel de caspa real desde la imagen
                         let dandruffLevel = 0;
                         if (currentDiagnosisImage) {
-                            dandruffLevel = detectDandruffLevel(currentDiagnosisImage);
-                            console.log('Nivel de caspa detectado:', dandruffLevel);
+                            try {
+                                dandruffLevel = detectDandruffLevel(currentDiagnosisImage);
+                                console.log('Nivel de caspa detectado:', dandruffLevel);
+                            } catch(e) {
+                                console.error('Error detectando caspa:', e);
+                            }
+                        } else {
+                            console.log('No hay imagen, usando dandruffLevel = 0');
                         }
                         
                         // Establecer valores
@@ -654,7 +671,14 @@ function generateTreatmentsRecommendations(diagnosis) {
                         if (valSebum) valSebum.textContent = 'Normal';
                         if (valDandruff) valDandruff.textContent = String(dandruffLevel);
                         
-                        runProductRecommendations();
+                        console.log('Llamando runProductRecommendations...');
+                        try {
+                            runProductRecommendations();
+                            console.log('runProductRecommendations completado');
+                        } catch(e) {
+                            console.error('Error en runProductRecommendations:', e);
+                            alert('Error: ' + e.message);
+                        }
                     }
                 }, 8000);
             });
