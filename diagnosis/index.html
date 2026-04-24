@@ -505,8 +505,6 @@ function generateTreatmentsRecommendations(diagnosis) {
             `).join('');
         }
 
-        setTimeout(runProductRecommendations, 3000);
-
         // Inicializar análisis cuando se hace clic en el botón
         const analyzeBtn = document.getElementById('analyze-btn');
         const resetBtn = document.getElementById('reset-btn');
@@ -521,28 +519,44 @@ function generateTreatmentsRecommendations(diagnosis) {
             
             console.log('Verificando datos para productos:', densityEl?.textContent, thicknessEl?.textContent, sebumEl?.textContent);
             
+            let density = 150;
+            let thickness = 65;
+            let sebum = 50;
+            
             if (densityEl && thicknessEl && sebumEl) {
-                const density = parseInt(densityEl.textContent) || 0;
-                const thickness = parseFloat(thicknessEl.textContent) || 70;
-                const sebumText = sebumEl.textContent;
-                let sebum = 50;
-                if (sebumText === 'Alto') sebum = 80;
-                else if (sebumText === 'Normal') sebum = 55;
-                else if (sebumText === 'Bajo') sebum = 35;
+                const d = parseInt(densityEl.textContent) || 0;
+                const t = parseFloat(thicknessEl.textContent) || 0;
+                const s = sebumEl.textContent;
                 
-                console.log('Generando recomendaciones con:', { density, thickness, sebum, isColored });
+                if (d > 0) density = d;
+                if (t > 0) thickness = t;
                 
-                if (density > 0 && density < 300) {
-                    const diagnosis = { density, thickness, hydration: Math.max(0, 100 - sebum * 0.5), sebum, isColored };
-                    const products = generateMariaNilaRecommendations(diagnosis);
-                    const treatments = generateTreatmentsRecommendations(diagnosis);
-                    
-                    console.log('Productos生成:', products.length);
-                    console.log('Tratamientos生成:', treatments.length);
-                    
-                    displayMariaNilaProducts(products);
-                    displayTreatmentsRecommendations(treatments);
-                }
+                if (s === 'Alto') sebum = 80;
+                else if (s === 'Normal') sebum = 55;
+                else if (s === 'Bajo') sebum = 35;
+            }
+            
+            console.log('Generando recomendaciones con:', { density, thickness, sebum, isColored });
+            
+            const diagnosis = { density, thickness, hydration: Math.max(0, 100 - sebum * 0.5), sebum, isColored };
+            const products = generateMariaNilaRecommendations(diagnosis);
+            const treatments = generateTreatmentsRecommendations(diagnosis);
+            
+            console.log('Productos生成:', products.length, products);
+            console.log('Tratamientos生成:', treatments.length, treatments);
+            
+            const productsContainer = document.getElementById('products-grid');
+            const treatmentsContainer = document.getElementById('treatments-grid');
+            
+            if (productsContainer) {
+                console.log('Container productos encontrado');
+                displayMariaNilaProducts(products);
+            } else {
+                console.log('NO se encontró products-grid');
+            }
+            
+            if (treatmentsContainer) {
+                displayTreatmentsRecommendations(treatments);
             }
         }
         
@@ -584,10 +598,6 @@ function generateTreatmentsRecommendations(diagnosis) {
                 location.reload();
             });
         }
-        
-        // También intentar ejecutar cuando se cargue la página
-        setTimeout(runProductRecommendations, 3000);
-    </script>
     </script>
 </body>
 </html>
