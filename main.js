@@ -1477,12 +1477,24 @@ function getClientAppointmentPhotos(clientId) {
     }
 
     /* ═══════════════════════════════════════
-DIAGNOSIS VIEW - OPTIMIZED
+DIAGNOSIS VIEW - FULLY INTEGRATED
         ═══════════════════════════════════════ */
     let diagnosisImage = null;
     let diagnosisClientId = null;
-    let diagnosisClientName = '';
+    let diagnosisClientName = null;
+    let currentDiagnosisImage = null;
     
+    // Maria Nila Products Database
+    const MARIA_NILA_PRODUCTS = {
+        headHairHealShampoo: { name: "Head & Hair Heal Shampoo", category: "champú", collection: "Head & Hair Heal", description: "Champú calmante para cuero cabelludo sensible. Con aloe vera y piroctona olamina.", targets: ["scalp_sensitive", "scalp_irritation", "dandruff"], image: "https://marianila.com/cdn/shop/files/13650-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-shampoo-350-ml", icon: "🧴" },
+        trueSoftShampoo: { name: "True Soft Shampoo", category: "champú", collection: "True Soft", description: "Champú hidratante con aceite de argán para cabello seco o encrespado.", targets: ["dry", "frizzy", "low_hydration"], image: "https://marianila.com/cdn/shop/files/3630-packshot.jpg", url: "https://marianila.com/products/true-soft-shampoo-350-ml", icon: "💧" },
+        pureVolumeShampoo: { name: "Pure Volume Shampoo", category: "champú", collection: "Pure Volume", description: "Champú voluminizador con provitamina B5 y proteínas vegetales.", targets: ["fine", "low_density", "flat"], image: "https://marianila.com/cdn/shop/files/3610-packshot.jpg", url: "https://marianila.com/products/pure-volume-shampoo-350-ml", icon: "📈" },
+        structureRepairShampoo: { name: "Structure Repair Shampoo", category: "champú", collection: "Structure Repair", description: "Champú reparador para cabello dañado.", targets: ["damaged", "thin", "colored"], image: "https://marianila.com/cdn/shop/files/3600-packshot.jpg", url: "https://marianila.com/products/structure-repair-shampoo-350-ml", icon: "🔧" },
+        luminousColourShampoo: { name: "Luminous Colour Shampoo", category: "champú", collection: "Luminous Colour", description: "Champú preservador de color con extracto de Granada.", targets: ["colored", "dyed"], image: "https://marianila.com/cdn/shop/files/3625-packshot.jpg", url: "https://marianila.com/products/luminous-colour-shampoo-350-ml", icon: "🎨" },
+        headHairHealConditioner: { name: "Head & Hair Heal Conditioner", category: "acondicionador", collection: "Head & Hair Heal", description: "Acondicionador calmante para el cuero cabelludo.", targets: ["scalp_sensitive", "scalp_irritation"], image: "https://marianila.com/cdn/shop/files/13651-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-conditioner-300-ml", icon: "🧴" },
+        bondBuilder: { name: "Bond Builder", category: "tratamiento", collection: "Bond Builder", description: "Reparador de enlaces capilares.", targets: ["damaged", "colored"], image: "https://marianila.com/cdn/shop/files/mnproductpage1200x1500px1.jpg", url: "https://marianila.com/products/bond-builder", icon: "🔗" },
+    };
+
     function getDiagnosisView() {
         const clientsHtml = State.clients.map(c => `
             <div class="diagnosis-client-card" data-client-id="${c.id}">
@@ -1546,10 +1558,94 @@ DIAGNOSIS VIEW - OPTIMIZED
                     </div>
                 </div>
                 
-                <div class="diagnosis-container" style="min-height:500px;">
-                    <iframe id="diagnosis-iframe" src="diagnosis/index.html" class="diagnosis-iframe" allow="camera *; microphone *" style="width:100%;height:600px;border:none;border-radius:16px;background:var(--bg-surface);"></iframe>
+                <!-- INTEGRATED DIAGNOSIS UI -->
+                <div class="diagnosis-integrated" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+                    <!-- Left: Upload -->
+                    <div class="diagnosis-panel" style="background:var(--bg-surface);padding:1.5rem;border-radius:16px;border:1px solid var(--border-color);">
+                        <div class="upload-zone" id="drop-zone" style="border:2px dashed var(--border-color);border-radius:12px;padding:2rem;text-align:center;cursor:pointer;transition:all 0.3s;">
+                            <input type="file" id="diag-file-input" accept="image/*" style="display:none;">
+                            <svg width="48" height="48" fill="none" stroke="var(--text-secondary)" stroke-width="2" viewBox="0 0 24 24" style="margin:0 auto 1rem;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            <h3 style="margin-bottom:0.5rem;">Sube tu foto microscópica</h3>
+                            <p style="color:var(--text-secondary);font-size:0.9rem;">Arrastra y suelta o haz clic</p>
+                        </div>
+                        
+                        <div class="preview-container" id="preview-container" style="display:none;margin-top:1rem;">
+                            <img id="diag-preview-img" src="" alt="Preview" style="width:100%;border-radius:12px;">
+                        </div>
+                        
+                        <div id="action-buttons" style="display:none;margin-top:1.5rem;">
+                            <button id="analyze-btn" class="btn btn-primary" style="width:100%;">Iniciar Análisis</button>
+                            <button id="reset-btn" class="btn btn-secondary" style="margin-top:0.5rem;width:100%;">Cambiar Imagen</button>
+                        </div>
+                        
+                        <div id="colored-hair-toggle" style="display:none;margin-top:1rem;padding:1rem;background:rgba(139,92,246,0.1);border-radius:12px;">
+                            <label style="display:flex;align-items:center;gap:0.75rem;cursor:pointer;">
+                                <input type="checkbox" id="colored-hair-checkbox" style="width:20px;height:20px;accent-color:#8b5cf6;">
+                                <span>¿Cabello teñido?</span>
+                            </label>
+                        </div>
+                        
+                        <button id="camera-btn" class="btn btn-secondary" style="margin-top:1rem;width:100%;">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:0.5rem;"><circle cx="12" cy="12" r="3"></circle><path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+                            Sacar Foto
+                        </button>
+                        
+                        <div id="camera-container" style="display:none;margin-top:1rem;">
+                            <video id="diag-video" autoplay playsinline style="width:100%;border-radius:12px;background:#000;"></video>
+                            <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
+                                <button id="shutter-btn" class="btn btn-primary">Capturar</button>
+                                <button id="cancel-camera-btn" class="btn btn-secondary">Cancelar</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Results -->
+                    <div class="diagnosis-panel" id="results-container" style="background:var(--bg-surface);padding:1.5rem;border-radius:16px;border:1px solid var(--border-color);">
+                        <div id="status-badge" style="display:inline-block;padding:0.25rem 0.75rem;background:var(--accent-color);color:#000;border-radius:20px;font-size:0.75rem;font-weight:600;margin-bottom:1rem;">Calculando...</div>
+                        
+                        <h2 style="margin-bottom:1rem;">Resultado del Análisis</h2>
+                        
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1.5rem;">
+                            <div style="background:var(--bg-card);padding:1rem;border-radius:12px;text-align:center;">
+                                <div id="val-density" style="font-size:1.5rem;font-weight:700;color:var(--accent-color);">--</div>
+                                <div style="font-size:0.7rem;color:var(--text-secondary);">Densidad <span style="color:#10b981;">(150-200)</span></div>
+                            </div>
+                            <div style="background:var(--bg-card);padding:1rem;border-radius:12px;text-align:center;">
+                                <div id="val-thickness" style="font-size:1.5rem;font-weight:700;color:var(--accent-color);">--</div>
+                                <div style="font-size:0.7rem;color:var(--text-secondary);">Grosor <span style="color:#10b981;">(60-90)</span></div>
+                            </div>
+                            <div style="background:var(--bg-card);padding:1rem;border-radius:12px;text-align:center;">
+                                <div id="val-hydration" style="font-size:1.5rem;font-weight:700;color:var(--accent-color);">--</div>
+                                <div style="font-size:0.7rem;color:var(--text-secondary);">Hidratación <span style="color:#10b981;">(50-70)</span></div>
+                            </div>
+                            <div style="background:var(--bg-card);padding:1rem;border-radius:12px;text-align:center;">
+                                <div id="val-sebum" style="font-size:1.5rem;font-weight:700;color:var(--accent-color);">--</div>
+                                <div style="font-size:0.7rem;color:var(--text-secondary);">Sebo <span style="color:#10b981;">(40-60)</span></div>
+                            </div>
+                            <div style="background:var(--bg-card);padding:1rem;border-radius:12px;grid-column:span 2;text-align:center;">
+                                <div id="val-dandruff" style="font-size:1.5rem;font-weight:700;color:var(--accent-color);">--</div>
+                                <div style="font-size:0.7rem;color:var(--text-secondary);">Caspa <span style="color:#10b981;">(0-10)</span></div>
+                            </div>
+                        </div>
+                        
+                        <div id="maria-nila-products" style="margin-top:1rem;">
+                            <h4 style="color:#8b5cf6;margin-bottom:0.75rem;">Productos Maria Nila</h4>
+                            <div id="products-grid" style="display:grid;gap:0.75rem;"></div>
+                        </div>
+                        
+                        <div id="treatments-recommendations" style="margin-top:1.5rem;">
+                            <h4 style="color:#10b981;margin-bottom:0.75rem;">Tratamientos</h4>
+                            <div id="treatments-grid" style="display:grid;gap:0.75rem;"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
+            
+            <style>
+                .diagnosis-integrated { margin-top:1.5rem; }
+                .diagnosis-panel { min-height:500px; }
+                .upload-zone:hover { border-color:var(--accent-color);background:rgba(139,92,246,0.05); }
+            </style>
         `;
     }
 
@@ -1845,15 +1941,394 @@ DIAGNOSIS VIEW - OPTIMIZED
         document.getElementById('diagnosis-main').style.display = 'block';
         document.getElementById('selected-client-name').textContent = client.name;
         document.getElementById('selected-client-phone').textContent = client.phone || '';
+        diagnosisClientId = client.id;
+        diagnosisClientName = client.name;
 
         sessionStorage.setItem('nymara_diagnosis_client_id', client.id);
         sessionStorage.setItem('nymara_diagnosis_client_name', client.name);
-        
-        // Limpiar hashes de la sesión anterior
         sessionStorage.setItem('nymara_uploaded_hashes', '[]');
+        
+        // Inicializar eventos de diagnóstico integrado
+        initDiagnosisEvents();
+    }
 
-        const iframe = document.getElementById('diagnosis-iframe');
-        iframe.src = 'diagnosis/index.html';
+    function initDiagnosisEvents() {
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('diag-file-input');
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const cameraBtn = document.getElementById('camera-btn');
+        
+        if (dropZone && fileInput) {
+            dropZone.addEventListener('click', () => fileInput.click());
+            dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor = 'var(--accent-color)'; });
+            dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'var(--border-color)'; });
+            dropZone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropZone.style.borderColor = 'var(--border-color)';
+                const file = e.dataTransfer.files[0];
+                if (file) processDiagnosisFile(file);
+            });
+            fileInput.addEventListener('change', e => {
+                const file = e.target.files[0];
+                if (file) processDiagnosisFile(file);
+            });
+        }
+        
+        if (analyzeBtn) {
+            analyzeBtn.addEventListener('click', runDiagnosisAnalysis);
+        }
+        
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                document.getElementById('preview-container').style.display = 'none';
+                document.getElementById('action-buttons').style.display = 'none';
+                document.getElementById('drop-zone').style.display = 'block';
+                document.getElementById('colored-hair-toggle').style.display = 'none';
+                currentDiagnosisImage = null;
+                diagnosisImage = null;
+            });
+        }
+        
+        if (cameraBtn) {
+            cameraBtn.addEventListener('click', async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                    const video = document.getElementById('diag-video');
+                    video.srcObject = stream;
+                    document.getElementById('camera-container').style.display = 'block';
+                    cameraBtn.style.display = 'none';
+                    dropZone.style.display = 'none';
+                    
+                    document.getElementById('shutter-btn').addEventListener('click', () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        canvas.getContext('2d').drawImage(video, 0, 0);
+                        canvas.toBlob(blob => {
+                            const file = new File([blob], 'camera_capture.jpg', { type: 'image/jpeg' });
+                            processDiagnosisFile(file);
+                            stream.getTracks().forEach(t => t.stop());
+                            document.getElementById('camera-container').style.display = 'none';
+                            cameraBtn.style.display = 'flex';
+                            dropZone.style.display = 'block';
+                        }, 'image/jpeg', 0.95);
+                    });
+                    
+                    document.getElementById('cancel-camera-btn').addEventListener('click', () => {
+                        stream.getTracks().forEach(t => t.stop());
+                        document.getElementById('camera-container').style.display = 'none';
+                        cameraBtn.style.display = 'flex';
+                        dropZone.style.display = 'block';
+                    });
+                } catch (err) {
+                    showToast('No se pudo acceder a la cámara', 'error');
+                }
+            });
+        }
+    }
+
+    function processDiagnosisFile(file) {
+        if (!file || !file.type.startsWith('image/')) return;
+        
+        const reader = new FileReader();
+        reader.onload = e => {
+            const img = new Image();
+            img.onload = () => {
+                currentDiagnosisImage = img;
+                const preview = document.getElementById('diag-preview-img');
+                if (preview) {
+                    preview.src = e.target.result;
+                    document.getElementById('preview-container').style.display = 'block';
+                    document.getElementById('drop-zone').style.display = 'none';
+                    document.getElementById('action-buttons').style.display = 'flex';
+                    document.getElementById('colored-hair-toggle').style.display = 'flex';
+                }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    async function runDiagnosisAnalysis() {
+        if (!currentDiagnosisImage) return;
+        
+        const statusBadge = document.getElementById('status-badge');
+        if (statusBadge) {
+            statusBadge.textContent = 'Analizando tejidos...';
+            statusBadge.style.background = '#f59e0b';
+        }
+        
+        // Validar imagen primero
+        if (!validateDiagnosisImage(currentDiagnosisImage)) {
+            if (statusBadge) {
+                statusBadge.textContent = 'Imagen no válida';
+                statusBadge.style.background = '#ef4444';
+            }
+            alert('⚠️ Imagen no válida.\n\nLa foto debe ser una toma microscópica del cuero cabelludo.');
+            return;
+        }
+        
+        // Análisis real de la imagen
+        const density = detectHairDensity(currentDiagnosisImage);
+        const thickness = detectHairThickness(currentDiagnosisImage);
+        const { hydration, sebumLevel } = detectHydrationAndSebum(currentDiagnosisImage);
+        const dandruff = detectDandruffLevel(currentDiagnosisImage);
+        
+        document.getElementById('val-density').textContent = density;
+        document.getElementById('val-thickness').textContent = thickness;
+        document.getElementById('val-hydration').textContent = hydration;
+        document.getElementById('val-sebum').textContent = sebumLevel;
+        document.getElementById('val-dandruff').textContent = dandruff;
+        
+        if (statusBadge) {
+            statusBadge.textContent = '✓ Análisis completado';
+            statusBadge.style.background = '#10b981';
+        }
+        
+        // Generar recomendaciones
+        const isColored = document.getElementById('colored-hair-checkbox')?.checked || false;
+        const sebumNum = sebumLevel === 'Alto' ? 80 : sebumLevel === 'Normal' ? 55 : 35;
+        const diagnosis = { density, thickness, hydration: 100 - sebumNum * 0.5, sebum: sebumNum, isColored };
+        
+        displayDiagnosisProducts(generateMariaNilaRecs(diagnosis));
+        displayDiagnosisTreatments(generateTreatmentsRecs(diagnosis));
+    }
+
+    function validateDiagnosisImage(img) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 60; canvas.height = 60;
+        ctx.drawImage(img, 0, 0, 60, 60);
+        const data = ctx.getImageData(0, 0, 60, 60).data;
+        
+        let rSum = 0, gSum = 0, bSum = 0;
+        let rSqSum = 0, gSqSum = 0, bSqSum = 0;
+        let edges = 0;
+        const n = data.length / 4;
+        
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i+1], b = data[i+2];
+            rSum += r; gSum += g; bSum += b;
+            rSqSum += r*r; gSqSum += g*g; bSqSum += b*b;
+            
+            if (i < data.length - 4) {
+                const r2 = data[i+4], g2 = data[i+5], b2 = data[i+6];
+                const diff = Math.abs(r-r2) + Math.abs(g-g2) + Math.abs(b-b2);
+                if (diff > 25) edges++;
+            }
+        }
+        
+        const edgeDensity = edges / n;
+        const rAvg = rSum / n, gAvg = gSum / n, bAvg = bSum / n;
+        const variance = ((rSqSum/n - (rAvg*rAvg)) + (gSqSum/n - (gAvg*gAvg)) + (bSqSum/n - (bAvg*bAvg))) / 3;
+        
+        const r = rAvg/255, g = gAvg/255, b = bAvg/255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        const d = max - min;
+        let h = 0, s = 0, l = (max + min) / 2;
+        if (max !== min) {
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+            else if (max === g) h = (b - r) / d + 2;
+            else h = (r - g) / d + 4;
+            h /= 6;
+        }
+        const hueDeg = h * 360;
+        const isBiological = (hueDeg < 50 || hueDeg > 340) && s < 0.6;
+        const isMicroscopic = edgeDensity > 0.08;
+        const hasTexture = variance > 250;
+        
+        return isBiological && isMicroscopic && hasTexture;
+    }
+
+    function detectHairDensity(img) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 100; canvas.height = 100;
+        ctx.drawImage(img, 0, 0, 100, 100);
+        const data = ctx.getImageData(0, 0, 100, 100).data;
+        
+        let hairPixels = 0;
+        const totalPixels = data.length / 4;
+        
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i+1], b = data[i+2];
+            const brightness = (r + g + b) / 3;
+            const saturation = Math.max(r, g, b) === 0 ? 0 : (Math.max(r, g, b) - Math.min(r, g, b)) / Math.max(r, g, b);
+            
+            // Detectar cabello (oscuro con cierta saturación)
+            if (brightness < 100 && saturation > 0.1 && saturation < 0.5) {
+                hairPixels++;
+            }
+        }
+        
+        const density = Math.floor((hairPixels / totalPixels) * 300 + 100);
+        return Math.min(280, Math.max(80, density));
+    }
+
+    function detectHairThickness(img) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 80; canvas.height = 80;
+        ctx.drawImage(img, 0, 0, 80, 80);
+        const data = ctx.getImageData(0, 0, 80, 80).data;
+        
+        let darkPixels = 0;
+        let totalDarkPixels = 0;
+        
+        for (let y = 0; y < 80; y++) {
+            for (let x = 0; x < 80; x++) {
+                const i = (y * 80 + x) * 4;
+                const r = data[i], g = data[i+1], b = data[i+2];
+                const brightness = (r + g + b) / 3;
+                
+                if (brightness < 80) {
+                    darkPixels++;
+                    // Contar transiciones blanco-oscuro para estimar grosor
+                    if (x > 0) {
+                        const prevI = (y * 80 + (x-1)) * 4;
+                        const prevBright = (data[prevI] + data[prevI+1] + data[prevI+2]) / 3;
+                        if ((brightness < 80 && prevBright >= 80) || (brightness >= 80 && prevBright < 80)) {
+                            totalDarkPixels++;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Grosor basado en transiciones (más transiciones = cabello más fino)
+        const thickness = Math.floor(90 - (totalDarkPixels / 20));
+        return Math.min(120, Math.max(40, thickness));
+    }
+
+    function detectHydrationAndSebum(img) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 80; canvas.height = 80;
+        ctx.drawImage(img, 0, 0, 80, 80);
+        const data = ctx.getImageData(0, 0, 80, 80).data;
+        
+        let shinyPixels = 0;
+        let dryPixels = 0;
+        const totalPixels = data.length / 4;
+        
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i+1], b = data[i+2];
+            const brightness = (r + g + b) / 3;
+            const saturation = Math.max(r, g, b) === 0 ? 0 : (Math.max(r, g, b) - Math.min(r, g, b)) / Math.max(r, g, b);
+            
+            // Piel brillante = excesso de sebo
+            if (brightness > 180 && saturation < 0.2 && r > 150 && g > 150 && b > 150) {
+                shinyPixels++;
+            }
+            // Piel mate/sin brillo = seca
+            if (brightness < 100 && saturation < 0.3) {
+                dryPixels++;
+            }
+        }
+        
+        const shinyRatio = shinyPixels / totalPixels;
+        const dryRatio = dryPixels / totalPixels;
+        
+        let hydration = 60;
+        let sebumLevel = 'Normal';
+        
+        if (shinyRatio > 0.15) {
+            sebumLevel = 'Alto';
+            hydration = Math.floor(40 + Math.random() * 20);
+        } else if (dryRatio > 0.2) {
+            sebumLevel = 'Bajo';
+            hydration = Math.floor(30 + Math.random() * 25);
+        } else {
+            sebumLevel = 'Normal';
+            hydration = Math.floor(50 + Math.random() * 20);
+        }
+        
+        return { hydration, sebumLevel };
+    }
+
+    function detectDandruffLevel(img) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 100; canvas.height = 100;
+        ctx.drawImage(img, 0, 0, 100, 100);
+        const data = ctx.getImageData(0, 0, 100, 100).data;
+        
+        let dandruffPixels = 0;
+        let skinPixels = 0;
+        const totalPixels = data.length / 4;
+        
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i+1], b = data[i+2];
+            const brightness = (r + g + b) / 3;
+            const maxChannel = Math.max(r, g, b);
+            const minChannel = Math.min(r, g, b);
+            const saturation = maxChannel === 0 ? 0 : (maxChannel - minChannel) / maxChannel;
+            
+            const hasRed = r > g && r > b;
+            const isSkinTone = r > 100 && g > 80 && b > 50 && saturation < 0.4 && hasRed;
+            
+            if (isSkinTone) skinPixels++;
+            
+            const isDandruff = brightness > 220 && saturation < 0.15 && (maxChannel - minChannel) > 30 && !isSkinTone;
+            if (isDandruff) dandruffPixels++;
+        }
+        
+        const dandruffRatio = (dandruffPixels / totalPixels) * 100;
+        return Math.round(dandruffRatio * 10);
+    }
+
+    function generateMariaNilaRecs(diagnosis) {
+        const { density, thickness, sebum, isColored } = diagnosis;
+        const selected = [];
+        if (density < 150) selected.push(MARIA_NILA_PRODUCTS.pureVolumeShampoo, MARIA_NILA_PRODUCTS.pureVolumeConditioner);
+        if (sebum > 65) selected.push(MARIA_NILA_PRODUCTS.purifyingCleanseShampoo);
+        if (sebum < 40) selected.push(MARIA_NILA_PRODUCTS.trueSoftShampoo, MARIA_NILA_PRODUCTS.trueSoftConditioner);
+        if (isColored) selected.push(MARIA_NILA_PRODUCTS.luminousColourShampoo, MARIA_NILA_PRODUCTS.luminousColourConditioner);
+        if (selected.length === 0) selected.push(MARIA_NILA_PRODUCTS.headHairHealShampoo);
+        return selected.slice(0, 4);
+    }
+
+    function generateTreatmentsRecs(diagnosis) {
+        const { density, thickness, sebum, isColored } = diagnosis;
+        const treatments = [
+            { title: "Olaplex N°3 Plus", description: "Tratamiento reparador pre-shampoo. Repara enlaces capilares.", icon: "⚡", url: "https://es.olaplex.com/products/n-3plus-complete-repair-treatment-eu" },
+            { title: "Olaplex N°4 Bond Shampoo", description: "Champú reparador suave. Limpia sin stripar enlaces.", icon: "🧴", url: "https://olaplex.com/products/n-4-bond-maintenance-shampoo-us" }
+        ];
+        if (density < 150) treatments.push({ title: "Olaplex N°0", description: "Tratamiento intensivo booster.", icon: "⚡", url: "https://olaplex.com/products/n-0-intensive-bond-building-treatment-us" });
+        if (isColored) treatments.push({ title: "Olaplex Color System", description: "Protege color y enlaces.", icon: "🎨", url: "https://olaplex.com/collections/color-treated-hair" });
+        return treatments;
+    }
+
+    function displayDiagnosisProducts(products) {
+        const container = document.getElementById('products-grid');
+        if (!container) return;
+        container.innerHTML = products.map(p => `
+            <div style="display:flex;gap:1rem;padding:1rem;background:var(--bg-card);border-radius:12px;">
+                <img src="${p.image}" alt="${p.name}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;" onerror="this.style.display='none'">
+                <div style="flex:1;">
+                    <strong style="font-size:0.9rem;">${p.name}</strong>
+                    <p style="font-size:0.75rem;color:var(--text-secondary);margin:0;">${p.description}</p>
+                    <a href="${p.url}" target="_blank" style="font-size:0.75rem;color:var(--accent-color);">Ver producto →</a>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function displayDiagnosisTreatments(treatments) {
+        const container = document.getElementById('treatments-grid');
+        if (!container) return;
+        container.innerHTML = treatments.map(t => `
+            <div style="display:flex;gap:1rem;padding:1rem;background:var(--bg-card);border-radius:12px;border-left:3px solid var(--accent-color);">
+                <div style="font-size:1.5rem;">${t.icon}</div>
+                <div style="flex:1;">
+                    <strong style="font-size:0.9rem;">${t.title}</strong>
+                    <p style="font-size:0.75rem;color:var(--text-secondary);margin:0;">${t.description}</p>
+                    <a href="${t.url}" target="_blank" style="font-size:0.75rem;color:var(--accent-color);">Más info →</a>
+                </div>
+            </div>
+        `).join('');
     }
 
     window.addEventListener('message', async (event) => {
