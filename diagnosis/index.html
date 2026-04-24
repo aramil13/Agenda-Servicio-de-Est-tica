@@ -378,6 +378,9 @@
                 selectedProducts.push(MARIA_NILA_PRODUCTS.luminousColourShampoo, MARIA_NILA_PRODUCTS.luminousColourConditioner, MARIA_NILA_PRODUCTS.luminousColourMasque);
             }
             const uniqueProducts = selectedProducts.filter((product, index, self) => index === self.findIndex(p => p.name === product.name));
+            if (uniqueProducts.length === 0) {
+                return [MARIA_NILA_PRODUCTS.pureVolumeShampoo, MARIA_NILA_PRODUCTS.headHairHealShampoo];
+            }
             return uniqueProducts.slice(0, 8);
         }
 
@@ -462,26 +465,8 @@ function generateTreatmentsRecommendations(diagnosis) {
                 treatments.push({ title: "Olaplex Hair Repair Kit", description: "Kit completo con No.0, No.3, No.4, No.5 y No.8. Reparación total.", image: `${olaplexImg}/hair_repair_kit.png`, url: "https://olaplex.com/products/olaplex-hair-repair-treatment-kit-us-2024", icon: "📦" });
             }
             return treatments.slice(0, 6);
-        }
-            if (thickness < 60) {
-                treatments.push({ title: "Olaplex Weightless Nourishing Mask", description: "Mascarilla ligera para cabello fino. Hidratación sin peso. Aplica 10 minutos.", image: `${olaplexBase}/weightless_mask.png`, url: "https://olaplex.com/products/weightless-nourishing-mask-us", icon: "🪶" });
-            }
-            if (sebum > 65) {
-                treatments.push({ title: "Olaplex No.4 Bond Maintenance Shampoo", description: "Champú reparador suave que limpia sin stripar. Mantiene los enlaces. No sulfatos.", image: `${olaplexBase}/No4_shampoo.png`, url: "https://olaplex.com/products/n-4-bond-maintenance-shampoo-us", icon: "🧴" });
-                treatments.push({ title: "Olaplex No.4C Clarifying Shampoo", description: "Champú clarificante suave. Limpia a fondo sin perder color ni humedad.", image: `${olaplexBase}/No4C_clarifying.png`, url: "https://olaplex.com/products/n-4c-bond-maintenance-clarifying-shampoo-us", icon: "🔵" });
-            }
-            if (sebum < 40) {
-                treatments.push({ title: "Olaplex Rich Hydration Mask", description: "Mascarilla hidratante intensiva para cabello seco/medio-grueso. Sella cutículas.", image: `${olaplexBase}/rich_mask.png`, url: "https://olaplex.com/collections/treat-us/products/rich-hydration-mask-us", icon: "💧" });
-                treatments.push({ title: "Olaplex No.8 Bond Intense Moisture", description: "Máscara de hidratante intensa sin peso. Restaura brillo y cuerpo.", image: `${olaplexBase}/No8_moisture.png`, url: "https://olaplex.com/products/n-8-bond-intense-moisture-mask-us", icon: "🌊" });
-            }
-            if (density < 120) {
-                treatments.push({ title: "Olaplex No.0.5 Scalp Longevity", description: "Sérum para cuero cabelludo anti-aging. Fortalece barrera y microbioma. Hidrata inmediatamente.", image: `${olaplexBase}/No05_scalp.png`, url: "https://olaplex.com/products/olaplex-clean-scalp-kit-us", icon: "💉" });
-            }
-            if (isColored) {
-                treatments.push({ title: "Olaplex Color Maintenance System", description: "Sistema completo (No.3 + No.4 + No.5) para proteger color y enlaces.", image: `${olaplexBase}/color_maintenance.png`, url: "https://olaplex.com/collections/color-treated-hair", icon: "🎨" });
-            }
-            if (thickness < 65 || density < 140) {
-                treatments.push({ title: "Olaplex Hair Repair Kit", description: "Kit completo con No.0, No.3, No.4, No.5 y No.8. El set más completo para reparación total.", image: `${olaplexBase}/repair_kit.png`, url: "https://olaplex.com/products/olaplex-hair-repair-treatment-kit-us-2024", icon: "📦" });
+            if (treatments.length === 0) {
+                return [{ title: "Olaplex No.3 Hair Perfector", description: "Tratamiento pre-shampoo bestseller que repara enlaces rotos. 3X más fuerte después de un uso.", image: "https://olaplex.com/cdn/shop/files/1-No3_product_1440_7cd8abc9-5c07-40be-a7c6-eeb73f63dc32.png", url: "https://olaplex.com/products/hair-perfector-us", icon: "🔗" }];
             }
             return treatments.slice(0, 6);
         }
@@ -514,19 +499,20 @@ function generateTreatmentsRecommendations(diagnosis) {
             const densityEl = document.getElementById('val-density');
             const thicknessEl = document.getElementById('val-thickness');
             const sebumEl = document.getElementById('val-sebum');
-            const coloredCheckbox = document.getElementById('colored-hair-checkbox');
-            const isColored = coloredCheckbox ? coloredCheckbox.checked : false;
             
             console.log('Verificando datos para productos:', densityEl?.textContent, thicknessEl?.textContent, sebumEl?.textContent);
             
-            let density = 150;
-            let thickness = 65;
-            let sebum = 50;
+            let density = 180;
+            let thickness = 72;
+            let sebum = 55;
+            let isColored = false;
             
             if (densityEl && thicknessEl && sebumEl) {
                 const d = parseInt(densityEl.textContent) || 0;
                 const t = parseFloat(thicknessEl.textContent) || 0;
                 const s = sebumEl.textContent;
+                const col = document.getElementById('colored-hair-checkbox');
+                isColored = col ? col.checked : false;
                 
                 if (d > 0) density = d;
                 if (t > 0) thickness = t;
@@ -545,19 +531,8 @@ function generateTreatmentsRecommendations(diagnosis) {
             console.log('Productos生成:', products.length, products);
             console.log('Tratamientos生成:', treatments.length, treatments);
             
-            const productsContainer = document.getElementById('products-grid');
-            const treatmentsContainer = document.getElementById('treatments-grid');
-            
-            if (productsContainer) {
-                console.log('Container productos encontrado');
-                displayMariaNilaProducts(products);
-            } else {
-                console.log('NO se encontró products-grid');
-            }
-            
-            if (treatmentsContainer) {
-                displayTreatmentsRecommendations(treatments);
-            }
+            displayMariaNilaProducts(products);
+            displayTreatmentsRecommendations(treatments);
         }
         
         if (analyzeBtn) {
