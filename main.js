@@ -1765,25 +1765,27 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (clientId && event.data.photoData) {
                 try {
+                    const now = Date.now();
                     const blob = await fetch(event.data.photoData).then(r => r.blob());
                     
                     // Generar hash de la imagen para deduplicación
                     const hash = await generateFileHash(blob);
                     
-                    // Verificar en sessionStorage si ya se subió en esta sesión
-                    const sessionHashes = JSON.parse(sessionStorage.getItem('nymara_uploaded_hashes') || '[]');
-                    if (sessionHashes.includes(hash)) {
-                        showToast('Esta foto ya está guardada en el historial', 'info');
+                    // Verificar en sessionStorage si ya se subió en esta sesión (últimos 5 segundos)
+                    const sessionData = JSON.parse(sessionStorage.getItem('nymara_uploaded_hashes') || '[]');
+                    const recentSession = sessionData.filter(h => now - h.timestamp < 5000);
+                    const recentHash = recentSession.find(h => h.hash === hash);
+                    if (recentHash) {
                         return;
                     }
                     
-                    // Verificar en base de datos si el cliente ya tiene esta foto
+                    // Verificar en base de datos si el cliente ya tiene esta foto en los últimos 10 segundos
                     const existingPhotos = State.clientPhotos[clientId] || [];
-                    const hashExists = existingPhotos.some(p => p.photo_hash === hash);
-                    if (hashExists) {
-                        showToast('Esta foto ya existe en el historial del cliente', 'info');
-                        sessionHashes.push(hash);
-                        sessionStorage.setItem('nymara_uploaded_hashes', JSON.stringify(sessionHashes));
+                    const recentDB = existingPhotos.find(p => {
+                        const photoTime = new Date(p.created_at).getTime();
+                        return now - photoTime < 10000 && p.photo_hash === hash;
+                    });
+                    if (recentDB) {
                         return;
                     }
                     
@@ -1792,8 +1794,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const urls = await uploadClientPhotosWithHash([file], clientId, hash);
                     
                     // Guardar hash para evitar duplicados en esta sesión
-                    sessionHashes.push(hash);
-                    sessionStorage.setItem('nymara_uploaded_hashes', JSON.stringify(sessionHashes));
+                    recentSession.push({ hash, timestamp: now });
+                    sessionStorage.setItem('nymara_uploaded_hashes', JSON.stringify(recentSession));
                     
                     showToast(`Foto de diagnóstico guardada para ${clientName}`);
                 } catch (err) {
