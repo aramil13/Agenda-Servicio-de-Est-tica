@@ -1748,9 +1748,32 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('selected-client-name').textContent = client.name;
         document.getElementById('selected-client-phone').textContent = client.phone || '';
 
+        sessionStorage.setItem('nymara_diagnosis_client_id', client.id);
+        sessionStorage.setItem('nymara_diagnosis_client_name', client.name);
+
         const iframe = document.getElementById('diagnosis-iframe');
         iframe.src = 'diagnosis/index.html';
     }
+
+    window.addEventListener('message', async (event) => {
+        if (event.data && event.data.type === 'diagnosis_photo') {
+            const clientId = sessionStorage.getItem('nymara_diagnosis_client_id');
+            const clientName = sessionStorage.getItem('nymara_diagnosis_client_name');
+            
+            if (clientId && event.data.photoData) {
+                try {
+                    const blob = await fetch(event.data.photoData).then(r => r.blob());
+                    const file = new File([blob], `diagnosis_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                    
+                    await uploadClientPhotos([file], clientId);
+                    showToast(`Foto de diagnóstico guardada para ${clientName}`);
+                } catch (err) {
+                    console.error('Error guardando foto de diagnóstico:', err);
+                    showToast('Error al guardar la foto', 'error');
+                }
+            }
+        }
+    });
 
     /* ═══════════════════════════════════════
        FORMS (now async submit handlers)

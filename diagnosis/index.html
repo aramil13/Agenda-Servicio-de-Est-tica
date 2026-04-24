@@ -196,6 +196,19 @@
                         dataTransfer.items.add(file);
                         fileInput.files = dataTransfer.files;
                         fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+                        
+                        if (window.parent !== window) {
+                            window.parent.postMessage({
+                                type: 'diagnosis_photo',
+                                photoData: e.target.result
+                            }, '*');
+                            
+                            const statusEl = document.getElementById('status-badge');
+                            if (statusEl) {
+                                statusEl.textContent = '✓ Foto guardada en historial';
+                                statusEl.style.background = '#10b981';
+                            }
+                        }
                     } else {
                         alert('⚠️ Imagen no válida para diagnóstico.\n\nLa muestra no parece contener tejidos capilares o cuero cabelludo. Por favor, asegúrate de que la foto sea una toma clara y de cerca.');
                         location.reload();
