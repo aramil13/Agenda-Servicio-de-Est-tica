@@ -1387,6 +1387,18 @@ document.addEventListener('DOMContentLoaded', () => {
        DIAGNOSIS VIEW
        ═══════════════════════════════════════ */
     function getDiagnosisView() {
+        const clientsHtml = State.clients.map(c => `
+            <div class="diagnosis-client-card" data-client-id="${c.id}">
+                <div class="diagnosis-client-info">
+                    <strong>${c.name}</strong>
+                    <span style="font-size:0.8rem;color:var(--text-secondary)">${c.phone || 'Sin teléfono'}</span>
+                </div>
+                <button class="btn btn-primary btn-sm select-client-btn" data-client-id="${c.id}" data-client-name="${c.name}">
+                    Seleccionar
+                </button>
+            </div>
+        `).join('');
+
         return `
             <div class="section-header">
                 <div>
@@ -1394,8 +1406,51 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p style="color:var(--text-secondary)">Análisis avanzado del cuero cabelludo · <span class="supabase-badge">⚡ IA Vision</span></p>
                 </div>
             </div>
-            <div class="diagnosis-container">
-                <iframe src="diagnosis/index.html" class="diagnosis-iframe" allow="camera"></iframe>
+            
+            <div id="diagnosis-client-selection">
+                <div class="data-card" style="margin-bottom:1.5rem;">
+                    <h3 style="margin-bottom:1rem;">
+                        <svg width="20" height="20" fill="none stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:8px;"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        Seleccionar Cliente
+                    </h3>
+                    <p style="color:var(--text-secondary);margin-bottom:1rem;font-size:0.9rem;">¿Para quién realizarás el diagnóstico?</p>
+                    
+                    <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+                        <button class="btn btn-primary" id="btn-new-client-diagnosis">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                            Nuevo Cliente
+                        </button>
+                        <button class="btn btn-secondary" id="btn-show-existing-clients">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg>
+                            Clientes Existentes
+                        </button>
+                    </div>
+                    
+                    <div id="existing-clients-list" style="display:none;">
+                        <input type="text" class="form-control" id="client-search-input" placeholder="Buscar cliente..." style="margin-bottom:1rem;">
+                        <div id="clients-results" style="max-height:300px;overflow-y:auto;">
+                            ${clientsHtml || '<p style="color:var(--text-secondary)">No hay clientes registrados</p>'}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="diagnosis-main" style="display:none;">
+                <div class="diagnosis-header-info" style="margin-bottom:1rem;padding:1rem;background:var(--bg-surface);border-radius:12px;border:1px solid var(--border-color);">
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
+                        <div>
+                            <strong style="font-size:1.1rem;" id="selected-client-name"></strong>
+                            <span style="color:var(--text-secondary);font-size:0.85rem;margin-left:0.5rem;" id="selected-client-phone"></span>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" id="btn-change-client">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                            Cambiar Cliente
+                        </button>
+                    </div>
+                </div>
+                <div class="diagnosis-container">
+                    <iframe id="diagnosis-iframe" src="diagnosis/index.html" class="diagnosis-iframe" allow="camera"></iframe>
+                </div>
             </div>
         `;
     }
@@ -1574,6 +1629,127 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
+
+        // Diagnosis - Nuevo Cliente
+        const btnNewClientDiagnosis = document.getElementById('btn-new-client-diagnosis');
+        if (btnNewClientDiagnosis) {
+            btnNewClientDiagnosis.addEventListener('click', () => {
+                showClientFormForDiagnosis();
+            });
+        }
+
+        // Diagnosis - Mostrar clientes existentes
+        const btnShowExistingClients = document.getElementById('btn-show-existing-clients');
+        if (btnShowExistingClients) {
+            btnShowExistingClients.addEventListener('click', () => {
+                const list = document.getElementById('existing-clients-list');
+                if (list) {
+                    list.style.display = list.style.display === 'none' ? 'block' : 'none';
+                }
+            });
+        }
+
+        // Diagnosis - Buscar cliente
+        const clientSearchInput = document.getElementById('client-search-input');
+        if (clientSearchInput) {
+            clientSearchInput.addEventListener('input', e => {
+                const searchTerm = e.target.value.toLowerCase();
+                document.querySelectorAll('.diagnosis-client-card').forEach(card => {
+                    const name = card.querySelector('strong')?.textContent.toLowerCase() || '';
+                    const phone = card.querySelector('span')?.textContent.toLowerCase() || '';
+                    card.style.display = (name.includes(searchTerm) || phone.includes(searchTerm)) ? 'flex' : 'none';
+                });
+            });
+        }
+
+        // Diagnosis - Seleccionar cliente existente
+        document.querySelectorAll('.select-client-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                const clientId = e.currentTarget.dataset.clientId;
+                const clientName = e.currentTarget.dataset.clientName;
+                const client = State.clients.find(c => c.id === clientId);
+                if (client) {
+                    selectClientForDiagnosis(client);
+                }
+            });
+        });
+
+        // Diagnosis - Cambiar cliente
+        const btnChangeClient = document.getElementById('btn-change-client');
+        if (btnChangeClient) {
+            btnChangeClient.addEventListener('click', () => {
+                document.getElementById('diagnosis-client-selection').style.display = 'block';
+                document.getElementById('diagnosis-main').style.display = 'none';
+            });
+        }
+    }
+
+    function showClientFormForDiagnosis() {
+        const html = `
+            <form id="client-form-diagnosis">
+                <div class="form-group">
+                    <label>Nombre y Apellidos</label>
+                    <input type="text" class="form-control" name="name" required placeholder="Ej: María García">
+                </div>
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="tel" class="form-control" name="phone" placeholder="Ej: +34 600 123 456">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" class="form-control" name="email" placeholder="Ej: correo@ejemplo.com">
+                </div>
+                <div class="form-group">
+                    <label>¿Enviar mensaje de WhatsApp automático?</label>
+                    <select class="form-control" name="enviar_was">
+                        <option value="true">Sí</option>
+                        <option value="false" selected>No</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Crear y Continuar</button>
+                </div>
+            </form>`;
+
+        openModal('Nuevo Cliente para Diagnóstico', html, () => {
+            document.getElementById('client-form-diagnosis').addEventListener('submit', async e => {
+                e.preventDefault();
+                const submitBtn = e.target.querySelector('[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Guardando…';
+
+                const fd = new FormData(e.target);
+                const clientId = generateId();
+                const data = {
+                    id: clientId,
+                    name: fd.get('name'),
+                    phone: fd.get('phone'),
+                    email: fd.get('email'),
+                    enviar_was: fd.get('enviar_was') === 'true',
+                    observations: ''
+                };
+
+                const success = await addClient(data);
+                if (success) {
+                    closeModal();
+                    selectClientForDiagnosis(data);
+                } else {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Crear y Continuar';
+                }
+            });
+        });
+    }
+
+    function selectClientForDiagnosis(client) {
+        document.getElementById('diagnosis-client-selection').style.display = 'none';
+        document.getElementById('diagnosis-main').style.display = 'block';
+        document.getElementById('selected-client-name').textContent = client.name;
+        document.getElementById('selected-client-phone').textContent = client.phone || '';
+
+        const iframe = document.getElementById('diagnosis-iframe');
+        iframe.src = 'diagnosis/index.html';
     }
 
     /* ═══════════════════════════════════════

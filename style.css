@@ -1804,3 +1804,49 @@ textarea.form-control {
 .client-apt-photo:hover {
     opacity: 0.85;
 }
+
+/* ── Diagnosis Client Selection ── */
+.diagnosis-client-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--bg-base);
+    border-radius: var(--radius-md);
+    margin-bottom: 8px;
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+}
+
+.diagnosis-client-card:hover {
+    background: var(--bg-surface-hover);
+    border-color: var(--accent-primary);
+}
+
+.diagnosis-client-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.diagnosis-client-info strong {
+    font-weight: 600;
+}
+
+#clients-results {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    background: var(--bg-surface);
+}
+
+.diagnosis-header-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+}
