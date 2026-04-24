@@ -207,12 +207,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // Cargar fotos de citas vinculadas al cliente (sobrevive al borrar la cita)
             try {
                 const clientAptPhotosRes = await supabase.from('client_appointment_photos').select('*').order('created_at', { ascending: false });
-                if (!clientAptPhotosRes.error && clientAptPhotosRes.data) {
+                if (!clientAptPhotosRes.error && clientAptPhotosRes.data && clientAptPhotosRes.data.length > 0) {
                     State.clientAptPhotos = clientAptPhotosRes.data;
                     // Guardar en cache local
                     localStorage.setItem('nymara_photos_cache', JSON.stringify(clientAptPhotosRes.data));
                 } else if (State.photosCache.length > 0) {
-                    // Usar cache local si no hay datos remotos
+                    // Usar cache local si datos remotos están vacíos
                     State.clientAptPhotos = State.photosCache;
                 }
                 // Migrar fotos de appointments que no estén en client_appointment_photos
@@ -956,11 +956,23 @@ document.addEventListener('DOMContentLoaded', () => {
        CLIENTS VIEW
        ═══════════════════════════════════════ */
     function getClientsView() {
-        function getClientAppointmentPhotos(clientId) {
+function getClientAppointmentPhotos(clientId) {
             const clientIdStr = String(clientId);
-            const aptPhotos = State.clientAptPhotos
-                .filter(p => String(p.client_id) === clientIdStr)
-                .sort((a, b) => (b.photo_date + (b.photo_date || '')).localeCompare(a.photo_date + (a.photo_date || '')));
+            
+            console.log('getClientAppointmentPhotos - cliente:', clientIdStr);
+            console.log('  - clientAptPhotos total:', State.clientAptPhotos.length);
+            console.log('  - Estado photosCache total:', State.photosCache.length);
+            
+            // Combinar fotos de State con fotos del cache local
+            const allAptPhotos = [...State.clientAptPhotos];
+            const cachePhotos = State.photosCache.filter(c => !State.clientAptPhotos.some(s => s.id === c.id));
+            allAptPhotos.push(...cachePhotos);
+            
+            const filteredPhotos = allAptPhotos.filter(p => String(p.client_id) === clientIdStr);
+            console.log('  - Fotos encontradas para cliente:', filteredPhotos.length);
+            
+            const aptPhotos = filteredPhotos
+                .sort((a, b) => (b.photo_date || '').localeCompare(a.photo_date || ''));
             // Also include general client photos
             const generalPhotos = (State.clientPhotos[clientIdStr] || []).map(p => ({
                 id: p.id,
