@@ -305,15 +305,23 @@
             return true;
         }
 
-        // Interceptar el cambio del input original
+// Interceptar el cambio del input original
         const originalFileInput = document.getElementById('file-input');
         const newFileInput = originalFileInput.cloneNode(true);
         originalFileInput.parentNode.replaceChild(newFileInput, originalFileInput);
+        let isImageUploaded = false;
         
-newFileInput.addEventListener('change', (e) => {
+        newFileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file && file.name !== "camera_capture.jpg") {
                 processFile(file);
+                isImageUploaded = true;
+                setTimeout(() => {
+                    const toggle = document.getElementById('colored-hair-toggle');
+                    if (toggle && isImageUploaded) {
+                        toggle.style.display = 'block';
+                    }
+                }, 500);
             }
         });
 
@@ -341,13 +349,14 @@ newFileInput.addEventListener('change', (e) => {
         };
 
         function generateMariaNilaRecommendations(diagnosis) {
-            const { density, thickness, sebum } = diagnosis;
+            const { density, thickness, sebum, isColored } = diagnosis;
             const selectedProducts = [];
             const issues = [];
             if (density < 150) issues.push("low_density", "fine");
             if (thickness < 60) issues.push("fine");
             if (sebum > 60) issues.push("high_sebum", "oily");
             if (sebum < 40) issues.push("dry", "low_hydration");
+            if (isColored) issues.push("colored", "dyed");
             if (issues.includes("low_density") || issues.includes("fine")) {
                 selectedProducts.push(MARIA_NILA_PRODUCTS.pureVolumeShampoo, MARIA_NILA_PRODUCTS.pureVolumeConditioner, MARIA_NILA_PRODUCTS.pureVolumeMasque);
             }
@@ -362,6 +371,9 @@ newFileInput.addEventListener('change', (e) => {
             }
             if (thickness < 70) {
                 selectedProducts.push(MARIA_NILA_PRODUCTS.structureRepairShampoo, MARIA_NILA_PRODUCTS.structureRepairConditioner, MARIA_NILA_PRODUCTS.bondBuilder, MARIA_NILA_PRODUCTS.creamHeatSpray);
+            }
+            if (issues.includes("colored") || issues.includes("dyed")) {
+                selectedProducts.push(MARIA_NILA_PRODUCTS.luminousColourShampoo, MARIA_NILA_PRODUCTS.luminousColourConditioner, MARIA_NILA_PRODUCTS.luminousColourMasque);
             }
             const uniqueProducts = selectedProducts.filter((product, index, self) => index === self.findIndex(p => p.name === product.name));
             return uniqueProducts.slice(0, 8);
@@ -398,6 +410,8 @@ newFileInput.addEventListener('change', (e) => {
             const densityEl = document.getElementById('val-density');
             const thicknessEl = document.getElementById('val-thickness');
             const sebumEl = document.getElementById('val-sebum');
+            const coloredCheckbox = document.getElementById('colored-hair-checkbox');
+            const isColored = coloredCheckbox ? coloredCheckbox.checked : false;
             if (densityEl && thicknessEl && sebumEl) {
                 const density = parseInt(densityEl.textContent) || 0;
                 const thickness = parseFloat(thicknessEl.textContent) || 70;
@@ -407,7 +421,7 @@ newFileInput.addEventListener('change', (e) => {
                 else if (sebumText === 'Normal') sebum = 50;
                 else if (sebumText === 'Bajo') sebum = 25;
                 if (density > 0 && density < 300) {
-                    const diagnosis = { density, thickness, hydration: Math.max(0, 100 - sebum * 0.5), sebum };
+                    const diagnosis = { density, thickness, hydration: Math.max(0, 100 - sebum * 0.5), sebum, isColored };
                     const products = generateMariaNilaRecommendations(diagnosis);
                     displayMariaNilaProducts(products);
                     const recommendationsList = document.getElementById('recommendations-list');
