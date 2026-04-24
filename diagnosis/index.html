@@ -310,24 +310,24 @@ newFileInput.addEventListener('change', (e) => {
             }
         });
 
-        // ── Base de datos de productos Maria Nila ──
+// ── Base de datos de productos Maria Nila ──
         const MARIA_NILA_PRODUCTS = {
-            headHairHealShampoo: { name: "Head & Hair Heal Shampoo", category: "champú", collection: "Head & Hair Heal", description: "Champú calmante para cuero cabelludo sensible. Con aloe vera, vitamina E y piroctona olamina.", targets: ["scalp_sensitive", "scalp_irritation", "dandruff"], price: "36€", icon: "🧴" },
-            trueSoftShampoo: { name: "True Soft Shampoo", category: "champú", collection: "True Soft", description: "Champú hidratante con aceite de argán para cabello seco o encrespado.", targets: ["dry", "frizzy", "low_hydration"], price: "32€", icon: "💧" },
-            pureVolumeShampoo: { name: "Pure Volume Shampoo", category: "champú", collection: "Pure Volume", description: "Champú voluminizador con provitamina B5 y proteínas vegetales para cabello fino.", targets: ["fine", "low_density", "flat"], price: "32€", icon: "📈" },
-            structureRepairShampoo: { name: "Structure Repair Shampoo", category: "champú", collection: "Structure Repair", description: "Champú reparador para cabello dañado o tratado químicamente.", targets: ["damaged", "thin", "colored"], price: "32€", icon: "🔧" },
-            purifyingCleanseShampoo: { name: "Purifying Cleanse Shampoo", category: "champú", collection: "Purifying Cleanse", description: "Champú purificante para limpieza profunda del cuero cabelludo.", targets: ["oily", "high_sebum"], price: "32€", icon: "✨" },
-            headHairHealConditioner: { name: "Head & Hair Heal Conditioner", category: "acondicionador", collection: "Head & Hair Heal", description: "Acondicionador calmante que fortalece y nutre el cuero cabelludo.", targets: ["scalp_sensitive", "scalp_irritation", "dry"], price: "36€", icon: "🧴" },
-            trueSoftConditioner: { name: "True Soft Conditioner", category: "acondicionador", collection: "True Soft", description: "Acondicionador nutritivo con aceite de argán para suavidad extrema.", targets: ["dry", "frizzy", "low_hydration"], price: "32€", icon: "💧" },
-            pureVolumeConditioner: { name: "Pure Volume Conditioner", category: "acondicionador", collection: "Pure Volume", description: "Acondicionador ligero que aporta volumen sin apelmazar.", targets: ["fine", "low_density", "flat"], price: "32€", icon: "📈" },
-            structureRepairConditioner: { name: "Structure Repair Conditioner", category: "acondicionador", collection: "Structure Repair", description: "Acondicionador reparador que fortalece la fibra capilar.", targets: ["damaged", "thin", "colored"], price: "32€", icon: "🔧" },
-            headHairHealMasque: { name: "Head & Hair Heal Masque", category: "mascarilla", collection: "Head & Hair Heal", description: "Mascarilla intensiva calmante para tratamiento del cuero cabelludo.", targets: ["scalp_sensitive", "scalp_irritation", "dandruff"], price: "41€", icon: "🧴" },
-            trueSoftMasque: { name: "True Soft Masque", category: "mascarilla", collection: "True Soft", description: "Mascarilla hidratante intensiva con aceite de argán.", targets: ["dry", "frizzy", "low_hydration"], price: "35.50€", icon: "💧" },
-            pureVolumeMasque: { name: "Pure Volume Masque", category: "mascarilla", collection: "Pure Volume", description: "Mascarilla voluminizadora ligera para cabello fino.", targets: ["fine", "low_density", "flat"], price: "35.50€", icon: "📈" },
-            structureRepairMasque: { name: "Structure Repair Masque", category: "mascarilla", collection: "Structure Repair", description: "Mascarilla reparadora intensiva para cabello dañado.", targets: ["damaged", "thin", "colored"], price: "35.50€", icon: "🔧" },
-            trueSoftArganOil: { name: "True Soft Argan Oil", category: "aceite", collection: "True Soft", description: "Aceite de argán tratamiento sin aclarado.", targets: ["dry", "frizzy", "low_hydration", "damaged"], price: "39.90€", icon: "🌿" },
-            bondBuilder: { name: "Bond Builder", category: "tratamiento", collection: "Bond Builder", description: "Reparador de enlaces capilares para reconstruir el cabello dañado.", targets: ["damaged", "colored", "treated"], price: "44€", icon: "🔗" },
-            creamHeatSpray: { name: "Cream Heat Spray", category: "protector", collection: "Styling", description: "Protector térmico cremoso que previene el daño por calor.", targets: ["damaged", "all"], price: "29.50€", icon: "🔥" }
+            headHairHealShampoo: { name: "Head & Hair Heal Shampoo", category: "champú", collection: "Head & Hair Heal", description: "Champú calmante para cuero cabelludo sensible. Con aloe vera y piroctona olamina.", targets: ["scalp_sensitive", "scalp_irritation", "dandruff"], image: "https://marianila.com/cdn/shop/files/13650-packshot.jpg?v=1727865156", icon: "🧴" },
+            trueSoftShampoo: { name: "True Soft Shampoo", category: "champú", collection: "True Soft", description: "Champú hidratante con aceite de argán para cabello seco o encrespado.", targets: ["dry", "frizzy", "low_hydration"], image: "https://marianila.com/cdn/shop/files/3630-packshot.jpg?v=1727863409", icon: "💧" },
+            pureVolumeShampoo: { name: "Pure Volume Shampoo", category: "champú", collection: "Pure Volume", description: "Champú voluminizador con provitamina B5 y proteínas vegetales.", targets: ["fine", "low_density", "flat"], image: "https://marianila.com/cdn/shop/files/3610-packshot.jpg?v=1727861801", icon: "📈" },
+            structureRepairShampoo: { name: "Structure Repair Shampoo", category: "champú", collection: "Structure Repair", description: "Champú reparador para cabello dañado o tratado químicamente.", targets: ["damaged", "thin", "colored"], image: "https://marianila.com/cdn/shop/files/3600-packshot.jpg?v=1727860987", icon: "🔧" },
+            purifyingCleanseShampoo: { name: "Purifying Cleanse Shampoo", category: "champú", collection: "Purifying Cleanse", description: "Champú purificante para limpieza profunda del cuero cabelludo.", targets: ["oily", "high_sebum"], image: "https://marianila.com/cdn/shop/files/3680-packshot.jpg?v=1727866051", icon: "✨" },
+            headHairHealConditioner: { name: "Head & Hair Heal Conditioner", category: "acondicionador", collection: "Head & Hair Heal", description: "Acondicionador calmante que fortalece y nutre el cuero cabelludo.", targets: ["scalp_sensitive", "scalp_irritation", "dry"], image: "https://marianila.com/cdn/shop/files/13651-packshot.jpg?v=1727865235", icon: "🧴" },
+            trueSoftConditioner: { name: "True Soft Conditioner", category: "acondicionador", collection: "True Soft", description: "Acondicionador nutritivo con aceite de argán para suavidad extrema.", targets: ["dry", "frizzy", "low_hydration"], image: "https://marianila.com/cdn/shop/files/3631-packshot.jpg?v=1727863485", icon: "💧" },
+            pureVolumeConditioner: { name: "Pure Volume Conditioner", category: "acondicionador", collection: "Pure Volume", description: "Acondicionador ligero que aporta volumen sin apelmazar.", targets: ["fine", "low_density", "flat"], image: "https://marianila.com/cdn/shop/files/3611-packshot.jpg?v=1727861950", icon: "📈" },
+            structureRepairConditioner: { name: "Structure Repair Conditioner", category: "acondicionador", collection: "Structure Repair", description: "Acondicionador reparador que fortalece la fibra capilar.", targets: ["damaged", "thin", "colored"], image: "https://marianila.com/cdn/shop/files/3601-packshot.jpg?v=1727861219", icon: "🔧" },
+            headHairHealMasque: { name: "Head & Hair Heal Masque", category: "mascarilla", collection: "Head & Hair Heal", description: "Mascarilla intensiva calmante para tratamiento del cuero cabelludo.", targets: ["scalp_sensitive", "scalp_irritation", "dandruff"], image: "https://marianila.com/cdn/shop/files/13652-packshot.jpg?v=1727865267", icon: "🧴" },
+            trueSoftMasque: { name: "True Soft Masque", category: "mascarilla", collection: "True Soft", description: "Mascarilla hidratante intensiva con aceite de argán.", targets: ["dry", "frizzy", "low_hydration"], image: "https://marianila.com/cdn/shop/files/3632-packshot.jpg?v=1727863542", icon: "💧" },
+            pureVolumeMasque: { name: "Pure Volume Masque", category: "mascarilla", collection: "Pure Volume", description: "Mascarilla voluminizadora ligera para cabello fino.", targets: ["fine", "low_density", "flat"], image: "https://marianila.com/cdn/shop/files/pure-volume-masque.jpg", icon: "📈" },
+            structureRepairMasque: { name: "Structure Repair Masque", category: "mascarilla", collection: "Structure Repair", description: "Mascarilla reparadora intensiva para cabello dañado.", targets: ["damaged", "thin", "colored"], image: "https://marianila.com/cdn/shop/files/3602-packshot.jpg?v=1727861266", icon: "🔧" },
+            trueSoftArganOil: { name: "True Soft Argan Oil", category: "aceite", collection: "True Soft", description: "Aceite de argán tratamiento sin aclarado.", targets: ["dry", "frizzy", "low_hydration", "damaged"], image: "https://marianila.com/cdn/shop/files/IMG_c_s_3637_soft_argan_oil_100_ml.jpg?v=1771837203", icon: "🌿" },
+            bondBuilder: { name: "Bond Builder", category: "tratamiento", collection: "Bond Builder", description: "Reparador de enlaces capilares para reconstruir el cabello dañado.", targets: ["damaged", "colored", "treated"], image: "https://marianila.com/cdn/shop/files/mnproductpage1200x1500px1.jpg?v=1765975531", icon: "🔗" },
+            creamHeatSpray: { name: "Cream Heat Spray", category: "protector", collection: "Styling", description: "Protector térmico cremoso que previene el daño por calor.", targets: ["damaged", "all"], image: "https://marianila.com/cdn/shop/files/creamheatspraypackshotproductpage.jpg?v=1733482799", icon: "🔥" }
         };
 
         function generateMariaNilaRecommendations(diagnosis) {
@@ -365,18 +365,15 @@ newFileInput.addEventListener('change', (e) => {
                 return;
             }
             container.innerHTML = products.map(product => `
-                <div class="maria-nila-product-card">
-                    <div style="font-size: 1.5rem; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #8b5cf6, #d946ef); border-radius: 8px; flex-shrink: 0;">${product.icon}</div>
-                    <div style="flex: 1;">
+                <div class="maria-nila-product-card" style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem; background: white; border-radius: 12px; border: 1px solid var(--border-color); transition: all 0.2s;">
+                    <img src="${product.image}" alt="${product.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; flex-shrink: 0;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div style="display: none; width: 60px; height: 60px; background: linear-gradient(135deg, #8b5cf6, #d946ef); border-radius: 8px; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">${product.icon}</div>
+                    <div style="flex: 1; min-width: 0;">
                         <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                            <strong style="color: var(--text-primary); font-size: 0.9rem;">${product.name}</strong>
-                            <span style="font-size: 0.65rem; padding: 2px 6px; background: rgba(139,92,246,0.1); color: #8b5cf6; border-radius: 4px; font-weight: 600;">${product.collection}</span>
+                            <strong style="color: var(--text-primary); font-size: 0.85rem;">${product.name}</strong>
+                            <span style="font-size: 0.6rem; padding: 2px 6px; background: rgba(139,92,246,0.1); color: #8b5cf6; border-radius: 4px; font-weight: 600;">${product.collection}</span>
                         </div>
-                        <p style="font-size: 0.75rem; color: var(--text-secondary); margin: 4px 0;">${product.description}</p>
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 4px;">
-                            <span style="font-weight: 700; color: #8b5cf6; font-size: 0.85rem;">${product.price}</span>
-                            <span style="font-size: 0.7rem; color: var(--text-secondary);">• ${product.category}</span>
-                        </div>
+                        <p style="font-size: 0.7rem; color: var(--text-secondary); margin: 2px 0 0; line-height: 1.3;">${product.description}</p>
                     </div>
                 </div>
             `).join('');
