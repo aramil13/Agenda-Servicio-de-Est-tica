@@ -11,6 +11,9 @@ CREATE TABLE IF NOT EXISTS client_photos (
     client_id UUID NOT NULL,
     photo_url TEXT NOT NULL,
     photo_hash TEXT,
+    photo_date TEXT,
+    photo_type TEXT CHECK (photo_type IN ('before', 'after')),
+    notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

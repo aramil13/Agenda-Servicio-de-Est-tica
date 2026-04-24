@@ -94,7 +94,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (userEmailEl) userEmailEl.style.color = color;
     }
 
-    const generateId = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+    const generateId = () => {
+        if (crypto.randomUUID) return crypto.randomUUID();
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    };
 
     /** Returns 'YYYY-MM-DD' in local time */
     function toLocalDateStr(date) {
@@ -435,9 +441,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    async function uploadClientPhotos(files, clientId) {
+    async function uploadClientPhotos(files, clientId, photoDate = null, photoType = 'before', photoNotes = '') {
         const urls = [];
         const newPhotos = [];
+        const today = new Date();
+        const defaultDate = photoDate || today.toISOString().split('T')[0];
+        
         for (const file of files) {
             const fileExt = file.name.split('.').pop();
             const fileName = `${clientId}/${generateId()}.${fileExt}`;
@@ -468,13 +477,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 await supabase.from('client_photos').insert({
                     id: newPhotoId,
                     client_id: clientId,
-                    photo_url: publicUrl
+                    photo_url: publicUrl,
+                    photo_date: defaultDate,
+                    photo_type: photoType,
+                    notes: photoNotes
                 });
                 // Guardar también en cache local
                 const newPhoto = {
                     id: newPhotoId,
                     client_id: clientId,
                     photo_url: publicUrl,
+                    photo_date: defaultDate,
+                    photo_type: photoType,
+                    notes: photoNotes,
                     created_at: new Date().toISOString()
                 };
                 newPhotos.push(newPhoto);
@@ -492,16 +507,62 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function deleteClientPhoto(photoId, clientId) {
+        console.log('DEBUG: deleteClientPhoto CALLED with:', { photoId, clientId });
+        
+        // Primero actualizar cache local
+        if (State.clientPhotos[clientId]) {
+            State.clientPhotos[clientId] = State.clientPhotos[clientId].filter(p => p.id !== photoId);
+        }
+        State.diagnosisPhotosCache = State.diagnosisPhotosCache.filter(p => p.id !== photoId);
+        localStorage.setItem('nymara_diagnosis_photos_cache', JSON.stringify(State.diagnosisPhotosCache));
+        
         try {
-            const { error } = await supabase.from('client_photos').delete().eq('id', photoId);
-            if (error) throw error;
-            if (State.clientPhotos[clientId]) {
-                State.clientPhotos[clientId] = State.clientPhotos[clientId].filter(p => p.id !== photoId);
+            const { data, error } = await supabase.from('client_photos').delete().eq('id', photoId).select();
+            if (error) {
+                console.error('DEBUG: Supabase delete error:', error);
             }
+            console.log('DEBUG: Supabase delete response:', data);
+            
             return true;
         } catch (e) {
-            showToast('Error al eliminar foto: ' + e.message, 'error');
-            return false;
+            console.warn('DEBUG: deleteClientPhoto fallback a cache local:', e);
+            return true;
+        }
+    }
+
+    async function updateClientPhoto(photoId, clientId, updates) {
+        console.log('DEBUG: updateClientPhoto CALLED with:', { photoId, clientId, updates });
+        
+        // Actualizar cache local
+        if (State.clientPhotos[clientId]) {
+            const photoIndex = State.clientPhotos[clientId].findIndex(p => p.id === photoId);
+            if (photoIndex >= 0) {
+                State.clientPhotos[clientId][photoIndex] = { 
+                    ...State.clientPhotos[clientId][photoIndex],
+                    ...updates 
+                };
+            }
+        }
+        
+        const cacheIndex = State.diagnosisPhotosCache.findIndex(p => p.id === photoId);
+        if (cacheIndex >= 0) {
+            State.diagnosisPhotosCache[cacheIndex] = { 
+                ...State.diagnosisPhotosCache[cacheIndex],
+                ...updates 
+            };
+        }
+        localStorage.setItem('nymara_diagnosis_photos_cache', JSON.stringify(State.diagnosisPhotosCache));
+        
+        try {
+            const { data, error } = await supabase.from('client_photos').update(updates).eq('id', photoId).select();
+            if (error) {
+                console.error('DEBUG: Supabase update error:', error);
+            }
+            console.log('DEBUG: Supabase update response:', data);
+            return true;
+        } catch (e) {
+            console.warn('DEBUG: updateClientPhoto fallback a cache local:', e);
+            return true;
         }
     }
 
@@ -1891,12 +1952,12 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
 
         // Diagnosis - Seleccionar cliente existente
         document.querySelectorAll('.select-client-btn').forEach(btn => {
-            btn.addEventListener('click', e => {
+            btn.addEventListener('click', async e => {
                 const clientId = e.currentTarget.dataset.clientId;
                 const clientName = e.currentTarget.dataset.clientName;
                 const client = State.clients.find(c => c.id === clientId);
                 if (client) {
-                    selectClientForDiagnosis(client);
+                    await selectClientForDiagnosis(client);
                 }
             });
         });
@@ -1960,7 +2021,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 const success = await addClient(data);
                 if (success) {
                     closeModal();
-                    selectClientForDiagnosis(data);
+                    await selectClientForDiagnosis(data);
                 } else {
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Crear y Continuar';
@@ -1969,7 +2030,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         });
     }
 
-    function selectClientForDiagnosis(client) {
+    async function selectClientForDiagnosis(client) {
         document.getElementById('diagnosis-client-selection').style.display = 'none';
         document.getElementById('diagnosis-main').style.display = 'block';
         document.getElementById('selected-client-name').textContent = client.name;
@@ -1980,6 +2041,9 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         sessionStorage.setItem('nymara_diagnosis_client_id', client.id);
         sessionStorage.setItem('nymara_diagnosis_client_name', client.name);
         sessionStorage.setItem('nymara_uploaded_hashes', '[]');
+        
+        // Cargar fotos existentes para evitar duplicados
+        State.clientPhotos[client.id] = await loadClientPhotos(client.id);
         
         // Inicializar eventos de diagnóstico integrado
         initDiagnosisEvents();
@@ -2009,7 +2073,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         }
         
         if (analyzeBtn) {
-            analyzeBtn.addEventListener('click', runDiagnosisAnalysis);
+            analyzeBtn.onclick = runDiagnosisAnalysis;
         }
         
         if (resetBtn) {
@@ -2086,82 +2150,97 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
     async function runDiagnosisAnalysis() {
         if (!currentDiagnosisImage) return;
         
+        const analyzeBtn = document.getElementById('analyze-btn');
+        if (analyzeBtn) analyzeBtn.disabled = true;
+
         const statusBadge = document.getElementById('status-badge');
         if (statusBadge) {
             statusBadge.textContent = 'Analizando tejidos...';
             statusBadge.style.background = '#f59e0b';
         }
         
-        // Validar imagen primero
-        if (!validateDiagnosisImage(currentDiagnosisImage)) {
+        try {
+            // Validar imagen primero
+            if (!validateDiagnosisImage(currentDiagnosisImage)) {
+                if (statusBadge) {
+                    statusBadge.textContent = 'Imagen no válida';
+                    statusBadge.style.background = '#ef4444';
+                }
+                alert('⚠️ Imagen no válida.\n\nLa foto debe ser una toma microscópica del cuero cabelludo.');
+                if (analyzeBtn) analyzeBtn.disabled = false;
+                return;
+            }
+            
+            // Análisis real de la imagen
+            const density = detectHairDensity(currentDiagnosisImage);
+            const thickness = detectHairThickness(currentDiagnosisImage);
+            const { hydration, sebumLevel } = detectHydrationAndSebum(currentDiagnosisImage);
+            const dandruff = detectDandruffLevel(currentDiagnosisImage);
+            
+            document.getElementById('val-density').textContent = density;
+            document.getElementById('val-thickness').textContent = thickness;
+            document.getElementById('val-hydration').textContent = hydration;
+            document.getElementById('val-sebum').textContent = sebumLevel;
+            document.getElementById('val-dandruff').textContent = dandruff;
+            
             if (statusBadge) {
-                statusBadge.textContent = 'Imagen no válida';
-                statusBadge.style.background = '#ef4444';
+                statusBadge.textContent = '✓ Análisis completado';
+                statusBadge.style.background = '#10b981';
             }
-            alert('⚠️ Imagen no válida.\n\nLa foto debe ser una toma microscópica del cuero cabelludo.');
-            return;
-        }
-        
-        // Análisis real de la imagen
-        const density = detectHairDensity(currentDiagnosisImage);
-        const thickness = detectHairThickness(currentDiagnosisImage);
-        const { hydration, sebumLevel } = detectHydrationAndSebum(currentDiagnosisImage);
-        const dandruff = detectDandruffLevel(currentDiagnosisImage);
-        
-        document.getElementById('val-density').textContent = density;
-        document.getElementById('val-thickness').textContent = thickness;
-        document.getElementById('val-hydration').textContent = hydration;
-        document.getElementById('val-sebum').textContent = sebumLevel;
-        document.getElementById('val-dandruff').textContent = dandruff;
-        
-        if (statusBadge) {
-            statusBadge.textContent = '✓ Análisis completado';
-            statusBadge.style.background = '#10b981';
-        }
-        
-        // Generar recomendaciones
-        const isColored = document.getElementById('colored-hair-checkbox')?.checked || false;
-        const sebumNum = sebumLevel === 'Alto' ? 80 : sebumLevel === 'Normal' ? 55 : 35;
-        const diagnosis = { density, thickness, hydration: 100 - sebumNum * 0.5, sebum: sebumNum, isColored };
-        
-        displayDiagnosisProducts(generateMariaNilaRecs(diagnosis));
-        displayDiagnosisTreatments(generateTreatmentsRecs(diagnosis));
-        
-        // Guardar foto de diagnóstico en la base de datos del cliente
-        if (currentDiagnosisImage) {
-            try {
-                const canvas = document.createElement('canvas');
-                canvas.width = currentDiagnosisImage.width;
-                canvas.height = currentDiagnosisImage.height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(currentDiagnosisImage, 0, 0);
-                canvas.toBlob(async blob => {
-                    if (!blob) {
-                        console.error('toBlob returned null');
-                        return;
-                    }
-                    const clientId = sessionStorage.getItem('nymara_diagnosis_client_id');
-                    console.log('DEBUG: clientId para diagnosis:', clientId);
-                    if (clientId && blob) {
-                        const hash = await generateFileHash(blob);
-                        const existingPhotos = State.clientPhotos[clientId] || [];
-                        console.log('DEBUG: fotos existentes para cliente:', existingPhotos.length);
-                        const duplicateHash = existingPhotos.find(p => p.photo_hash === hash);
-                        if (!duplicateHash) {
-                            console.log('DEBUG: Subiendo foto de diagnóstico...');
-                            const file = new File([blob], `diagnosis_${Date.now()}.jpg`, { type: 'image/jpeg' });
-                            const clientName = sessionStorage.getItem('nymara_diagnosis_client_name');
-                            await uploadClientPhotosWithHash([file], clientId, hash);
-                            showToast(`Foto de diagnóstico guardada para ${clientName}`);
-                            console.log('DEBUG: Foto de diagnóstico guardada');
-                        } else {
-                            console.log('DEBUG: Foto duplicada');
-                        }
-                    }
-                }, 'image/jpeg', 0.95);
-            } catch(err) {
-                console.error('Error guardando foto de diagnóstico:', err);
+            
+            // Generar recomendaciones
+            const isColored = document.getElementById('colored-hair-checkbox')?.checked || false;
+            const sebumNum = sebumLevel === 'Alto' ? 80 : sebumLevel === 'Normal' ? 55 : 35;
+            const diagnosis = { density, thickness, hydration: 100 - sebumNum * 0.5, sebum: sebumNum, isColored };
+            
+            displayDiagnosisProducts(generateMariaNilaRecs(diagnosis));
+            displayDiagnosisTreatments(generateTreatmentsRecs(diagnosis));
+            
+            // Guardar foto de diagnóstico en la base de datos del cliente
+            console.log('DEBUG: Iniciando proceso de guardado automático...');
+            const canvas = document.createElement('canvas');
+            canvas.width = currentDiagnosisImage.width;
+            canvas.height = currentDiagnosisImage.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(currentDiagnosisImage, 0, 0);
+            
+            // Calidad consistente para evitar cambios de hash
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            const blob = await (await fetch(dataUrl)).blob();
+            
+            if (!blob) {
+                console.error('DEBUG: No se pudo generar el blob');
+                if (analyzeBtn) analyzeBtn.disabled = false;
+                return;
             }
+            
+            const clientId = diagnosisClientId || sessionStorage.getItem('nymara_diagnosis_client_id');
+            const clientName = diagnosisClientName || sessionStorage.getItem('nymara_diagnosis_client_name') || 'el cliente';
+            
+            if (clientId && blob) {
+                const hash = await generateFileHash(blob);
+                
+                // Asegurar que las fotos estén cargadas en State para la comprobación
+                if (!State.clientPhotos[clientId]) {
+                    State.clientPhotos[clientId] = await loadClientPhotos(clientId);
+                }
+                
+                const existingPhotos = State.clientPhotos[clientId] || [];
+                const duplicate = existingPhotos.find(p => p.photo_hash === hash);
+                
+                if (!duplicate) {
+                    const file = new File([blob], `diagnosis_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                    await uploadClientPhotosWithHash([file], clientId, hash);
+                    showToast(`Foto guardada para ${clientName}`);
+                } else {
+                    console.log('DEBUG: Duplicate hash found:', hash);
+                }
+            }
+        } catch (err) {
+            console.error('DEBUG: Error en análisis/upload:', err);
+            showToast('Error durante el proceso: ' + err.message, 'error');
+        } finally {
+            if (analyzeBtn) analyzeBtn.disabled = false;
         }
     }
 
@@ -2405,7 +2484,10 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         if (event.data && event.data.type === 'diagnosis_photo') {
             const clientId = sessionStorage.getItem('nymara_diagnosis_client_id');
             const clientName = sessionStorage.getItem('nymara_diagnosis_client_name');
+            const results = event.data.results || null;
             
+            console.log('DEBUG: Parent received diagnosis_photo message:', { clientId, clientName, hasResults: !!results });
+
             if (clientId && event.data.photoData) {
                 try {
                     const now = Date.now();
@@ -2413,35 +2495,43 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     
                     // Generar hash de la imagen para deduplicación
                     const hash = await generateFileHash(blob);
-                    
-                    // Verificar en sessionStorage si ya se subió en esta sesión (últimos 5 segundos)
+                    console.log('DEBUG: Generated photo hash:', hash);
+
+                    // Verificar en sessionStorage si ya se subió en esta sesión (últimos 10 segundos) para evitar rebotes
                     const sessionData = JSON.parse(sessionStorage.getItem('nymara_uploaded_hashes') || '[]');
-                    const recentSession = sessionData.filter(h => now - h.timestamp < 5000);
+                    const recentSession = sessionData.filter(h => now - h.timestamp < 10000);
                     const recentHash = recentSession.find(h => h.hash === hash);
                     if (recentHash) {
+                        console.log('DEBUG: Duplicate detected in session, skipping.');
                         return;
                     }
                     
-                    // Verificar en base de datos si el cliente ya tiene esta foto por su hash (sin límite de tiempo)
-                    const existingPhotos = State.clientPhotos[clientId] || [];
-                    const duplicateHash = existingPhotos.find(p => p.photo_hash === hash);
+                    // Asegurar que State.clientPhotos esté cargado para este cliente
+                    if (!State.clientPhotos[clientId]) {
+                        console.log('DEBUG: Loading photos for client to check duplicates...');
+                        State.clientPhotos[clientId] = await loadClientPhotos(clientId);
+                    }
+
+                    // Verificar en base de datos si el cliente ya tiene esta foto por su hash
+                    const duplicateHash = State.clientPhotos[clientId].find(p => p.photo_hash === hash);
                     if (duplicateHash) {
+                        console.log('DEBUG: Duplicate hash found in DB, skipping upload.');
                         showToast('Esta foto ya existe en el historial del cliente');
                         return;
                     }
                     
-                    // Subir la foto
+                    // Subir la foto y los resultados
                     const file = new File([blob], `diagnosis_${Date.now()}.jpg`, { type: 'image/jpeg' });
-                    const urls = await uploadClientPhotosWithHash([file], clientId, hash);
+                    await uploadClientPhotosWithHash([file], clientId, hash, results);
                     
                     // Guardar hash para evitar duplicados en esta sesión
                     recentSession.push({ hash, timestamp: now });
                     sessionStorage.setItem('nymara_uploaded_hashes', JSON.stringify(recentSession));
                     
-                    showToast(`Foto de diagnóstico guardada para ${clientName}`);
+                    showToast(`Análisis y foto guardados para ${clientName}`);
                 } catch (err) {
-                    console.error('Error guardando foto de diagnóstico:', err);
-                    showToast('Error al guardar la foto', 'error');
+                    console.error('Error guardando diagnóstico:', err);
+                    showToast('Error al guardar el diagnóstico', 'error');
                 }
             }
         }
@@ -2454,7 +2544,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    async function uploadClientPhotosWithHash(files, clientId, hash) {
+    async function uploadClientPhotosWithHash(files, clientId, hash, results = null) {
         const urls = [];
         const now = new Date().toISOString();
         
@@ -2462,47 +2552,62 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             const fileExt = file.name.split('.').pop();
             const fileName = `${clientId}/${generateId()}.${fileExt}`;
             
+            console.log('DEBUG: Subiendo archivo a Storage:', fileName);
             const { data, error } = await supabase.storage
                 .from('client-photos')
                 .upload(fileName, file);
 
             if (error) {
-                console.error('Error detallado de Supabase Storage:', error);
-                showToast('Error de almacenamiento: ' + error.message, 'error');
-                throw error;
+                console.error('DEBUG: Error Storage:', error);
+                throw new Error('Error al subir a Storage: ' + error.message);
             }
 
             const { data: { publicUrl } } = supabase.storage
                 .from('client-photos')
                 .getPublicUrl(fileName);
             
-            let photoId;
-            try {
-                // Generar UUID correctamente para PostgreSQL
-                photoId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-                    return v.toString(16);
-                });
-                
-                await supabase.from('client_photos').insert({
-                    id: photoId,
-                    client_id: clientId,
-                    photo_url: publicUrl,
-                    photo_hash: hash,
-                    created_at: now
-                });
-            } catch (e) {
-                console.warn('client_photos not available yet');
-            }
+            console.log('DEBUG: Archivo subido, URL:', publicUrl);
             
-            // Actualizar el State local
-            if (!State.clientPhotos[clientId]) State.clientPhotos[clientId] = [];
-            const newPhoto = {
+            let photoId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+            
+            console.log('DEBUG: Insertando registro en client_photos con resultados:', !!results);
+            const insertData = {
                 id: photoId,
                 client_id: clientId,
                 photo_url: publicUrl,
                 photo_hash: hash,
                 created_at: now
+            };
+            
+            // Intentar incluir resultados si existen
+            if (results) {
+                insertData.analysis_results = results;
+            }
+
+            const { error: dbError } = await supabase.from('client_photos').insert(insertData);
+
+            if (dbError) {
+                console.error('DEBUG: Error DB insert:', dbError);
+                // Si falla por la columna analysis_results, intentamos sin ella
+                if (dbError.message && dbError.message.includes('analysis_results')) {
+                    console.warn('DEBUG: Columna analysis_results no existe, reintentando sin ella...');
+                    delete insertData.analysis_results;
+                    const { error: retryError } = await supabase.from('client_photos').insert(insertData);
+                    if (retryError) throw retryError;
+                } else {
+                    throw new Error('Error al insertar en base de datos: ' + dbError.message);
+                }
+            }
+            
+            console.log('DEBUG: Registro insertado con éxito.');
+
+            // Actualizar el State local
+            if (!State.clientPhotos[clientId]) State.clientPhotos[clientId] = [];
+            const newPhoto = {
+                ...insertData
             };
             State.clientPhotos[clientId].unshift(newPhoto);
             
@@ -2582,6 +2687,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 gallery.innerHTML = currentPhotos.map(p => `
                     <div class="photo-thumb" style="position:relative;width:60px;height:60px" data-id="${p.id}">
                         <img src="${p.photo_url}" style="width:100%;height:100%;border-radius:8px;object-fit:cover;cursor:pointer" class="view-photo" data-url="${p.photo_url}">
+                        <button type="button" class="edit-client-photo" data-id="${p.id}" data-date="${p.photo_date || ''}" data-type="${p.photo_type || 'before'}" data-notes="${p.notes || ''}" style="position:absolute;top:-6px;right:14px;background:#2196F3;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">✎</button>
                         <button type="button" class="remove-client-photo" data-id="${p.id}" style="position:absolute;top:-6px;right:-6px;background:red;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">×</button>
                     </div>
                 `).join('');
@@ -2649,10 +2755,15 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
 
             const gallery = document.getElementById('client-photos-gallery');
             if (gallery) {
-                gallery.addEventListener('click', async e => {
-                    if (e.target.classList.contains('remove-client-photo')) {
-                        const photoId = e.target.dataset.id;
-                        if (confirm('¿Eliminar esta foto?')) {
+                // Usar delegación de eventos más robusta
+                gallery.onclick = async e => {
+                    const removeBtn = e.target.closest('.remove-client-photo');
+                    if (removeBtn) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const photoId = removeBtn.dataset.id;
+                        if (confirm('¿Eliminar esta foto permanentemente?')) {
+                            console.log('DEBUG: Intentando eliminar foto:', photoId, 'del cliente:', currentClientId);
                             const success = await deleteClientPhoto(photoId, currentClientId);
                             if (success) {
                                 currentPhotos = currentPhotos.filter(p => p.id !== photoId);
@@ -2660,16 +2771,86 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                                 showToast('Foto eliminada');
                             }
                         }
+                        return;
                     }
-                    if (e.target.classList.contains('remove-pending-photo')) {
+
+                    const editBtn = e.target.closest('.edit-client-photo');
+                    if (editBtn) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const photoId = editBtn.dataset.id;
+                        const currentDate = editBtn.dataset.date || new Date().toISOString().split('T')[0];
+                        const currentType = editBtn.dataset.type || 'before';
+                        const currentNotes = editBtn.dataset.notes || '';
+                        
+                        openModal('Editar Foto', `
+                            <form id="edit-diagnosis-photo-form">
+                                <div class="form-group">
+                                    <label>Fecha</label>
+                                    <input type="date" class="form-control" id="edit-diagnosis-photo-date" value="${currentDate}">
+                                </div>
+                                <div class="form-group">
+                                    <label>Tipo de foto</label>
+                                    <select class="form-control" id="edit-diagnosis-photo-type">
+                                        <option value="before" ${currentType === 'before' ? 'selected' : ''}>Foto Antes</option>
+                                        <option value="after" ${currentType === 'after' ? 'selected' : ''}>Foto Después</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Notas</label>
+                                    <textarea class="form-control" id="edit-diagnosis-photo-notes" rows="3">${currentNotes}</textarea>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
+                                    <button type="submit" class="btn btn-primary">Guardar</button>
+                                </div>
+                            </form>
+                        `, () => {
+                            document.getElementById('edit-diagnosis-photo-form').addEventListener('submit', async ev => {
+                                ev.preventDefault();
+                                const newDate = document.getElementById('edit-diagnosis-photo-date').value;
+                                const newType = document.getElementById('edit-diagnosis-photo-type').value;
+                                const newNotes = document.getElementById('edit-diagnosis-photo-notes').value;
+                                
+                                const updates = {
+                                    photo_date: newDate,
+                                    photo_type: newType,
+                                    notes: newNotes
+                                };
+                                
+                                const success = await updateClientPhoto(photoId, currentClientId, updates);
+                                if (success) {
+                                    const photoIndex = currentPhotos.findIndex(p => p.id === photoId);
+                                    if (photoIndex >= 0) {
+                                        currentPhotos[photoIndex] = { ...currentPhotos[photoIndex], ...updates };
+                                    }
+                                    renderPhotos();
+                                    closeModal();
+                                    showToast('Foto actualizada');
+                                }
+                            });
+                        });
+                        return;
+                    }
+
+                    const pendingBtn = e.target.closest('.remove-pending-photo');
+                    if (pendingBtn) {
+                        e.preventDefault();
+                        e.stopPropagation();
                         const pendingThumbs = gallery.querySelectorAll('.photo-thumb.pending');
-                        const pendingIdx = Array.from(pendingThumbs).indexOf(e.target.parentElement);
+                        const pendingIdx = Array.from(pendingThumbs).indexOf(pendingBtn.parentElement);
                         if (pendingIdx >= 0 && pendingIdx < pendingFiles.length) {
                             pendingFiles.splice(pendingIdx, 1);
                         }
-                        e.target.parentElement.remove();
+                        pendingBtn.parentElement.remove();
+                        return;
                     }
-                });
+                    
+                    const viewImg = e.target.closest('.view-photo');
+                    if (viewImg) {
+                        openModal('Foto', `<div style="text-align:center"><img src="${viewImg.dataset.url}" style="max-width:100%;max-height:70vh;border-radius:8px"></div>`);
+                    }
+                };
             }
 
             document.getElementById('client-form').addEventListener('submit', async e => {
