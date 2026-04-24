@@ -447,25 +447,27 @@
             const { density, thickness, sebum, isColored } = diagnosis;
             const treatments = [];
             if (density < 150) {
-                treatments.push({ title: "Mesoterapia Capilar", description: "Tratamiento con vitaminas y factores de crecimiento para estimular el folículo piloso y aumentar la densidad capilar.", icon: "💉" });
+                treatments.push({ title: "Olaplex Bond Perfector", description: "Tratamiento reparador de enlaces que fortalece la estructura del cabello dañado.", icon: "🔗" });
+                treatments.push({ title: "Olaplex No.3 Hair Perfector", description: "Tratamiento semanal sin aclarado para mantenimiento en casa.", icon: "🏠" });
             }
             if (thickness < 60) {
-                treatments.push({ title: "Tratamiento de Queratina", description: "Aplicación de queratina para fortalecer y aumentar el grosor del cabello.", icon: "⚗️" });
+                treatments.push({ title: "Olaplex Bond Building Treatment", description: "Tratamiento intensivo para reconstruir los enlaces capilares.", icon: "💪" });
             }
             if (sebum > 65) {
-                treatments.push({ title: "Limpieza Profunda Cuero Cabelludo", description: "Tratamiento purificante para eliminar acumulación de sebo y productos.", icon: "🧹" });
+                treatments.push({ title: "Olaplex No.4 Bond Maintenance", description: "Champú reparador suave que no stripped el cabello.", icon: "🧴" });
             }
             if (sebum < 40) {
-                treatments.push({ title: "Hidratación Intensiva", description: "Tratamiento con ácido hialurónico y antioxidantes para hidratar el cuero cabelludo.", icon: "💧" });
+                treatments.push({ title: "Olaplex No.5 Conditioner", description: "Acondicionador nutritivo que repara sin pesar el cabello.", icon: "💧" });
             }
             if (density < 120) {
-                treatments.push({ title: "Laser Terapia LOW LEVEL", description: "Sesiones de láser frío para estimular el crecimiento capilar.", icon: "🔴" });
+                treatments.push({ title: "Olaplex Scalp Serum", description: "Sérum para cuero cabelludo con tecnología bond repair.", icon: "💉" });
             }
             if (isColored) {
-                treatments.push({ title: "Mantenimiento Color", description: "Tratamientos de gloss y refresh para mantener el color vibrante.", icon: "🎨" });
+                treatments.push({ title: "Olaplex Color Maintenance", description: "Sistema completo para proteger color y enlaces del cabello teñido.", icon: "🎨" });
+                treatments.push({ title: "Olaplex No.4C Bond Maintenance", description: "Champú específico para cabello teñido con color hold.", icon: "🎀" });
             }
             if (thickness < 65 || density < 140) {
-                treatments.push({ title: "Cronograma Capilar", description: "Plan de seguimiento personalizado con sesiones programadas cada 30-60 días.", icon: "📅" });
+                treatments.push({ title: "Cronograma Capilar Olaplex", description: "Plan de seguimiento personalizado con sesiones programadas cada 30-60 días.", icon: "📅" });
             }
             return treatments.slice(0, 6);
         }
