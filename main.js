@@ -1750,6 +1750,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         sessionStorage.setItem('nymara_diagnosis_client_id', client.id);
         sessionStorage.setItem('nymara_diagnosis_client_name', client.name);
+        
+        // Limpiar hashes de la sesión anterior
+        sessionStorage.setItem('nymara_uploaded_hashes', '[]');
 
         const iframe = document.getElementById('diagnosis-iframe');
         iframe.src = 'diagnosis/index.html';
@@ -1763,9 +1766,35 @@ document.addEventListener('DOMContentLoaded', () => {
             if (clientId && event.data.photoData) {
                 try {
                     const blob = await fetch(event.data.photoData).then(r => r.blob());
-                    const file = new File([blob], `diagnosis_${Date.now()}.jpg`, { type: 'image/jpeg' });
                     
-                    await uploadClientPhotos([file], clientId);
+                    // Generar hash de la imagen para deduplicación
+                    const hash = await generateFileHash(blob);
+                    
+                    // Verificar en sessionStorage si ya se subió en esta sesión
+                    const sessionHashes = JSON.parse(sessionStorage.getItem('nymara_uploaded_hashes') || '[]');
+                    if (sessionHashes.includes(hash)) {
+                        showToast('Esta foto ya está guardada en el historial', 'info');
+                        return;
+                    }
+                    
+                    // Verificar en base de datos si el cliente ya tiene esta foto
+                    const existingPhotos = State.clientPhotos[clientId] || [];
+                    const hashExists = existingPhotos.some(p => p.photo_hash === hash);
+                    if (hashExists) {
+                        showToast('Esta foto ya existe en el historial del cliente', 'info');
+                        sessionHashes.push(hash);
+                        sessionStorage.setItem('nymara_uploaded_hashes', JSON.stringify(sessionHashes));
+                        return;
+                    }
+                    
+                    // Subir la foto
+                    const file = new File([blob], `diagnosis_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                    const urls = await uploadClientPhotosWithHash([file], clientId, hash);
+                    
+                    // Guardar hash para evitar duplicados en esta sesión
+                    sessionHashes.push(hash);
+                    sessionStorage.setItem('nymara_uploaded_hashes', JSON.stringify(sessionHashes));
+                    
                     showToast(`Foto de diagnóstico guardada para ${clientName}`);
                 } catch (err) {
                     console.error('Error guardando foto de diagnóstico:', err);
@@ -1774,6 +1803,63 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    async function generateFileHash(blob) {
+        const buffer = await blob.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function uploadClientPhotosWithHash(files, clientId, hash) {
+        const urls = [];
+        const now = new Date().toISOString();
+        
+        for (const file of files) {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${clientId}/${generateId()}.${fileExt}`;
+            
+            const { data, error } = await supabase.storage
+                .from('client-photos')
+                .upload(fileName, file);
+
+            if (error) {
+                console.error('Error detallado de Supabase Storage:', error);
+                showToast('Error de almacenamiento: ' + error.message, 'error');
+                throw error;
+            }
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('client-photos')
+                .getPublicUrl(fileName);
+            
+            let photoId = generateId();
+            try {
+                await supabase.from('client_photos').insert({
+                    id: photoId,
+                    client_id: clientId,
+                    photo_url: publicUrl,
+                    photo_hash: hash,
+                    created_at: now
+                });
+            } catch (e) {
+                console.warn('client_photos not available yet');
+            }
+            
+            // Actualizar el State local
+            if (!State.clientPhotos[clientId]) State.clientPhotos[clientId] = [];
+            State.clientPhotos[clientId].unshift({
+                id: photoId,
+                client_id: clientId,
+                photo_url: publicUrl,
+                photo_hash: hash,
+                created_at: now
+            });
+            
+            urls.push(publicUrl);
+        }
+        return urls;
+    }
 
     /* ═══════════════════════════════════════
        FORMS (now async submit handlers)
