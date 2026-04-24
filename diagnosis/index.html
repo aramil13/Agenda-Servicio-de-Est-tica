@@ -438,35 +438,39 @@
 function generateTreatmentsRecommendations(diagnosis) {
             const { density, thickness, sebum, isColored } = diagnosis;
             const treatments = [];
-            const olaplexImg = "https://olaplex.com/cdn/shop/files";
+            
             if (density < 150) {
-                treatments.push({ title: "Olaplex No.3 Hair Perfector", description: "Tratamiento pre-shampoo que repara enlaces rotos. 3X más fuerte después de un uso. Aplica 3-10 minutos antes de lavar.", image: `${olaplexImg}/1-No3_product_1440_7cd8abc9-5c07-40be-a7c6-eeb73f63dc32.png?v=1762271835`, url: "https://olaplex.com/products/hair-perfector-us", icon: "🔗" });
-                treatments.push({ title: "Olaplex No.3PLUS", description: "Versión mejorada. Repara en 3 minutos todo tipo de daño. Fortalece instantáneamente.", image: `${olaplexImg}/3PLUS_product_1440.png`, url: "https://olaplex.com/products/no-3-hair-perfector", icon: "💫" });
-                treatments.push({ title: "Olaplex No.0 Intensive Bond Building", description: "Tratamiento intensivo de fuerza para salón. Bestseller. Aplica 5 minutos antes de No.3.", image: `${olaplexImg}/No0_intensive_treatment.png`, url: "https://olaplex.com/products/n-0-intensive-bond-building-treatment-us", icon: "⚡" });
+                treatments.push({ title: "Olaplex N°3PLUS Complete Repair Treatment", description: "Tratamiento pre-shampoo reparador. Repara y fortalece en solo 3 minutos. rebuilds enlaces rotos.", image: "", url: "https://olaplex.com/products/no-3-hair-perfector", icon: "🔗" });
+                treatments.push({ title: "Olaplex N°0 Intensive Bond Building", description: "Tratamiento intensivo booster. Potencia resultados de N°3. Bestseller para salón.", image: "", url: "https://olaplex.com/products/n-0-intensive-bond-building-treatment-us", icon: "⚡" });
             }
             if (thickness < 60) {
-                treatments.push({ title: "Olaplex Weightless Nourishing Mask", description: "Mascarilla ligera para cabello fino. Hidratación sin peso. Aplica 10 minutos.", image: `${olaplexImg}/weightlessnourishingmask.png`, url: "https://olaplex.com/products/weightless-nourishing-mask-us", icon: "🪶" });
+                treatments.push({ title: "Olaplex Weightless Nourishing Mask", description: "Mascarilla ligera sin peso para cabello fino. Hidratación weightless. Aplica 10 min.", image: "", url: "https://olaplex.com/products/weightless-nourishing-mask-us", icon: "🪶" });
+                treatments.push({ title: "Olaplex N°4FINE Bond Maintenance Shampoo", description: "Champú ligero para cabello fino. Aporta volumen sin apelmazar. Sin sulfatos.", image: "", url: "https://olaplex.com/products/n-4fine-bond-maintenance-shampoo-us", icon: "📈" });
             }
             if (sebum > 65) {
-                treatments.push({ title: "Olaplex No.4 Bond Maintenance Shampoo", description: "Champú reparador suave que limpia sin stripar. Mantiene los enlaces. No sulfatos.", image: `${olaplexImg}/No4_bond_maintenance.png`, url: "https://olaplex.com/products/n-4-bond-maintenance-shampoo-us", icon: "🧴" });
-                treatments.push({ title: "Olaplex No.4C Clarifying Shampoo", description: "Champú clarificante suave. Limpia a fondo sin perder color ni humedad.", image: `${olaplexImg}/No4C_clarifying.png`, url: "https://olaplex.com/products/n-4c-bond-maintenance-clarifying-shampoo-us", icon: "🔵" });
+                treatments.push({ title: "Olaplex N°4 Bond Maintenance Shampoo", description: "Champú reparador suave. Limpia sin stripar los enlaces. No sulfatos.", image: "", url: "https://olaplex.com/products/n-4-bond-maintenance-shampoo-us", icon: "🧴" });
+                treatments.push({ title: "Olaplex N°4C Clarifying Shampoo", description: "Champú clarificante suave. Limpia a fondo sin perder color ni humedad.", image: "", url: "https://olaplex.com/products/n-4c-bond-maintenance-clarifying-shampoo-us", icon: "🔵" });
             }
             if (sebum < 40) {
-                treatments.push({ title: "Olaplex Rich Hydration Mask", description: "Mascarilla hidratante intensiva para cabello seco/medio-grueso. Sella cutículas.", image: `${olaplexImg}/rich_hydration_mask.png`, url: "https://olaplex.com/products/rich-hydration-mask-us", icon: "💧" });
-                treatments.push({ title: "Olaplex No.8 Bond Intense Moisture", description: "Máscara de hidratante intensa sin peso. Restaura brillo y cuerpo.", image: `${olaplexImg}/No8_bond_intense.png`, url: "https://olaplex.com/products/n-8-bond-intense-moisture-mask-us", icon: "🌊" });
+                treatments.push({ title: "Olaplex Rich Hydration Mask", description: "Mascarilla hidratante intensiva para cabello seco/medio-grueso. Sella cutículas.", image: "", url: "https://olaplex.com/products/rich-hydration-mask-us", icon: "💧" });
+                treatments.push({ title: "Olaplex N°8 Bond Intense Moisture Mask", description: "Máscara hidratante intensiva semanal. Restaura brillo y cuerpo sin peso.", image: "", url: "https://olaplex.com/products/n-8-bond-intense-moisture-mask-us", icon: "🌊" });
             }
             if (density < 120) {
-                treatments.push({ title: "Olaplex No.0.5 Scalp Longevity", description: "Sérum para cuero cabelludo anti-aging. Fortalece barrera y microbioma. Hidrata inmediatamente.", image: `${olaplexImg}/No05_scalp_longevity.png`, url: "https://olaplex.com/products/olaplex-clean-scalp-kit-us", icon: "💉" });
+                treatments.push({ title: "Olaplex N°0.5 Scalp Longevity Treatment", description: "Sérum para cuero cabelludo anti-aging. Fortalece barrera y microbioma. Hidrata.", image: "", url: "https://olaplex.com/products/olaplex-no-05-scalp-longevity-treatment-us", icon: "💉" });
+                treatments.push({ title: "Olaplex Volumizing Blow Dry Mist", description: "Spray voluminizador. Añade volumen y cuerpo al secar. Protege del calor.", image: "", url: "https://olaplex.com/products/volumizing-blow-dry-mist-us", icon: "💨" });
             }
             if (isColored) {
-                treatments.push({ title: "Olaplex Color Maintenance System", description: "Sistema completo (No.3 + No.4 + No.5) para proteger color y enlaces.", image: `${olaplexImg}/color_maintenance.png`, url: "https://olaplex.com/collections/color-treated-hair", icon: "🎨" });
+                treatments.push({ title: "Olaplex Color Maintenance System", description: "Sistema completo (N°3 + N°4 + N°5) para proteger color y enlaces. Clinicamente probado.", image: "", url: "https://olaplex.com/collections/color-treated-hair", icon: "🎨" });
+                treatments.push({ title: "Olaplex N°4P Blonde Enhancer Toning Shampoo", description: "Champú tonificador para rubios/canos. Mantiene tono y brillo. Reduce cobres.", image: "", url: "https://olaplex.com/products/n-4p-blonde-enhancer-toning-shampoo-us", icon: "👱" });
             }
             if (thickness < 65 || density < 140) {
-                treatments.push({ title: "Olaplex Hair Repair Kit", description: "Kit completo con No.0, No.3, No.4, No.5 y No.8. Reparación total.", image: `${olaplexImg}/hair_repair_kit.png`, url: "https://olaplex.com/products/olaplex-hair-repair-treatment-kit-us-2024", icon: "📦" });
+                treatments.push({ title: "Olaplex N°6 Bond Smoother", description: "Crema anti-frizz. Suaviza, hidrata y reduce rotura. Protection calor 450°F.", image: "", url: "https://olaplex.com/products/olaplex-no-6-bond-smoother", icon: "✨" });
+                treatments.push({ title: "Olaplex N°7 Bonding Oil", description: "Aceite weightless. Brillo instantáneo, anti-frizz. Protection calor 450°F.", image: "", url: "https://olaplex.com/products/olaplex-no-7-bonding-oil", icon: "🌟" });
             }
-            return treatments.slice(0, 6);
+            treatments.push({ title: "Olaplex Hair Repair Treatment Kit", description: "Kit inicio reparación profunda. N°0, N°3, N°4, N°5 y N°8. El set más completo.", image: "", url: "https://olaplex.com/products/olaplex-hair-repair-treatment-kit-us-2024", icon: "📦" });
+            
             if (treatments.length === 0) {
-                return [{ title: "Olaplex No.3 Hair Perfector", description: "Tratamiento pre-shampoo bestseller que repara enlaces rotos. 3X más fuerte después de un uso.", image: "https://olaplex.com/cdn/shop/files/1-No3_product_1440_7cd8abc9-5c07-40be-a7c6-eeb73f63dc32.png", url: "https://olaplex.com/products/hair-perfector-us", icon: "🔗" }];
+                return [{ title: "Olaplex Bond Repair Starter Set", description: "Kit iniciación (N°3 + N°4 + N°5). El sistema básico para reparar y fortalecer.", image: "", url: "https://olaplex.com/products/bond-repair-starter-set-us", icon: "🔗" }];
             }
             return treatments.slice(0, 6);
         }
