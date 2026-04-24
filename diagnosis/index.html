@@ -459,7 +459,6 @@ function generateTreatmentsRecommendations(diagnosis) {
             });
             
             if (density < 150) {
-                treatments.push({ title: "Olaplex N°3PLUS Complete Repair Treatment", description: "Tratamiento pre-shampoo reparador. Repara y fortalece en solo 3 minutos. rebuilds enlaces rotos.", image: "", url: "https://olaplex.com/products/no-3-hair-perfector", icon: "🔗" });
                 treatments.push({ title: "Olaplex N°0 Intensive Bond Building", description: "Tratamiento intensivo booster. Potencia resultados de N°3. Bestseller para salón.", image: "", url: "https://olaplex.com/products/n-0-intensive-bond-building-treatment-us", icon: "⚡" });
             }
             if (thickness < 60) {
@@ -491,7 +490,7 @@ function generateTreatmentsRecommendations(diagnosis) {
             if (treatments.length === 0) {
                 return [{ title: "Olaplex Bond Repair Starter Set", description: "Kit iniciación (N°3 + N°4 + N°5). El sistema básico para reparar y fortalecer.", image: "", url: "https://olaplex.com/products/bond-repair-starter-set-us", icon: "🔗" }];
             }
-            return treatments.slice(0, 6);
+            return treatments.slice(0, 10);
         }
 
         function displayTreatmentsRecommendations(treatments) {
