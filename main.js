@@ -194,17 +194,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 const clientPhotosRes = await supabase.from('client_photos').select('*').order('created_at', { ascending: false });
-                if (!clientPhotosRes.error && clientPhotosRes.data && clientPhotosRes.data.length > 0) {
+                // PRIORIZAR SIEMPRE el cache local primero
+                if (State.diagnosisPhotosCache.length > 0) {
+                    State.clientPhotos = {};
+                    State.diagnosisPhotosCache.forEach(p => {
+                        const pid = String(p.client_id);
+                        if (!State.clientPhotos[pid]) State.clientPhotos[pid] = [];
+                        State.clientPhotos[pid].push(p);
+                    });
+                    // Solo añadir fotos de Supabase que no estén en cache
+                    if (!clientPhotosRes.error && clientPhotosRes.data) {
+                        clientPhotosRes.data.forEach(p => {
+                            const pid = String(p.client_id);
+                            if (!State.clientPhotos[pid]) State.clientPhotos[pid] = [];
+                            const exists = State.clientPhotos[pid].some(existing => existing.id === p.id);
+                            if (!exists) {
+                                State.clientPhotos[pid].push(p);
+                            }
+                        });
+                    }
+                } else if (!clientPhotosRes.error && clientPhotosRes.data && clientPhotosRes.data.length > 0) {
                     State.clientPhotos = {};
                     clientPhotosRes.data.forEach(p => {
                         const pid = String(p.client_id);
                         if (!State.clientPhotos[pid]) State.clientPhotos[pid] = [];
                         State.clientPhotos[pid].push(p);
                     });
-                    // Guardar en cache de diagnóstico
-                    localStorage.setItem('nymara_diagnosis_photos_cache', JSON.stringify(clientPhotosRes.data));
-                } else if (State.diagnosisPhotosCache.length > 0) {
-                    // Usar cache local si datos remotos están vacíos
+                    // Guardar en cache
+                    if (clientPhotosRes.data) {
+                        localStorage.setItem('nymara_diagnosis_photos_cache', JSON.stringify(clientPhotosRes.data));
+                        State.diagnosisPhotosCache = clientPhotosRes.data;
+                    }
+                }
+            } catch (e) {
+                console.warn('Error cargando client_photos, usando cache:', e);
+                // Si falla, usar cache
+                if (State.diagnosisPhotosCache.length > 0) {
                     State.clientPhotos = {};
                     State.diagnosisPhotosCache.forEach(p => {
                         const pid = String(p.client_id);
@@ -212,8 +237,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         State.clientPhotos[pid].push(p);
                     });
                 }
-            } catch (e) {
-                console.warn('Error cargando client_photos:', e);
             }
 
             // Cargar fotos de citas vinculadas al cliente (sobrevive al borrar la cita)
@@ -436,19 +459,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 .getPublicUrl(fileName);
             
             try {
+                // Generar UUID correctamente
+                let newPhotoId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+                
                 await supabase.from('client_photos').insert({
+                    id: newPhotoId,
                     client_id: clientId,
                     photo_url: publicUrl
                 });
                 // Guardar también en cache local
                 const newPhoto = {
-                    id: generateId(),
+                    id: newPhotoId,
                     client_id: clientId,
                     photo_url: publicUrl,
                     created_at: new Date().toISOString()
                 };
                 newPhotos.push(newPhoto);
                 State.diagnosisPhotosCache.push(newPhoto);
+                localStorage.setItem('nymara_diagnosis_photos_cache', JSON.stringify(State.diagnosisPhotosCache));
             } catch (e) {
                 console.warn('client_photos not available yet');
             }
@@ -1897,8 +1928,14 @@ function getClientAppointmentPhotos(clientId) {
                 .from('client-photos')
                 .getPublicUrl(fileName);
             
-            let photoId = generateId();
+            let photoId;
             try {
+                // Generar UUID correctamente para PostgreSQL
+                photoId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+                
                 await supabase.from('client_photos').insert({
                     id: photoId,
                     client_id: clientId,
