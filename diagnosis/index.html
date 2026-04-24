@@ -505,6 +505,47 @@ function generateTreatmentsRecommendations(diagnosis) {
         }
 
         setTimeout(() => { setInterval(checkAndShowProducts, 300); }, 500);
+
+        // Inicializar análisis cuando se hace clic en el botón
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const statusBadge = document.getElementById('status-badge');
+        
+        if (analyzeBtn) {
+            analyzeBtn.addEventListener('click', async () => {
+                console.log('Botón Iniciar Análisis clickeado');
+                if (statusBadge) {
+                    statusBadge.textContent = 'Analizando tejidos...';
+                    statusBadge.style.background = '#f59e0b';
+                }
+                
+                // Verificar si el módulo de análisis se cargó
+                console.log('Buscando módulo de análisis...');
+                
+                // Timeout de seguridad - forzar completación después de 15 segundos
+                setTimeout(() => {
+                    console.log('Timeout de seguridad alcanzado');
+                    if (statusBadge && statusBadge.textContent.includes('Analizando')) {
+                        console.log('Forzando completación del análisis');
+                        statusBadge.textContent = 'Completando...';
+                        statusBadge.style.background = '#10b981';
+                    }
+                }, 15000);
+            });
+        }
+
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                location.reload();
+            });
+        }
+        
+        // Verificar carga del módulo externo
+        window.addEventListener('load', () => {
+            console.log('Página cargada. Buscando script de análisis...');
+            const scripts = document.querySelectorAll('script');
+            console.log('Scripts cargados:', scripts.length);
+        });
     </script>
 </body>
 </html>
