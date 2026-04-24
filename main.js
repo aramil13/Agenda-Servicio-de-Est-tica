@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
         appointments: [],
         clientPhotos: {},
         clientAptPhotos: [],
+        // Cache de fotos en localStorage para recuperación
+        photosCache: JSON.parse(localStorage.getItem('nymara_photos_cache') || '[]'),
         // Calendar state
         calYear: new Date().getFullYear(),
         calMonth: new Date().getMonth(),
@@ -207,6 +209,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const clientAptPhotosRes = await supabase.from('client_appointment_photos').select('*').order('created_at', { ascending: false });
                 if (!clientAptPhotosRes.error && clientAptPhotosRes.data) {
                     State.clientAptPhotos = clientAptPhotosRes.data;
+                    // Guardar en cache local
+                    localStorage.setItem('nymara_photos_cache', JSON.stringify(clientAptPhotosRes.data));
+                } else if (State.photosCache.length > 0) {
+                    // Usar cache local si no hay datos remotos
+                    State.clientAptPhotos = State.photosCache;
                 }
                 // Migrar fotos de appointments que no estén en client_appointment_photos
                 for (const apt of State.appointments) {
@@ -223,9 +230,22 @@ document.addEventListener('DOMContentLoaded', () => {
                                 photo_type: p.type,
                                 notes: p.notes
                             }]);
+                            // Añadir al cache local
+                            State.photosCache.push({
+                                id: p.id,
+                                client_id: apt.clientId,
+                                appointment_id: apt.id,
+                                photo_url: p.url,
+                                photo_date: p.date,
+                                photo_type: p.type,
+                                notes: p.notes,
+                                created_at: new Date().toISOString()
+                            });
                         }
                     }
                 }
+                // Guardar cache actualizado
+                localStorage.setItem('nymara_photos_cache', JSON.stringify(State.photosCache));
                 // Recargar fotos migradas
                 const refreshedPhotos = await supabase.from('client_appointment_photos').select('*').order('created_at', { ascending: false });
                 if (!refreshedPhotos.error && refreshedPhotos.data) {
@@ -2431,6 +2451,18 @@ document.addEventListener('DOMContentLoaded', () => {
                             photo_type: 'before',
                             notes: ''
                         }]);
+                        // Actualizar cache local
+                        State.photosCache.push({
+                            id: photoId,
+                            client_id: data.clientId,
+                            appointment_id: appointmentId,
+                            photo_url: url,
+                            photo_date: todayStr,
+                            photo_type: 'before',
+                            notes: '',
+                            created_at: new Date().toISOString()
+                        });
+                        localStorage.setItem('nymara_photos_cache', JSON.stringify(State.photosCache));
                     }
                     if (afterFile) {
                         const url = await uploadAppointmentPhoto(afterFile, appointmentId);
@@ -2451,6 +2483,18 @@ document.addEventListener('DOMContentLoaded', () => {
                             photo_type: 'after',
                             notes: ''
                         }]);
+                        // Actualizar cache local
+                        State.photosCache.push({
+                            id: photoId,
+                            client_id: data.clientId,
+                            appointment_id: appointmentId,
+                            photo_url: url,
+                            photo_date: todayStr,
+                            photo_type: 'after',
+                            notes: '',
+                            created_at: new Date().toISOString()
+                        });
+                        localStorage.setItem('nymara_photos_cache', JSON.stringify(State.photosCache));
                     }
                 } catch (err) {
                     submitBtn.disabled = false;
