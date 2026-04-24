@@ -1827,6 +1827,7 @@ textarea.form-control {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    text-align: center;
 }
 
 .diagnosis-client-info strong {

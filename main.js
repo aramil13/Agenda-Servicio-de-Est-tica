@@ -1392,7 +1392,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button class="btn btn-primary btn-sm select-client-btn" data-client-id="${c.id}" data-client-name="${c.name}">
                     Seleccionar
                 </button>
-                <div class="diagnosis-client-info">
+                <div class="diagnosis-client-info" style="text-align:center;flex:1;">
                     <strong>${c.name}</strong>
                     <span style="font-size:0.8rem;color:var(--text-secondary)">${c.phone || 'Sin teléfono'}</span>
                 </div>
