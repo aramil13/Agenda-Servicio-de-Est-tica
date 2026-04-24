@@ -2108,25 +2108,39 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         
         // Guardar foto de diagnóstico en la base de datos del cliente
         if (currentDiagnosisImage) {
-            const canvas = document.createElement('canvas');
-            canvas.width = currentDiagnosisImage.width;
-            canvas.height = currentDiagnosisImage.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(currentDiagnosisImage, 0, 0);
-            canvas.toBlob(async blob => {
-                const clientId = sessionStorage.getItem('nymara_diagnosis_client_id');
-                if (clientId && blob) {
-                    const hash = await generateFileHash(blob);
-                    const existingPhotos = State.clientPhotos[clientId] || [];
-                    const duplicateHash = existingPhotos.find(p => p.photo_hash === hash);
-                    if (!duplicateHash) {
-                        const file = new File([blob], `diagnosis_${Date.now()}.jpg`, { type: 'image/jpeg' });
-                        const clientName = sessionStorage.getItem('nymara_diagnosis_client_name');
-                        await uploadClientPhotosWithHash([file], clientId, hash);
-                        showToast(`Foto de diagnóstico guardada para ${clientName}`);
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = currentDiagnosisImage.width;
+                canvas.height = currentDiagnosisImage.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(currentDiagnosisImage, 0, 0);
+                canvas.toBlob(async blob => {
+                    if (!blob) {
+                        console.error('toBlob returned null');
+                        return;
                     }
-                }
-            }, 'image/jpeg', 0.95);
+                    const clientId = sessionStorage.getItem('nymara_diagnosis_client_id');
+                    console.log('DEBUG: clientId para diagnosis:', clientId);
+                    if (clientId && blob) {
+                        const hash = await generateFileHash(blob);
+                        const existingPhotos = State.clientPhotos[clientId] || [];
+                        console.log('DEBUG: fotos existentes para cliente:', existingPhotos.length);
+                        const duplicateHash = existingPhotos.find(p => p.photo_hash === hash);
+                        if (!duplicateHash) {
+                            console.log('DEBUG: Subiendo foto de diagnóstico...');
+                            const file = new File([blob], `diagnosis_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                            const clientName = sessionStorage.getItem('nymara_diagnosis_client_name');
+                            await uploadClientPhotosWithHash([file], clientId, hash);
+                            showToast(`Foto de diagnóstico guardada para ${clientName}`);
+                            console.log('DEBUG: Foto de diagnóstico guardada');
+                        } else {
+                            console.log('DEBUG: Foto duplicada');
+                        }
+                    }
+                }, 'image/jpeg', 0.95);
+            } catch(err) {
+                console.error('Error guardando foto de diagnóstico:', err);
+            }
         }
     }
 
