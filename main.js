@@ -734,7 +734,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        let content = '';
         if (currentRoute === 'agenda') content = getAgendaView();
         else if (currentRoute === 'clients') content = getClientsView();
         else if (currentRoute === 'services') content = getServicesView();
@@ -743,6 +742,14 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (currentRoute === 'diagnosis') content = getDiagnosisView();
 
         appContent.innerHTML = `<div class="fade-in">${content}</div>`;
+        
+        // Dark mode toggle for diagnosis
+        if (currentRoute === 'diagnosis') {
+            appContent.classList.add('diagnosis-mode');
+        } else {
+            appContent.classList.remove('diagnosis-mode');
+        }
+
         attachEvents();
     }
 
@@ -1571,14 +1578,14 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 </div>
                 
                 <!-- INTEGRATED DIAGNOSIS UI -->
-                <div class="diagnosis-integrated" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+                <div class="diagnosis-integrated">
                     <!-- Left: Upload -->
-                    <div class="diagnosis-panel" style="background:var(--bg-surface);padding:1.5rem;border-radius:16px;border:1px solid var(--border-color);">
-                        <div class="upload-zone" id="drop-zone" style="border:2px dashed var(--border-color);border-radius:12px;padding:2rem;text-align:center;cursor:pointer;transition:all 0.3s;">
+                    <div class="diagnosis-panel">
+                        <div class="upload-zone upload-zone-dark" id="drop-zone">
                             <input type="file" id="diag-file-input" accept="image/*" style="display:none;">
-                            <svg width="48" height="48" fill="none" stroke="var(--text-secondary)" stroke-width="2" viewBox="0 0 24 24" style="margin:0 auto 1rem;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            <svg width="48" height="48" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24" style="margin:0 auto 1rem;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                             <h3 style="margin-bottom:0.5rem;">Sube tu foto microscópica</h3>
-                            <p style="color:var(--text-secondary);font-size:0.9rem;">Arrastra y suelta o haz clic</p>
+                            <p style="font-size:0.9rem;">Arrastra y suelta o haz clic</p>
                         </div>
                         
                         <div class="preview-container" id="preview-container" style="display:none;margin-top:1rem;">
@@ -1612,31 +1619,31 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     </div>
                     
                     <!-- Right: Results -->
-                    <div class="diagnosis-panel" id="results-container" style="background:var(--bg-surface);padding:1.5rem;border-radius:16px;border:1px solid var(--border-color);">
-                        <div id="status-badge" style="display:inline-block;padding:0.25rem 0.75rem;background:var(--accent-color);color:#000;border-radius:20px;font-size:0.75rem;font-weight:600;margin-bottom:1rem;">Calculando...</div>
+                    <div class="diagnosis-panel" id="results-container">
+                        <div id="status-badge" style="display:inline-block;padding:0.25rem 0.75rem;background:#8b5cf6;color:#fff;border-radius:20px;font-size:0.75rem;font-weight:600;margin-bottom:1rem;box-shadow:0 0 10px rgba(139,92,246,0.3);">Calculando...</div>
                         
                         <h2 style="margin-bottom:1rem;">Resultado del Análisis</h2>
                         
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1.5rem;">
-                            <div style="background:var(--bg-card);padding:1rem;border-radius:12px;text-align:center;">
-                                <div id="val-density" style="font-size:1.5rem;font-weight:700;color:var(--accent-color);">--</div>
-                                <div style="font-size:0.7rem;color:var(--text-secondary);">Densidad <span style="color:#10b981;">(150-200)</span></div>
+                            <div class="metric-card-dark">
+                                <div id="val-density" class="metric-value-dark">--</div>
+                                <div style="font-size:0.7rem;">Densidad <span style="color:#10b981;">(150-200)</span></div>
                             </div>
-                            <div style="background:var(--bg-card);padding:1rem;border-radius:12px;text-align:center;">
-                                <div id="val-thickness" style="font-size:1.5rem;font-weight:700;color:var(--accent-color);">--</div>
-                                <div style="font-size:0.7rem;color:var(--text-secondary);">Grosor <span style="color:#10b981;">(60-90)</span></div>
+                            <div class="metric-card-dark">
+                                <div id="val-thickness" class="metric-value-dark">--</div>
+                                <div style="font-size:0.7rem;">Grosor <span style="color:#10b981;">(60-90)</span></div>
                             </div>
-                            <div style="background:var(--bg-card);padding:1rem;border-radius:12px;text-align:center;">
-                                <div id="val-hydration" style="font-size:1.5rem;font-weight:700;color:var(--accent-color);">--</div>
-                                <div style="font-size:0.7rem;color:var(--text-secondary);">Hidratación <span style="color:#10b981;">(50-70)</span></div>
+                            <div class="metric-card-dark">
+                                <div id="val-hydration" class="metric-value-dark">--</div>
+                                <div style="font-size:0.7rem;">Hidratación <span style="color:#10b981;">(50-70)</span></div>
                             </div>
-                            <div style="background:var(--bg-card);padding:1rem;border-radius:12px;text-align:center;">
-                                <div id="val-sebum" style="font-size:1.5rem;font-weight:700;color:var(--accent-color);">--</div>
-                                <div style="font-size:0.7rem;color:var(--text-secondary);">Sebo <span style="color:#10b981;">(40-60)</span></div>
+                            <div class="metric-card-dark">
+                                <div id="val-sebum" class="metric-value-dark">--</div>
+                                <div style="font-size:0.7rem;">Sebo <span style="color:#10b981;">(40-60)</span></div>
                             </div>
-                            <div style="background:var(--bg-card);padding:1rem;border-radius:12px;grid-column:span 2;text-align:center;">
-                                <div id="val-dandruff" style="font-size:1.5rem;font-weight:700;color:var(--accent-color);">--</div>
-                                <div style="font-size:0.7rem;color:var(--text-secondary);">Caspa <span style="color:#10b981;">(0-10)</span></div>
+                            <div class="metric-card-dark" style="grid-column:span 2;">
+                                <div id="val-dandruff" class="metric-value-dark">--</div>
+                                <div style="font-size:0.7rem;">Caspa <span style="color:#10b981;">(0-10)</span></div>
                             </div>
                         </div>
                         
@@ -1654,9 +1661,23 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             </div>
             
             <style>
-                .diagnosis-integrated { margin-top:1.5rem; }
-                .diagnosis-panel { min-height:500px; }
-                .upload-zone:hover { border-color:var(--accent-color);background:rgba(139,92,246,0.05); }
+                .diagnosis-integrated { 
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 1.5rem;
+                }
+                .diagnosis-panel { 
+                    padding: 1.5rem;
+                    border-radius: 16px;
+                }
+                .upload-zone { 
+                    border: 2px dashed var(--border-color);
+                    border-radius: 12px;
+                    padding: 2rem;
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                }
             </style>
         `;
     }
@@ -2354,12 +2375,12 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         const container = document.getElementById('products-grid');
         if (!container) return;
         container.innerHTML = products.map(p => `
-            <div style="display:flex;gap:1rem;padding:1rem;background:var(--bg-card);border-radius:12px;">
-                <img src="${p.image}" alt="${p.name}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;" onerror="this.style.display='none'">
+            <div style="display:flex;gap:1rem;padding:1rem;background:rgba(255,255,255,0.05);border-radius:12px;border:1px solid rgba(255,255,255,0.1);transition:all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+                <img src="${p.image}" alt="${p.name}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;background:white;" onerror="this.style.display='none'">
                 <div style="flex:1;">
-                    <strong style="font-size:0.9rem;">${p.name}</strong>
-                    <p style="font-size:0.75rem;color:var(--text-secondary);margin:0;">${p.description}</p>
-                    <a href="${p.url}" target="_blank" style="font-size:0.75rem;color:var(--accent-color);">Ver producto →</a>
+                    <strong style="font-size:0.9rem;color:#fff;">${p.name}</strong>
+                    <p style="font-size:0.75rem;color:rgba(255,255,255,0.6);margin:0;">${p.description}</p>
+                    <a href="${p.url}" target="_blank" style="font-size:0.75rem;color:#a78bfa;font-weight:600;text-decoration:none;">Ver producto →</a>
                 </div>
             </div>
         `).join('');
@@ -2369,12 +2390,12 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         const container = document.getElementById('treatments-grid');
         if (!container) return;
         container.innerHTML = treatments.map(t => `
-            <div style="display:flex;gap:1rem;padding:1rem;background:var(--bg-card);border-radius:12px;border-left:3px solid var(--accent-color);">
+            <div style="display:flex;gap:1rem;padding:1rem;background:rgba(255,255,255,0.05);border-radius:12px;border-left:3px solid #10b981;border:1px solid rgba(255,255,255,0.1);border-left:3px solid #10b981;transition:all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
                 <div style="font-size:1.5rem;">${t.icon}</div>
                 <div style="flex:1;">
-                    <strong style="font-size:0.9rem;">${t.title}</strong>
-                    <p style="font-size:0.75rem;color:var(--text-secondary);margin:0;">${t.description}</p>
-                    <a href="${t.url}" target="_blank" style="font-size:0.75rem;color:var(--accent-color);">Más info →</a>
+                    <strong style="font-size:0.9rem;color:#fff;">${t.title}</strong>
+                    <p style="font-size:0.75rem;color:rgba(255,255,255,0.6);margin:0;">${t.description}</p>
+                    <a href="${t.url}" target="_blank" style="font-size:0.75rem;color:#10b981;font-weight:600;text-decoration:none;">Más info →</a>
                 </div>
             </div>
         `).join('');

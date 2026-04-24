@@ -1851,3 +1851,89 @@ textarea.form-control {
     padding: 0.4rem 0.8rem;
     font-size: 0.85rem;
 }
+/* ── Diagnosis Mode Wrapper ── */
+.main-content.diagnosis-mode {
+    background-color: #0b0915;
+    transition: background-color 0.5s ease;
+}
+
+.main-content.diagnosis-mode .section-title {
+    color: #fff;
+}
+
+/* ── Diagnosis Dark Theme ── */
+.diagnosis-integrated {
+    margin-top: 1.5rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    color: #fff;
+}
+
+.diagnosis-panel {
+    background: rgba(30, 27, 46, 0.7) !important;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(139, 92, 246, 0.3) !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    transition: var(--transition);
+}
+
+.diagnosis-panel h2, .diagnosis-panel h3, .diagnosis-panel h4 {
+    color: #fff !important;
+}
+
+.diagnosis-panel p, .diagnosis-panel span {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.metric-card-dark {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.25rem;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: var(--transition);
+}
+
+.metric-card-dark:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+}
+
+.metric-value-dark {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--accent-primary);
+    text-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+}
+
+.upload-zone-dark {
+    border: 2px dashed rgba(139, 92, 246, 0.4) !important;
+    background: rgba(139, 92, 246, 0.03) !important;
+    transition: var(--transition);
+}
+
+.upload-zone-dark:hover {
+    border-color: var(--accent-primary) !important;
+    background: rgba(139, 92, 246, 0.08) !important;
+}
+
+.diagnosis-client-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    margin-bottom: 0.75rem;
+    transition: var(--transition);
+}
+
+.diagnosis-client-card:hover {
+    border-color: var(--accent-primary);
+    transform: translateX(4px);
+    box-shadow: var(--shadow-md);
+}
