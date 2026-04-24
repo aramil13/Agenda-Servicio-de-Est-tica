@@ -310,67 +310,104 @@ newFileInput.addEventListener('change', (e) => {
             }
         });
 
-        // ── Escuchar cuando el análisis se completa y mostrar productos Maria Nila ──
-        let analysisResults = null;
-        
-        const originalProcessAnalysis = window.processDiagnosisResults;
-        
-        function showMariaNilaProductsAfterAnalysis(diagnosis) {
-            if (typeof generateMariaNilaRecommendations === 'function') {
-                const products = generateMariaNilaRecommendations(diagnosis);
-                if (typeof displayMariaNilaProducts === 'function') {
-                    displayMariaNilaProducts(products);
-                }
+        // ── Base de datos de productos Maria Nila ──
+        const MARIA_NILA_PRODUCTS = {
+            headHairHealShampoo: { name: "Head & Hair Heal Shampoo", category: "champú", collection: "Head & Hair Heal", description: "Champú calmante para cuero cabelludo sensible. Con aloe vera, vitamina E y piroctona olamina.", targets: ["scalp_sensitive", "scalp_irritation", "dandruff"], price: "36€", icon: "🧴" },
+            trueSoftShampoo: { name: "True Soft Shampoo", category: "champú", collection: "True Soft", description: "Champú hidratante con aceite de argán para cabello seco o encrespado.", targets: ["dry", "frizzy", "low_hydration"], price: "32€", icon: "💧" },
+            pureVolumeShampoo: { name: "Pure Volume Shampoo", category: "champú", collection: "Pure Volume", description: "Champú voluminizador con provitamina B5 y proteínas vegetales para cabello fino.", targets: ["fine", "low_density", "flat"], price: "32€", icon: "📈" },
+            structureRepairShampoo: { name: "Structure Repair Shampoo", category: "champú", collection: "Structure Repair", description: "Champú reparador para cabello dañado o tratado químicamente.", targets: ["damaged", "thin", "colored"], price: "32€", icon: "🔧" },
+            purifyingCleanseShampoo: { name: "Purifying Cleanse Shampoo", category: "champú", collection: "Purifying Cleanse", description: "Champú purificante para limpieza profunda del cuero cabelludo.", targets: ["oily", "high_sebum"], price: "32€", icon: "✨" },
+            headHairHealConditioner: { name: "Head & Hair Heal Conditioner", category: "acondicionador", collection: "Head & Hair Heal", description: "Acondicionador calmante que fortalece y nutre el cuero cabelludo.", targets: ["scalp_sensitive", "scalp_irritation", "dry"], price: "36€", icon: "🧴" },
+            trueSoftConditioner: { name: "True Soft Conditioner", category: "acondicionador", collection: "True Soft", description: "Acondicionador nutritivo con aceite de argán para suavidad extrema.", targets: ["dry", "frizzy", "low_hydration"], price: "32€", icon: "💧" },
+            pureVolumeConditioner: { name: "Pure Volume Conditioner", category: "acondicionador", collection: "Pure Volume", description: "Acondicionador ligero que aporta volumen sin apelmazar.", targets: ["fine", "low_density", "flat"], price: "32€", icon: "📈" },
+            structureRepairConditioner: { name: "Structure Repair Conditioner", category: "acondicionador", collection: "Structure Repair", description: "Acondicionador reparador que fortalece la fibra capilar.", targets: ["damaged", "thin", "colored"], price: "32€", icon: "🔧" },
+            headHairHealMasque: { name: "Head & Hair Heal Masque", category: "mascarilla", collection: "Head & Hair Heal", description: "Mascarilla intensiva calmante para tratamiento del cuero cabelludo.", targets: ["scalp_sensitive", "scalp_irritation", "dandruff"], price: "41€", icon: "🧴" },
+            trueSoftMasque: { name: "True Soft Masque", category: "mascarilla", collection: "True Soft", description: "Mascarilla hidratante intensiva con aceite de argán.", targets: ["dry", "frizzy", "low_hydration"], price: "35.50€", icon: "💧" },
+            pureVolumeMasque: { name: "Pure Volume Masque", category: "mascarilla", collection: "Pure Volume", description: "Mascarilla voluminizadora ligera para cabello fino.", targets: ["fine", "low_density", "flat"], price: "35.50€", icon: "📈" },
+            structureRepairMasque: { name: "Structure Repair Masque", category: "mascarilla", collection: "Structure Repair", description: "Mascarilla reparadora intensiva para cabello dañado.", targets: ["damaged", "thin", "colored"], price: "35.50€", icon: "🔧" },
+            trueSoftArganOil: { name: "True Soft Argan Oil", category: "aceite", collection: "True Soft", description: "Aceite de argán tratamiento sin aclarado.", targets: ["dry", "frizzy", "low_hydration", "damaged"], price: "39.90€", icon: "🌿" },
+            bondBuilder: { name: "Bond Builder", category: "tratamiento", collection: "Bond Builder", description: "Reparador de enlaces capilares para reconstruir el cabello dañado.", targets: ["damaged", "colored", "treated"], price: "44€", icon: "🔗" },
+            creamHeatSpray: { name: "Cream Heat Spray", category: "protector", collection: "Styling", description: "Protector térmico cremoso que previene el daño por calor.", targets: ["damaged", "all"], price: "29.50€", icon: "🔥" }
+        };
+
+        function generateMariaNilaRecommendations(diagnosis) {
+            const { density, thickness, sebum } = diagnosis;
+            const selectedProducts = [];
+            const issues = [];
+            if (density < 150) issues.push("low_density", "fine");
+            if (thickness < 60) issues.push("fine");
+            if (sebum > 60) issues.push("high_sebum", "oily");
+            if (sebum < 40) issues.push("dry", "low_hydration");
+            if (issues.includes("low_density") || issues.includes("fine")) {
+                selectedProducts.push(MARIA_NILA_PRODUCTS.pureVolumeShampoo, MARIA_NILA_PRODUCTS.pureVolumeConditioner, MARIA_NILA_PRODUCTS.pureVolumeMasque);
             }
+            if (issues.includes("dry") || issues.includes("low_hydration")) {
+                selectedProducts.push(MARIA_NILA_PRODUCTS.headHairHealShampoo, MARIA_NILA_PRODUCTS.trueSoftShampoo, MARIA_NILA_PRODUCTS.trueSoftConditioner, MARIA_NILA_PRODUCTS.trueSoftMasque);
+            }
+            if (issues.includes("high_sebum") || issues.includes("oily")) {
+                selectedProducts.push(MARIA_NILA_PRODUCTS.purifyingCleanseShampoo);
+            }
+            if (sebum > 50 && density < 150) {
+                selectedProducts.push(MARIA_NILA_PRODUCTS.headHairHealMasque);
+            }
+            if (thickness < 70) {
+                selectedProducts.push(MARIA_NILA_PRODUCTS.structureRepairShampoo, MARIA_NILA_PRODUCTS.structureRepairConditioner, MARIA_NILA_PRODUCTS.bondBuilder, MARIA_NILA_PRODUCTS.creamHeatSpray);
+            }
+            const uniqueProducts = selectedProducts.filter((product, index, self) => index === self.findIndex(p => p.name === product.name));
+            return uniqueProducts.slice(0, 8);
         }
 
-        // Observer para detectar cuando cambian los resultados
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'childList') {
-                    const recommendationsList = document.getElementById('recommendations-list');
-                    if (recommendationsList && recommendationsList.children.length > 0 && !recommendationsList.dataset.processed) {
-                        recommendationsList.dataset.processed = 'true';
-                        if (analysisResults) {
-                            showMariaNilaProductsAfterAnalysis(analysisResults);
-                        }
-                    }
-                }
-            });
-        });
-
-        // Iniciar observer después de que el DOM cargue
-        setTimeout(() => {
-            const recommendationsList = document.getElementById('recommendations-list');
-            if (recommendationsList) {
-                observer.observe(recommendationsList.parentElement, { childList: true });
+        function displayMariaNilaProducts(products) {
+            const container = document.getElementById('products-grid');
+            if (!container) return;
+            if (products.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 1rem; color: var(--text-secondary);"><p>No se encontraron productos específicos para tu diagnóstico.</p></div>';
+                return;
             }
-        }, 1000);
+            container.innerHTML = products.map(product => `
+                <div class="maria-nila-product-card">
+                    <div style="font-size: 1.5rem; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #8b5cf6, #d946ef); border-radius: 8px; flex-shrink: 0;">${product.icon}</div>
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                            <strong style="color: var(--text-primary); font-size: 0.9rem;">${product.name}</strong>
+                            <span style="font-size: 0.65rem; padding: 2px 6px; background: rgba(139,92,246,0.1); color: #8b5cf6; border-radius: 4px; font-weight: 600;">${product.collection}</span>
+                        </div>
+                        <p style="font-size: 0.75rem; color: var(--text-secondary); margin: 4px 0;">${product.description}</p>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 4px;">
+                            <span style="font-weight: 700; color: #8b5cf6; font-size: 0.85rem;">${product.price}</span>
+                            <span style="font-size: 0.7rem; color: var(--text-secondary);">• ${product.category}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-        // Interceptar las actualizaciones de resultados de diagnóstico
-        setInterval(() => {
+        function checkAndShowProducts() {
             const densityEl = document.getElementById('val-density');
             const thicknessEl = document.getElementById('val-thickness');
             const sebumEl = document.getElementById('val-sebum');
-            
             if (densityEl && thicknessEl && sebumEl) {
                 const density = parseInt(densityEl.textContent) || 0;
                 const thickness = parseFloat(thicknessEl.textContent) || 70;
                 const sebumText = sebumEl.textContent;
-                
                 let sebum = 50;
                 if (sebumText === 'Alto') sebum = 75;
                 else if (sebumText === 'Normal') sebum = 50;
                 else if (sebumText === 'Bajo') sebum = 25;
-                
-                const hydration = Math.max(0, Math.min(100, 100 - sebum * 0.5));
-                
-                if (density > 0 && !analysisResults) {
-                    analysisResults = { density, thickness, hydration, sebum };
-                    showMariaNilaProductsAfterAnalysis(analysisResults);
+                if (density > 0 && density < 300) {
+                    const diagnosis = { density, thickness, hydration: Math.max(0, 100 - sebum * 0.5), sebum };
+                    const products = generateMariaNilaRecommendations(diagnosis);
+                    displayMariaNilaProducts(products);
+                    const recommendationsList = document.getElementById('recommendations-list');
+                    if (recommendationsList && !recommendationsList.dataset.replaced) {
+                        recommendationsList.dataset.replaced = 'true';
+                        recommendationsList.innerHTML = '<li style="color: var(--accent-primary); font-weight: 600;">Productos recomendados Maria Nila para tu diagnóstico:</li>';
+                    }
                 }
             }
-        }, 500);
+        }
+
+        setTimeout(() => { setInterval(checkAndShowProducts, 300); }, 500);
     </script>
 </body>
 </html>
