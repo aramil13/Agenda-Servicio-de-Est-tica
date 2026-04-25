@@ -199,6 +199,7 @@
                         </label>
                     </div>
                     <button id="analyze-btn" class="primary-btn">Iniciar Análisis AI</button>
+                    <button id="save-diagnosis-btn" class="secondary-btn" style="display: none; background: #10b981;">Guardar en Cliente</button>
                     <button id="reset-btn" class="secondary-btn">Cambiar Imagen</button>
                 </div>
             </section>
@@ -345,10 +346,15 @@
                 document.getElementById('val-dandruff').textContent = results.dandruff;
 
                 renderRecommendations(results);
+                currentDiagnosisResults = results;
 
                 elements.statusBadge.textContent = '✓ Análisis completado';
                 elements.statusBadge.style.background = '#10b981';
                 elements.analyzeBtn.disabled = false;
+                
+                // Mostrar botón guardar
+                const saveBtn = document.getElementById('save-diagnosis-btn');
+                if (saveBtn) saveBtn.style.display = 'inline-flex';
 
                 if (window.parent !== window) {
                     try {
@@ -365,6 +371,40 @@
         };
 
         document.getElementById('reset-btn').onclick = () => location.reload();
+
+        let currentDiagnosisResults = null;
+        
+        document.getElementById('save-diagnosis-btn').onclick = () => {
+            if (!currentDiagnosisResults || !currentImgData) return;
+            
+            const saveBtn = document.getElementById('save-diagnosis-btn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Guardando...';
+            
+            if (window.parent !== window) {
+                try {
+                    window.parent.postMessage({
+                        type: 'diagnosis_photo',
+                        photoData: currentImgData,
+                        results: currentDiagnosisResults
+                    }, '*');
+                    saveBtn.textContent = '✓ Guardado';
+                    showToast('Foto guardada en el cliente');
+                } catch (e) {
+                    console.warn('Error sending message:', e);
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Guardar en Cliente';
+                }
+            }
+        };
+        
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.textContent = msg;
+            toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#10b981;color:white;padding:12px 24px;border-radius:8px;font-size:14px;z-index:9999;animation:fadeIn 0.3s';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
 
         function renderRecommendations(diagnosis) {
             const products = [], treatments = [];

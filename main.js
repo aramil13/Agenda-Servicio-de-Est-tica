@@ -2488,15 +2488,59 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
 return Math.round(dandruffRatio * 10);
     }
 
-    window.addEventListener('message', async (event) => {
+window.addEventListener('message', async (event) => {
         if (event.data && event.data.type === 'diagnosis_photo') {
             try {
                 const clientId = sessionStorage.getItem('nymara_diagnosis_client_id');
                 const clientName = sessionStorage.getItem('nymara_diagnosis_client_name');
                 const results = event.data.results;
+                const photoData = event.data.photoData;
                 
-                console.log('DEBUG: Parent received diagnosis_photo message:', { clientId, clientName, results });
+                console.log('DEBUG: Parent received diagnosis_photo message:', { clientId, clientName, results, hasPhoto: !!photoData });
                 showToast(`Análisis completado para ${clientName || 'Cliente'}`);
+                
+                // Guardar foto si existe
+                if (photoData && clientId) {
+                    try {
+                        const base64Data = photoData.replace(/^data:image\/\w+;base64,/, '');
+                        const binaryString = atob(base64Data);
+                        const bytes = new Uint8Array(binaryString.length);
+                        for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+                        const blob = new Blob([bytes], { type: 'image/jpeg' });
+                        
+                        const fileName = `${clientId}/diagnosis_${Date.now()}.jpg`;
+                        const { data, error } = await supabase.storage
+                            .from('client-photos')
+                            .upload(fileName, blob);
+                        
+                        if (error) {
+                            console.error('Error uploading diagnosis photo:', error);
+                        } else {
+                            const { data: { publicUrl } } = supabase.storage
+                                .from('client-photos')
+                                .getPublicUrl(fileName);
+                            
+                            const photoId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                                const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                                return v.toString(16);
+                            });
+                            
+                            await supabase.from('client_photos').insert({
+                                id: photoId,
+                                client_id: clientId,
+                                photo_url: publicUrl,
+                                photo_date: new Date().toISOString().split('T')[0],
+                                photo_type: 'diagnosis',
+                                notes: `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'}, Caspa: ${results?.dandruff || '--'}`
+                            });
+                            
+                            console.log('Diagnosis photo saved:', publicUrl);
+                            showToast('✓ Foto de diagnóstico guardada');
+                        }
+                    } catch (e) {
+                        console.error('Error saving diagnosis photo:', e);
+                    }
+                }
                 
                 // Mostrar recomendaciones en la app principal
                 if (results) {
