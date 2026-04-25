@@ -2639,6 +2639,8 @@ window.addEventListener('message', async (event) => {
                 State.clientPhotos[info.id] = currentPhotos;
             }
 
+            renderPhotos(); // Mostrar fotos existentes
+
             const renderPhotos = () => {
                 const gallery = document.getElementById('client-photos-gallery');
                 if (!gallery) return;
@@ -2660,6 +2662,7 @@ window.addEventListener('message', async (event) => {
             // Empty function - no recommendations
     
     const btnGalleryPhoto = document.getElementById('btn-gallery-photo');
+            const btnCameraPhoto = document.getElementById('btn-camera-photo');
             const photosInput = document.getElementById('client-photos-input');
             const cameraInput = document.getElementById('client-camera-input');
             const gallery = document.getElementById('client-photos-gallery');
