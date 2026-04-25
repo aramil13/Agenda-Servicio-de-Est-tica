@@ -608,6 +608,44 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
+    window.editClientPhoto = async function(photoId, clientId, currentDate, currentNotes, currentType) {
+        openModal('Editar Foto', `
+            <form id="edit-client-photo-form">
+                <div class="form-group">
+                    <label>Tipo</label>
+                    <select class="form-control" id="edit-client-photo-type">
+                        <option value="before" ${currentType === 'before' ? 'selected' : ''}>Antes</option>
+                        <option value="after" ${currentType === 'after' ? 'selected' : ''}>Después</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <input type="date" class="form-control" id="edit-client-photo-date" value="${currentDate}">
+                </div>
+                <div class="form-group">
+                    <label>Notas</label>
+                    <textarea class="form-control" id="edit-client-photo-notes" rows="3">${currentNotes}</textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        `, () => {
+            document.getElementById('edit-client-photo-form').addEventListener('submit', async e => {
+                e.preventDefault();
+                const newType = document.getElementById('edit-client-photo-type').value;
+                const newDate = document.getElementById('edit-client-photo-date').value;
+                const newNotes = document.getElementById('edit-client-photo-notes').value;
+                
+                await updateClientPhoto(photoId, clientId, { photo_type: newType, photo_date: newDate, notes: newNotes });
+                closeModal();
+                showToast('Foto actualizada');
+                renderRoute();
+            });
+        });
+    }
+
     window.editAptPhoto = async function(photoId, aptId, currentDate, currentNotes, currentType) {
         openModal('Editar Foto', `
             <form id="edit-apt-photo-form">
@@ -2402,21 +2440,29 @@ window.addEventListener('message', async (event) => {
                 if (!container) return;
                 
                 let html = '';
-                sessionPhotos.forEach((p) => {
+                sessionPhotos.forEach((p, idx) => {
+                    const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
                     html += `
-                        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                        <div class="client-mini-photo" data-photo-id="${p.id}" style="position:relative;text-align:center">
                             <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
-                            <span style="font-size:0.7rem;color:var(--text-secondary)">${p.photo_date || ''}</span>
-                            <button type="button" class="delete-btn" data-id="${p.id}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">🗑️</button>
+                            <div style="font-size:0.65rem;color:var(--text-secondary)">${photoType}</div>
+                            <div style="font-size:0.6rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
+                            <div style="display:flex;gap:2px;justify-content:center">
+                                <button type="button" class="client-photo-edit-btn" data-photo-id="${p.id}" title="Editar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">✏️</button>
+                                <button type="button" class="delete-btn" data-id="${p.id}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">🗑️</button>
+                            </div>
                         </div>`;
                 });
                 
-                pendingFiles.forEach((pf) => {
+                pendingFiles.forEach((pf, idx) => {
                     html += `
-                        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                        <div style="position:relative;text-align:center">
                             <img src="${pf.preview}" style="width:60px;height:60px;object-fit:cover;border-radius:8px">
-                            <span style="font-size:0.7rem;color:var(--text-secondary)">${toLocalDateStr(new Date())}</span>
-                            <button type="button" class="delete-pending-btn" data-idx="${pendingFiles.indexOf(pf)}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">🗑️</button>
+                            <div style="font-size:0.65rem;color:var(--text-secondary)">Antes</div>
+                            <div style="font-size:0.6rem;color:var(--text-secondary)">${toLocalDateStr(new Date())}</div>
+                            <div style="display:flex;gap:2px;justify-content:center">
+                                <button type="button" class="delete-pending-btn" data-idx="${idx}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">🗑️</button>
+                            </div>
                         </div>`;
                 });
                 
@@ -2480,6 +2526,16 @@ window.addEventListener('message', async (event) => {
                         uploadedHashes.splice(idx, 1);
                         pendingFiles.splice(idx, 1);
                         renderPhotos();
+                        return;
+                    }
+                    
+                    const editBtn = e.target.closest('.client-photo-edit-btn');
+                    if (editBtn) {
+                        const photoId = editBtn.dataset.photoId;
+                        const photo = sessionPhotos.find(p => p.id === photoId);
+                        if (photo) {
+                            window.editClientPhoto(photoId, currentClientId, photo.photo_date || '', photo.notes || '', photo.photo_type || 'before');
+                        }
                         return;
                     }
                 });
