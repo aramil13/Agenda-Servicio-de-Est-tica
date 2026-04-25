@@ -2170,11 +2170,15 @@ if (analyzeBtn) {
                     const file = new File([blob], 'diagnosis.jpg', { type: 'image/jpeg' });
                     
                     const notes = `Diagnóstico: Densidad ${density}, Grosor ${thickness}, Hidratación ${hydration}%, Sebo ${sebumLevel}%, Caspa ${dandruff}`;
-                    await uploadClientPhoto(file, diagnosisClientId, toLocalDateStr(new Date()), 'before', notes);
+                    const photoRecord = await uploadClientPhoto(file, diagnosisClientId, toLocalDateStr(new Date()), 'before', notes);
                     
-                    // Actualizar State.clientPhotos
-                    await loadAllClientPhotos();
-                    renderRoute();
+                    // Añadir la foto directamente a State.clientPhotos sin recargar la vista
+                    if (photoRecord) {
+                        if (!State.clientPhotos[diagnosisClientId]) {
+                            State.clientPhotos[diagnosisClientId] = [];
+                        }
+                        State.clientPhotos[diagnosisClientId].unshift(photoRecord);
+                    }
                     showToast('Foto de diagnóstico guardada');
                 } catch (err) {
                     console.error('Error saving diagnosis photo:', err);
