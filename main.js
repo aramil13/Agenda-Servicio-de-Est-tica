@@ -608,9 +608,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
-    window.editAptPhoto = async function(photoId, aptId, currentDate, currentNotes) {
+    window.editAptPhoto = async function(photoId, aptId, currentDate, currentNotes, currentType) {
         openModal('Editar Foto', `
             <form id="edit-apt-photo-form">
+                <div class="form-group">
+                    <label>Tipo</label>
+                    <select class="form-control" id="edit-apt-photo-type">
+                        <option value="before" ${currentType === 'before' ? 'selected' : ''}>Antes</option>
+                        <option value="after" ${currentType === 'after' ? 'selected' : ''}>Después</option>
+                    </select>
+                </div>
                 <div class="form-group">
                     <label>Fecha</label>
                     <input type="date" class="form-control" id="edit-apt-photo-date" value="${currentDate}">
@@ -627,6 +634,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `, () => {
             document.getElementById('edit-apt-photo-form').addEventListener('submit', async e => {
                 e.preventDefault();
+                const newType = document.getElementById('edit-apt-photo-type').value;
                 const newDate = document.getElementById('edit-apt-photo-date').value;
                 const newNotes = document.getElementById('edit-apt-photo-notes').value;
                 
@@ -634,6 +642,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (apt && apt.appointmentPhotos) {
                     const photoIdx = apt.appointmentPhotos.findIndex(p => p.id === photoId);
                     if (photoIdx >= 0) {
+                        apt.appointmentPhotos[photoIdx].photo_type = newType;
                         apt.appointmentPhotos[photoIdx].photo_date = newDate;
                         apt.appointmentPhotos[photoIdx].notes = newNotes;
                         await supabase.from('appointments').update({ appointment_photos: apt.appointmentPhotos }).eq('id', aptId);
