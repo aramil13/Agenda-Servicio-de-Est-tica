@@ -457,6 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function uploadClientPhoto(file, clientId, photoDate, photoType, photoNotes) {
+        console.log('uploadClientPhoto called:', { clientId, photoDate, photoType });
         const fileExt = file.name.split('.').pop();
         const photoId = generateId();
         const fileName = `${clientId}/${photoId}.${fileExt}`;
@@ -472,6 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (error) {
             showToast('Error al subir foto: ' + error.message, 'error');
+            console.error('Storage upload error:', error);
             return null;
         }
 
@@ -490,7 +492,12 @@ document.addEventListener('DOMContentLoaded', () => {
             created_at: new Date().toISOString()
         };
         
-        await supabase.from('client_photos').insert(photoRecord);
+        console.log('Inserting photo record:', photoRecord);
+        const { error: insertError } = await supabase.from('client_photos').insert(photoRecord);
+        if (insertError) {
+            console.error('Database insert error:', insertError);
+            showToast('Error al guardar foto en BD: ' + insertError.message, 'error');
+        }
         return photoRecord;
     }
 
