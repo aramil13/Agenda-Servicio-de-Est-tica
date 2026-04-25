@@ -379,7 +379,7 @@
             
             // Olaplex
             if (density < 130 || thickness < 60 || hydration < 45) treatments.push(OLAPLEX_TREATMENTS.treatmentPremium);
-            if (treatments.length < 2 && (density < 160 || isColored)) treatments.push(OLAPLEX_TREATMENTS.treatmentExpress);
+            if (treatments.length < 2) treatments.push(OLAPLEX_TREATMENTS.treatmentExpress);
             
             // Mostrar
             document.getElementById('recommendations-section').style.display = 'block';

@@ -70,8 +70,8 @@ function getOlaplexRecommendations(diagnosis) {
     if (density < 130 || thickness < 60 || hydration < 45) {
         recommendations.push(OLAPLEX_TREATMENTS.treatmentPremium);
     }
-    // Tratamiento Express para casos leves/moderados
-    if (recommendations.length === 0 || (density < 160 && thickness < 70)) {
+    // Tratamiento Express - siempre mostrar si hay menos de 2
+    if (recommendations.length < 2) {
         recommendations.push(OLAPLEX_TREATMENTS.treatmentExpress);
     }
     return recommendations.slice(0, 2);
