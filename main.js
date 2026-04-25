@@ -527,6 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function loadClientPhotos(clientId) {
+        console.log('loadClientPhotos called for client:', clientId);
         try {
             const { data, error } = await supabase
                 .from('client_photos')
@@ -534,6 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .eq('client_id', clientId)
                 .order('created_at', { ascending: false });
             
+            console.log('loadClientPhotos result:', { data, error });
             if (error) throw error;
             return data || [];
         } catch (e) {
