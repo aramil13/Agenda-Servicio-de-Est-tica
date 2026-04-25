@@ -2726,24 +2726,33 @@ window.addEventListener('message', async (event) => {
                         .order('created_at', { ascending: false });
                     
                     if (!error && data && data.length > 0) {
-                        // Eliminar duplicados por ID
-                        const seenIds = new Set();
-                        currentPhotos = data.filter(p => {
-                            if (seenIds.has(p.id)) return false;
-                            seenIds.add(p.id);
-                            return true;
+                        // Usar Map para eliminar duplicados de forma segura
+                        const photosMap = new Map();
+                        data.forEach(p => {
+                            if (!photosMap.has(p.id)) {
+                                photosMap.set(p.id, p);
+                            }
                         });
+                        currentPhotos = Array.from(photosMap.values());
                     } else {
-                        // Fallback al cache local si no hay datos en BD
-                        currentPhotos = State.diagnosisPhotosCache.filter(p => 
-                            String(p.client_id) === String(info.id)
-                        );
+                        // Fallback al cache local
+                        const photosMap = new Map();
+                        State.diagnosisPhotosCache.forEach(p => {
+                            if (String(p.client_id) === String(info.id) && !photosMap.has(p.id)) {
+                                photosMap.set(p.id, p);
+                            }
+                        });
+                        currentPhotos = Array.from(photosMap.values());
                     }
                 } catch (e) {
-                    console.warn('Error cargando fotos de BD, usando cache:', e);
-                    currentPhotos = State.diagnosisPhotosCache.filter(p => 
-                        String(p.client_id) === String(info.id)
-                    );
+                    console.warn('Error cargando fotos:', e);
+                    const photosMap = new Map();
+                    State.diagnosisPhotosCache.forEach(p => {
+                        if (String(p.client_id) === String(info.id) && !photosMap.has(p.id)) {
+                            photosMap.set(p.id, p);
+                        }
+                    });
+                    currentPhotos = Array.from(photosMap.values());
                 }
                 State.clientPhotos[info.id] = currentPhotos;
             }
@@ -2760,29 +2769,33 @@ window.addEventListener('message', async (event) => {
                 const galleryEl = document.getElementById('client-photos-gallery');
                 if (!galleryEl) return;
                 
-                // Siempre eliminar duplicados antes de renderizar
-                const seenIds = new Set();
-                const uniquePhotos = currentPhotos.filter(p => {
-                    if (seenIds.has(p.id)) {
-                        console.log('DUPLICADO ENCONTRADO:', p.id);
-                        return false;
+                // Usar Map para garantizar sin duplicados
+                const photosMap = new Map();
+                currentPhotos.forEach(p => {
+                    if (!photosMap.has(p.id)) {
+                        photosMap.set(p.id, p);
                     }
-                    seenIds.add(p.id);
-                    return true;
+                });
+                const uniquePhotos = Array.from(photosMap.values());
+                
+                let photosHtml = '';
+                uniquePhotos.forEach(p => {
+                    photosHtml += '<div class="photo-thumb" style="position:relative;width:60px;height:60px" data-id="' + p.id + '">' +
+                        '<img src="' + (p.photo_url || '') + '" style="width:100%;height:100%;border-radius:8px;object-fit:cover;cursor:pointer" class="view-photo" data-url="' + (p.photo_url || '') + '">' +
+                        '<button type="button" class="edit-client-photo" data-id="' + p.id + '" data-date="' + (p.photo_date || '') + '" data-type="' + (p.photo_type || 'before') + '" data-notes="' + (p.notes || '') + '" style="position:absolute;top:-6px;right:14px;background:#2196F3;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">✎</button>' +
+                        '<button type="button" class="remove-client-photo" data-id="' + p.id + '" style="position:absolute;top:-6px;right:-6px;background:red;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">×</button>' +
+                        '</div>';
                 });
                 
-                galleryEl.innerHTML = uniquePhotos.map(p => `
-                    <div class="photo-thumb" style="position:relative;width:60px;height:60px" data-id="${p.id}">
-                        <img src="${p.photo_url}" style="width:100%;height:100%;border-radius:8px;object-fit:cover;cursor:pointer" class="view-photo" data-url="${p.photo_url}">
-                        <button type="button" class="edit-client-photo" data-id="${p.id}" data-date="${p.photo_date || ''}" data-type="${p.photo_type || 'before'}" data-notes="${p.notes || ''}" style="position:absolute;top:-6px;right:14px;background:#2196F3;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">✎</button>
-                        <button type="button" class="remove-client-photo" data-id="${p.id}" style="position:absolute;top:-6px;right:-6px;background:red;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">×</button>
-                    </div>
-                `).join('') + pendingPreviews.map((preview, idx) => `
-                    <div class="photo-thumb pending" style="position:relative;width:60px;height:60px">
-                        <img src="${preview}" style="width:100%;height:100%;border-radius:8px;object-fit:cover;opacity:0.7">
-                        <button type="button" class="remove-pending-photo" data-idx="${idx}" style="position:absolute;top:-6px;right:-6px;background:red;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">×</button>
-                    </div>
-                `).join('');
+                let pendingHtml = '';
+                pendingPreviews.forEach((preview, idx) => {
+                    pendingHtml += '<div class="photo-thumb pending" style="position:relative;width:60px;height:60px">' +
+                        '<img src="' + preview + '" style="width:100%;height:100%;border-radius:8px;object-fit:cover;opacity:0.7">' +
+                        '<button type="button" class="remove-pending-photo" data-idx="' + idx + '" style="position:absolute;top:-6px;right:-6px;background:red;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">×</button>' +
+                        '</div>';
+                });
+                
+                galleryEl.innerHTML = photosHtml + pendingHtml;
                 
                 galleryEl.querySelectorAll('.view-photo').forEach(img => {
                     img.addEventListener('click', () => {
@@ -3086,6 +3099,53 @@ window.addEventListener('message', async (event) => {
 
         openModal('Gestionar Fotos de la Cita', html, () => {
             const container = document.getElementById('apt-photos-container');
+            
+            // Delegar eventos para las fotos de la cita
+            container.addEventListener('click', async e => {
+                // Eliminar foto
+                const deleteBtn = e.target.closest('.apt-photo-delete-btn');
+                if (deleteBtn) {
+                    const photoItem = deleteBtn.closest('.apt-photo-item');
+                    const photoId = photoItem?.dataset.photoId;
+                    if (photoId && confirm('Eliminar esta foto?')) {
+                        // Eliminar de appointment
+                        if (apt.appointmentPhotos) {
+                            apt.appointmentPhotos = apt.appointmentPhotos.filter(p => p.id !== photoId);
+                            await updateAppointmentPhotos(appointmentId, apt.appointmentPhotos);
+                        }
+                        // Eliminar de BD
+                        await supabase.from('client_appointment_photos').delete().eq('id', photoId);
+                        State.clientAptPhotos = State.clientAptPhotos.filter(p => p.id !== photoId);
+                        // Re-renderizar
+                        container.innerHTML = renderPhotosForApt(apt);
+                        showToast('Foto eliminada');
+                    }
+                    return;
+                }
+                
+                // Editar foto
+                const editBtn = e.target.closest('.apt-photo-edit-btn');
+                if (editBtn) {
+                    const photoItem = editBtn.closest('.apt-photo-item');
+                    const photoId = photoItem?.dataset.photoId;
+                    const photoUrl = photoItem?.dataset.photoUrl;
+                    const photoDate = photoItem?.dataset.photoDate || '';
+                    const photoType = photoItem?.dataset.photoType || 'before';
+                    if (photoId) {
+                        window.editAptPhoto(photoId, photoType, photoDate, '');
+                    }
+                    return;
+                }
+                
+                // Ver foto
+                const img = e.target.closest('.apt-clickable-photo');
+                if (img) {
+                    const photoItem = img.closest('.apt-photo-item');
+                    const photoUrl = photoItem?.dataset.photoUrl || img.src;
+                    openModal('Foto', '<div style="text-align:center"><img src="' + photoUrl + '" style="max-width:100%;max-height:70vh;border-radius:8px"></div>');
+                    return;
+                }
+            });
             
             document.querySelectorAll('.apt-new-photo').forEach(input => {
                 input.addEventListener('change', async () => {
