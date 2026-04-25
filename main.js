@@ -530,6 +530,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadClientPhotos(clientId) {
         console.log('loadClientPhotos called for client:', clientId);
+        console.log('State.clients sample:', State.clients.slice(0,2).map(c => ({ id: c.id, name: c.name })));
         try {
             const { data, error } = await supabase
                 .from('client_photos')
@@ -537,7 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .eq('client_id', clientId)
                 .order('created_at', { ascending: false });
             
-            console.log('loadClientPhotos result:', { data, error });
+            console.log('loadClientPhotos result:', { data, error, clientId });
             if (error) throw error;
             return data || [];
         } catch (e) {
@@ -2480,8 +2481,11 @@ window.addEventListener('message', async (event) => {
                 container.innerHTML = html;
             };
 
+            console.log('Client form opened, isEdit:', isEdit, 'info:', info);
             if (isEdit && info?.id) {
+                console.log('Loading photos for client:', info.id);
                 sessionPhotos = await loadClientPhotos(info.id) || [];
+                console.log('sessionPhotos loaded:', sessionPhotos);
                 renderPhotos();
             }
 
