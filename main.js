@@ -497,7 +497,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (insertError) {
             console.error('Database insert error details:', JSON.stringify(insertError, null, 2));
             showToast('Error al guardar foto en BD: ' + insertError.message, 'error');
+            return null;
         }
+        console.log('Photo inserted successfully!');
         return photoRecord;
     }
 
