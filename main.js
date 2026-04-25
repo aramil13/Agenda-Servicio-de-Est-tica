@@ -2297,41 +2297,21 @@ window.addEventListener('message', async (event) => {
                 
                 if (section) section.style.display = 'block';
                 
-                sessionPhotos.forEach((p, idx) => {
-                    const badgeColor = p.photo_type === 'before' ? '#f59e0b' : '#10b981';
-                    const badgeText = p.photo_type === 'before' ? 'Antes' : 'Después';
+                sessionPhotos.forEach((p) => {
                     html += `
-                        <div class="client-photo-item" data-id="${p.id}" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px;background:var(--bg-secondary);border-radius:8px">
-                            <img src="${p.photo_url}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
-                            <div style="flex:1">
-                                <div style="display:flex;gap:8px;margin-bottom:4px">
-                                    <select class="form-control" data-id="${p.id}" data-field="photo_type" style="font-size:0.75rem;padding:4px">
-                                        <option value="before" ${p.photo_type === 'before' ? 'selected' : ''}>Antes</option>
-                                        <option value="after" ${p.photo_type === 'after' ? 'selected' : ''}>Después</option>
-                                    </select>
-                                    <input type="date" class="form-control" data-id="${p.id}" data-field="photo_date" value="${p.photo_date || ''}" style="font-size:0.75rem;padding:4px">
-                                </div>
-                                <input type="text" class="form-control" data-id="${p.id}" data-field="notes" value="${p.notes || ''}" placeholder="Notas..." style="font-size:0.75rem;padding:4px">
-                            </div>
-                            <button type="button" class="delete-btn" data-id="${p.id}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1.2rem">×</button>
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-right:10px">
+                            <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                            <span style="font-size:0.7rem;color:var(--text-secondary)">${p.photo_date || ''}</span>
+                            <button type="button" class="delete-btn" data-id="${p.id}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">🗑️</button>
                         </div>`;
                 });
                 
-                pendingFiles.forEach((pf, idx) => {
+                pendingFiles.forEach((pf) => {
                     html += `
-                        <div class="client-photo-item pending" data-idx="${idx}" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px;background:var(--bg-secondary);border-radius:8px">
-                            <img src="${pf.preview}" style="width:50px;height:50px;object-fit:cover;border-radius:6px">
-                            <div style="flex:1">
-                                <div style="display:flex;gap:8px;margin-bottom:4px">
-                                    <select class="form-control pending-type" data-idx="${idx}" style="font-size:0.75rem;padding:4px">
-                                        <option value="before">Antes</option>
-                                        <option value="after">Después</option>
-                                    </select>
-                                    <input type="date" class="form-control pending-date" data-idx="${idx}" value="${toLocalDateStr(new Date())}" style="font-size:0.75rem;padding:4px">
-                                </div>
-                                <input type="text" class="form-control pending-notes" data-idx="${idx}" placeholder="Notas..." style="font-size:0.75rem;padding:4px">
-                            </div>
-                            <button type="button" class="delete-pending-btn" data-idx="${idx}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1.2rem">×</button>
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-right:10px">
+                            <img src="${pf.preview}" style="width:60px;height:60px;object-fit:cover;border-radius:8px">
+                            <span style="font-size:0.7rem;color:var(--text-secondary)">${toLocalDateStr(new Date())}</span>
+                            <button type="button" class="delete-pending-btn" data-idx="${pendingFiles.indexOf(pf)}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">🗑️</button>
                         </div>`;
                 });
                 
@@ -2659,22 +2639,11 @@ window.addEventListener('message', async (event) => {
                 if (section) section.style.display = 'block';
                 
                 pendingFiles.forEach((pf, idx) => {
-                    const badgeColor = pf.type === 'before' ? '#f59e0b' : '#10b981';
-                    const badgeText = pf.type === 'before' ? 'Antes' : 'Después';
                     html += `
-                        <div class="apt-photo-item" data-idx="${idx}" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px;background:var(--bg-secondary);border-radius:8px">
-                            <img src="${pf.preview}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${pf.preview} style=max-width:100%;max-height:70vh;border-radius:8px>')">
-                            <div style="flex:1">
-                                <div style="display:flex;gap:8px;margin-bottom:4px">
-                                    <select class="form-control apt-photo-type" data-idx="${idx}" style="font-size:0.75rem;padding:4px">
-                                        <option value="before" ${pf.type === 'before' ? 'selected' : ''}>Antes</option>
-                                        <option value="after" ${pf.type === 'after' ? 'selected' : ''}>Después</option>
-                                    </select>
-                                    <input type="date" class="form-control apt-photo-date" data-idx="${idx}" value="${pf.date || toLocalDateStr(new Date())}" style="font-size:0.75rem;padding:4px">
-                                </div>
-                                <input type="text" class="form-control apt-photo-notes" data-idx="${idx}" value="${pf.notes || ''}" placeholder="Notas..." style="font-size:0.75rem;padding:4px">
-                            </div>
-                            <button type="button" class="delete-apt-pending-btn" data-idx="${idx}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1.2rem">×</button>
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-right:10px">
+                            <img src="${pf.preview}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${pf.preview} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                            <span style="font-size:0.7rem;color:var(--text-secondary)">${pf.date || toLocalDateStr(new Date())}</span>
+                            <button type="button" class="delete-apt-pending-btn" data-idx="${idx}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">🗑️</button>
                         </div>`;
                 });
                 
