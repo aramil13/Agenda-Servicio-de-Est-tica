@@ -1048,13 +1048,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="day-detail-photos">
                                 ${photosBefore.length > 0 ? photosBefore.map(p => `
                                     <div class="day-photo-container">
-                                        <img src="${p.url}" class="day-photo-thumb" onclick="openModal('Foto', '<div style=\'text-align:center\'><img src=\'${p.url}\' style=\'max-width:100%;max-height:70vh;border-radius:8px\'></div>')">
+                                        <img src="${p.url}" class="day-photo-thumb" data-photo-url="${p.url.replace(/"/g, '&quot;')}" onclick="openModal('Foto', '<div style=text-align:center><img src=' + this.dataset.photoUrl + ' style=max-width:100%;max-height:70vh;border-radius:8px></div>')">
                                         <span class="day-photo-label before">Antes</span>
                                     </div>
                                 `).join('') : ''}
                                 ${photosAfter.length > 0 ? photosAfter.map(p => `
                                     <div class="day-photo-container">
-                                        <img src="${p.url}" class="day-photo-thumb" onclick="openModal('Foto', '<div style=\'text-align:center\'><img src=\'${p.url}\' style=\'max-width:100%;max-height:70vh;border-radius:8px\'></div>')">
+                                        <img src="${p.url}" class="day-photo-thumb" data-photo-url="${p.url.replace(/"/g, '&quot;')}" onclick="openModal('Foto', '<div style=text-align:center><img src=' + this.dataset.photoUrl + ' style=max-width:100%;max-height:70vh;border-radius:8px></div>')">
                                         <span class="day-photo-label after">Después</span>
                                     </div>
                                 `).join('') : ''}
@@ -2721,8 +2721,7 @@ window.addEventListener('message', async (event) => {
                         e.preventDefault();
                         e.stopPropagation();
                         const photoId = removeBtn.dataset.id;
-                        if (confirm('¿Eliminar esta foto permanentemente?')) {
-                            console.log('DEBUG: Intentando eliminar foto:', photoId, 'del cliente:', currentClientId);
+                        if (confirm('Eliminar esta foto permanentemente?')) {
                             const success = await deleteClientPhoto(photoId, currentClientId);
                             if (success) {
                                 currentPhotos = currentPhotos.filter(p => p.id !== photoId);
@@ -2742,47 +2741,52 @@ window.addEventListener('message', async (event) => {
                         const currentType = editBtn.dataset.type || 'before';
                         const currentNotes = editBtn.dataset.notes || '';
                         
-                        openModal('Editar Foto', `
-                            <form id="edit-diagnosis-photo-form">
-                                <div class="form-group">
-                                    <label>Fecha</label>
-                                    <input type="date" class="form-control" id="edit-diagnosis-photo-date" value="${currentDate}">
-                                </div>
-                                <div class="form-group">
-                                    <label>Tipo de foto</label>
-                                    <select class="form-control" id="edit-diagnosis-photo-type">
-                                        <option value="before" ${currentType === 'before' ? 'selected' : ''}>Foto Antes</option>
-                                        <option value="after" ${currentType === 'after' ? 'selected' : ''}>Foto Después</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Notas</label>
-                                    <textarea class="form-control" id="edit-diagnosis-photo-notes" rows="3">${currentNotes}</textarea>
-                                </div>
-                                <div class="form-actions">
-                                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
-                                    <button type="submit" class="btn btn-primary">Guardar</button>
-                                </div>
-                            </form>
-                        `, () => {
+                        // Create form using DOM
+                        const form = document.createElement('form');
+                        form.id = 'edit-diagnosis-photo-form';
+                        
+                        const dateGroup = document.createElement('div');
+                        dateGroup.className = 'form-group';
+                        dateGroup.innerHTML = '<label>Fecha</label><input type="date" class="form-control" id="edit-diagnosis-photo-date" value="' + currentDate + '">';
+                        
+                        const typeGroup = document.createElement('div');
+                        typeGroup.className = 'form-group';
+                        typeGroup.innerHTML = '<label>Tipo de foto</label><select class="form-control" id="edit-diagnosis-photo-type"><option value="before"' + (currentType === 'before' ? ' selected' : '') + '>Foto Antes</option><option value="after"' + (currentType === 'after' ? ' selected' : '') + '>Foto Despu\u00e9s</option></select>';
+                        
+                        const notesGroup = document.createElement('div');
+                        notesGroup.className = 'form-group';
+                        notesGroup.innerHTML = '<label>Notas</label><textarea class="form-control" id="edit-diagnosis-photo-notes" rows="3">' + currentNotes + '</textarea>';
+                        
+                        const actionsDiv = document.createElement('div');
+                        actionsDiv.className = 'form-actions';
+                        const cancelBtn = document.createElement('button');
+                        cancelBtn.type = 'button';
+                        cancelBtn.className = 'btn btn-secondary';
+                        cancelBtn.textContent = 'Cancelar';
+                        cancelBtn.onclick = closeModal;
+                        const saveBtn = document.createElement('button');
+                        saveBtn.type = 'submit';
+                        saveBtn.className = 'btn btn-primary';
+                        saveBtn.textContent = 'Guardar';
+                        actionsDiv.appendChild(cancelBtn);
+                        actionsDiv.appendChild(saveBtn);
+                        
+                        form.appendChild(dateGroup);
+                        form.appendChild(typeGroup);
+                        form.appendChild(notesGroup);
+                        form.appendChild(actionsDiv);
+                        
+                        openModal('Editar Foto', form.outerHTML, () => {
                             document.getElementById('edit-diagnosis-photo-form').addEventListener('submit', async ev => {
                                 ev.preventDefault();
                                 const newDate = document.getElementById('edit-diagnosis-photo-date').value;
                                 const newType = document.getElementById('edit-diagnosis-photo-type').value;
                                 const newNotes = document.getElementById('edit-diagnosis-photo-notes').value;
-                                
-                                const updates = {
-                                    photo_date: newDate,
-                                    photo_type: newType,
-                                    notes: newNotes
-                                };
-                                
+                                const updates = { photo_date: newDate, photo_type: newType, notes: newNotes };
                                 const success = await updateClientPhoto(photoId, currentClientId, updates);
                                 if (success) {
                                     const photoIndex = currentPhotos.findIndex(p => p.id === photoId);
-                                    if (photoIndex >= 0) {
-                                        currentPhotos[photoIndex] = { ...currentPhotos[photoIndex], ...updates };
-                                    }
+                                    if (photoIndex >= 0) currentPhotos[photoIndex] = { ...currentPhotos[photoIndex], ...updates };
                                     renderPhotos();
                                     closeModal();
                                     showToast('Foto actualizada');
@@ -2807,9 +2811,9 @@ window.addEventListener('message', async (event) => {
                     
                     const viewImg = e.target.closest('.view-photo');
                     if (viewImg) {
-                        openModal('Foto', `<div style="text-align:center"><img src="${viewImg.dataset.url}" style="max-width:100%;max-height:70vh;border-radius:8px"></div>`);
+                        openModal('Foto', '<div style="text-align:center"><img src="' + viewImg.dataset.url + '" style="max-width:100%;max-height:70vh;border-radius:8px"></div>');
                     }
-                };
+                });
             }
 
             document.getElementById('client-form').addEventListener('submit', async e => {
@@ -3508,48 +3512,40 @@ window.addEventListener('message', async (event) => {
         const beforePhotos = allPhotos.filter(p => p.type === 'before');
         const afterPhotos = allPhotos.filter(p => p.type === 'after');
         let html = '';
-        html += `<div class="apt-photos-section">
-            <h4>Foto Antes (${beforePhotos.length})</h4>
-            <div class="apt-photos-grid">
-                ${beforePhotos.length === 0 ? '<p class="no-photos">No hay fotos "antes"</p>' : ''}
-                ${beforePhotos.map(p => `
-                    <div class="apt-photo-item" data-photo-id="${p.id}">
-                        <img src="${p.url}" onclick="openModal('Foto', '<div style=\'text-align:center\'><img src=\'${p.url}\' style=\'max-width:100%;max-height:70vh;border-radius:8px\'></div>')">
-                        <div class="apt-photo-overlay">
-                            <button type="button" class="apt-photo-edit-btn" onclick="window.editAptPhoto('${p.id}', '${p.type}', '${p.date || ''}', \`${p.notes || ''}\`)">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                            </button>
-                            <button type="button" class="apt-photo-delete-btn" onclick="window.deleteAptPhoto('${p.id}')">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-                        </div>
-                        ${p.date ? `<span class="apt-photo-date">${p.date}</span>` : ''}
-                    </div>
-                `).join('')}
-            </div>
-            <input type="file" class="form-control apt-new-photo" id="apt-new-before" accept="image/*" data-type="before" style="margin-top:10px">
-        </div>`;
-        html += `<div class="apt-photos-section">
-            <h4>Foto Después (${afterPhotos.length})</h4>
-            <div class="apt-photos-grid">
-                ${afterPhotos.length === 0 ? '<p class="no-photos">No hay fotos "después"</p>' : ''}
-                ${afterPhotos.map(p => `
-                    <div class="apt-photo-item" data-photo-id="${p.id}">
-                        <img src="${p.url}" onclick="openModal('Foto', '<div style=\'text-align:center\'><img src=\'${p.url}\' style=\'max-width:100%;max-height:70vh;border-radius:8px\'></div>')">
-                        <div class="apt-photo-overlay">
-                            <button type="button" class="apt-photo-edit-btn" onclick="window.editAptPhoto('${p.id}', '${p.type}', '${p.date || ''}', \`${p.notes || ''}\`)">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                            </button>
-                            <button type="button" class="apt-photo-delete-btn" onclick="window.deleteAptPhoto('${p.id}')">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-                        </div>
-                        ${p.date ? `<span class="apt-photo-date">${p.date}</span>` : ''}
-                    </div>
-                `).join('')}
-            </div>
-            <input type="file" class="form-control apt-new-photo" id="apt-new-after" accept="image/*" data-type="after" style="margin-top:10px">
-        </div>`;
+        html += '<div class="apt-photos-section">';
+        html += '<h4>Foto Antes (' + beforePhotos.length + ')</h4>';
+        html += '<div class="apt-photos-grid">';
+        if (beforePhotos.length === 0) html += '<p class="no-photos">No hay fotos antes</p>';
+        beforePhotos.forEach(p => {
+            html += '<div class="apt-photo-item" data-photo-id="' + p.id + '" data-photo-url="' + (p.url || '').replace(/"/g, '&quot;') + '" data-photo-date="' + (p.date || '') + '" data-photo-type="' + (p.type || 'before') + '" data-photo-notes="">';
+            html += '<img src="' + (p.url || '').replace(/"/g, '&quot;') + '" class="apt-clickable-photo">';
+            html += '<div class="apt-photo-overlay">';
+            html += '<button type="button" class="apt-photo-edit-btn"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>';
+            html += '<button type="button" class="apt-photo-delete-btn"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 2 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>';
+            html += '</div>';
+            if (p.date) html += '<span class="apt-photo-date">' + p.date + '</span>';
+            html += '</div>';
+        });
+        html += '</div>';
+        html += '<input type="file" class="form-control apt-new-photo" id="apt-new-before" accept="image/*" data-type="before" style="margin-top:10px">';
+        html += '</div>';
+        html += '<div class="apt-photos-section">';
+        html += '<h4>Foto Despu\u00e9s (' + afterPhotos.length + ')</h4>';
+        html += '<div class="apt-photos-grid">';
+        if (afterPhotos.length === 0) html += '<p class="no-photos">No hay fotos despu\u00e9s</p>';
+        afterPhotos.forEach(p => {
+            html += '<div class="apt-photo-item" data-photo-id="' + p.id + '" data-photo-url="' + (p.url || '').replace(/"/g, '&quot;') + '" data-photo-date="' + (p.date || '') + '" data-photo-type="' + (p.type || 'after') + '" data-photo-notes="">';
+            html += '<img src="' + (p.url || '').replace(/"/g, '&quot;') + '" class="apt-clickable-photo">';
+            html += '<div class="apt-photo-overlay">';
+            html += '<button type="button" class="apt-photo-edit-btn"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>';
+            html += '<button type="button" class="apt-photo-delete-btn"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 2 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>';
+            html += '</div>';
+            if (p.date) html += '<span class="apt-photo-date">' + p.date + '</span>';
+            html += '</div>';
+        });
+        html += '</div>';
+        html += '<input type="file" class="form-control apt-new-photo" id="apt-new-after" accept="image/*" data-type="after" style="margin-top:10px">';
+        html += '</div>';
         return html;
     }
 });
