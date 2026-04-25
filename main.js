@@ -127,12 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
         clients: [],
         services: [],
         appointments: [],
-        clientPhotos: {},
-        clientAptPhotos: [],
-        // Cache de fotos en localStorage para recuperación
-        photosCache: JSON.parse(localStorage.getItem('nymara_photos_cache') || '[]'),
-        // Cache de fotos de diagnóstico
-        diagnosisPhotosCache: JSON.parse(localStorage.getItem('nymara_diagnosis_photos_cache') || '[]'),
         // Calendar state
         calYear: new Date().getFullYear(),
         calMonth: new Date().getMonth(),
@@ -302,109 +296,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 time: a.time.substring(0, 5), // "HH:MM:SS" → "HH:MM"
                 notes: a.notes || '',
                 whatsappSent: a.whatsapp_sent || false,
-                appointmentPhotos: a.appointment_photos || [],
                 userEmail: a.user_email || '',
             }));
 
-            try {
-                const clientPhotosRes = await supabase.from('client_photos').select('*').order('created_at', { ascending: false });
-                // PRIORIZAR SIEMPRE el cache local primero
-                if (State.diagnosisPhotosCache.length > 0) {
-                    State.clientPhotos = {};
-                    State.diagnosisPhotosCache.forEach(p => {
-                        const pid = String(p.client_id);
-                        if (!State.clientPhotos[pid]) State.clientPhotos[pid] = [];
-                        State.clientPhotos[pid].push(p);
-                    });
-                    // Solo añadir fotos de Supabase que no estén en cache
-                    if (!clientPhotosRes.error && clientPhotosRes.data) {
-                        clientPhotosRes.data.forEach(p => {
-                            const pid = String(p.client_id);
-                            if (!State.clientPhotos[pid]) State.clientPhotos[pid] = [];
-                            const exists = State.clientPhotos[pid].some(existing => existing.id === p.id);
-                            if (!exists) {
-                                State.clientPhotos[pid].push(p);
-                            }
-                        });
-                    }
-                } else if (!clientPhotosRes.error && clientPhotosRes.data && clientPhotosRes.data.length > 0) {
-                    State.clientPhotos = {};
-                    clientPhotosRes.data.forEach(p => {
-                        const pid = String(p.client_id);
-                        if (!State.clientPhotos[pid]) State.clientPhotos[pid] = [];
-                        State.clientPhotos[pid].push(p);
-                    });
-                    // Guardar en cache
-                    if (clientPhotosRes.data) {
-                        localStorage.setItem('nymara_diagnosis_photos_cache', JSON.stringify(clientPhotosRes.data));
-                        State.diagnosisPhotosCache = clientPhotosRes.data;
-                    }
-                }
-            } catch (e) {
-                console.warn('Error cargando client_photos, usando cache:', e);
-                // Si falla, usar cache
-                if (State.diagnosisPhotosCache.length > 0) {
-                    State.clientPhotos = {};
-                    State.diagnosisPhotosCache.forEach(p => {
-                        const pid = String(p.client_id);
-                        if (!State.clientPhotos[pid]) State.clientPhotos[pid] = [];
-                        State.clientPhotos[pid].push(p);
-                    });
-                }
-            }
-
-            // Cargar fotos de citas vinculadas al cliente (sobrevive al borrar la cita)
-            try {
-                const clientAptPhotosRes = await supabase.from('client_appointment_photos').select('*').order('created_at', { ascending: false });
-                if (!clientAptPhotosRes.error && clientAptPhotosRes.data && clientAptPhotosRes.data.length > 0) {
-                    State.clientAptPhotos = clientAptPhotosRes.data;
-                    // Guardar en cache local
-                    localStorage.setItem('nymara_photos_cache', JSON.stringify(clientAptPhotosRes.data));
-                } else if (State.photosCache.length > 0) {
-                    // Usar cache local si datos remotos están vacíos
-                    State.clientAptPhotos = State.photosCache;
-                }
-                // Migrar fotos de appointments que no estén en client_appointment_photos
-                for (const apt of State.appointments) {
-                    const photos = apt.appointmentPhotos || [];
-                    for (const p of photos) {
-                        const exists = State.clientAptPhotos.some(cp => cp.id === p.id);
-                        if (!exists) {
-                            await supabase.from('client_appointment_photos').insert([{
-                                id: p.id,
-                                client_id: apt.clientId,
-                                appointment_id: apt.id,
-                                photo_url: p.url,
-                                photo_date: p.date,
-                                photo_type: p.type,
-                                notes: p.notes
-                            }]);
-                            // Añadir al cache local
-                            State.photosCache.push({
-                                id: p.id,
-                                client_id: apt.clientId,
-                                appointment_id: apt.id,
-                                photo_url: p.url,
-                                photo_date: p.date,
-                                photo_type: p.type,
-                                notes: p.notes,
-                                created_at: new Date().toISOString()
-                            });
-                        }
-                    }
-                }
-                // Guardar cache actualizado
-                localStorage.setItem('nymara_photos_cache', JSON.stringify(State.photosCache));
-                // Recargar fotos migradas
-                const refreshedPhotos = await supabase.from('client_appointment_photos').select('*').order('created_at', { ascending: false });
-                if (!refreshedPhotos.error && refreshedPhotos.data) {
-                    State.clientAptPhotos = refreshedPhotos.data;
-                }
-            } catch (e) {
-                console.warn('client_appointment_photos table not available yet, ejecuta la migración SQL');
-            }
-
-        } catch (err) {
+            } catch (err) {
             console.error('Error loading data from Supabase:', err);
             showToast('Error al cargar datos: ' + (err.message || err), 'error');
         } finally {
@@ -551,230 +446,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    async function uploadClientPhotos(files, clientId, photoDate = null, photoType = 'before', photoNotes = '') {
-        const urls = [];
-        const today = new Date();
-        const defaultDate = photoDate || today.toISOString().split('T')[0];
-        
-        // Verificar si la tabla existe y tiene datos reales
-        let useDatabase = false;
-        try {
-            const { error: checkError } = await supabase.from('client_photos').select('id').limit(1);
-            useDatabase = !checkError || (!checkError.message?.includes('does not exist') && checkError.code !== '42P01');
-        } catch (e) {
-            console.warn('No se pudo verificar tabla client_photos:', e);
-            useDatabase = false;
-        }
-        
-        for (const file of files) {
-            const fileExt = file.name.split('.').pop();
-            const newPhotoId = generateId();
-            const fileName = `${clientId}/${newPhotoId}.${fileExt}`;
-            
-            console.log('Subiendo archivo:', fileName);
-            
-            const { data, error } = await supabase.storage
-                .from('client-photos')
-                .upload(fileName, file);
-
-            if (error) {
-                console.error('Error de Storage:', error);
-                showToast('Error al subir foto: ' + error.message, 'error');
-                continue;
-            }
-
-            const { data: { publicUrl } } = supabase.storage
-                .from('client-photos')
-                .getPublicUrl(fileName);
-            
-            const photoRecord = {
-                id: newPhotoId,
-                client_id: clientId,
-                photo_url: publicUrl,
-                photo_date: defaultDate,
-                photo_type: photoType,
-                notes: photoNotes,
-                created_at: new Date().toISOString()
-            };
-            
-            if (useDatabase) {
-                // Insertar SOLO en BD (la fuente de verdad)
-                const { error: insertError } = await supabase.from('client_photos').insert({
-                    id: newPhotoId,
-                    client_id: clientId,
-                    photo_url: publicUrl,
-                    photo_date: defaultDate,
-                    photo_type: photoType,
-                    notes: photoNotes
-                });
-                if (insertError) {
-                    console.error('Error al insertar en BD:', insertError);
-                    // Fallback al cache
-                    State.diagnosisPhotosCache.push(photoRecord);
-                }
-            } else {
-                // Sin BD, usar cache local
-                State.diagnosisPhotosCache.push(photoRecord);
-            }
-            
-            urls.push(publicUrl);
-        }
-        
-        localStorage.setItem('nymara_diagnosis_photos_cache', JSON.stringify(State.diagnosisPhotosCache));
-        return urls;
-    }
-
-    async function deleteClientPhoto(photoId, clientId) {
-        console.log('DEBUG: deleteClientPhoto CALLED with:', { photoId, clientId });
-        
-        if (!photoId) {
-            console.error('DEBUG: photoId es undefined o null');
-            showToast('Error: ID de foto inválido', 'error');
-            return false;
-        }
-        
-        // Guardar referencia a la foto antes de eliminar
-        const photo = State.diagnosisPhotosCache.find(p => p.id === photoId) || 
-                     (clientId && State.clientPhotos[clientId]?.find(p => p.id === photoId));
-        
-        let dbDeleted = false;
-        let storageDeleted = false;
-        
-        // 1. Eliminar de la base de datos PRIMERO
-        try {
-            const { data, error } = await supabase.from('client_photos').delete().eq('id', photoId);
-            if (error) {
-                console.error('DEBUG: Supabase delete error:', error);
-                if (error.message?.includes('does not exist') || error.code === '42P01') {
-                    console.warn('Tabla client_photos no existe');
-                    dbDeleted = true; // Tratar como éxito si la tabla no existe
-                } else {
-                    showToast('Error al eliminar foto de BD: ' + (error.message || 'Error'), 'error');
-                    return false;
-                }
-            } else {
-                console.log('DEBUG: Supabase delete response:', data);
-                dbDeleted = true;
-            }
-        } catch (e) {
-            console.error('DEBUG: deleteClientPhoto exception:', e);
-            showToast('Error de conexión al eliminar foto', 'error');
-            return false;
-        }
-        
-        // 2. Eliminar archivo de storage (solo si se eliminó de BD)
-        if (dbDeleted && photo?.photo_url) {
-            try {
-                const filePath = photo.photo_url.split('/client-photos/')[1];
-                if (filePath) {
-                    await supabase.storage.from('client-photos').remove([filePath]);
-                    storageDeleted = true;
-                }
-            } catch (storageErr) {
-                console.warn('No se pudo eliminar archivo de storage:', storageErr);
-            }
-        }
-        
-        // 3. AHORA actualizar cache local (después de eliminar de BD)
-        if (clientId && State.clientPhotos[clientId]) {
-            State.clientPhotos[clientId] = State.clientPhotos[clientId].filter(p => p.id !== photoId);
-        }
-        State.diagnosisPhotosCache = State.diagnosisPhotosCache.filter(p => p.id !== photoId);
-        localStorage.setItem('nymara_diagnosis_photos_cache', JSON.stringify(State.diagnosisPhotosCache));
-        
-        // Verificar que realmente se eliminó de la BD (consulta de confirmación)
-        if (dbDeleted) {
-            const { data: verifyData } = await supabase.from('client_photos').select('id').eq('id', photoId).limit(1);
-            if (verifyData && verifyData.length > 0) {
-                // Todavía existe en BD, revertir cambios
-                console.error('LA FOTO SIGUE EN LA BD DESPUÉS DE DELETE:', verifyData);
-                showToast('Error: Foto no se eliminó de la base de datos', 'error');
-                return false;
-            }
-            showToast('Foto eliminada correctamente');
-            return true;
-        }
-        return false;
-    }
-
-    async function updateClientPhoto(photoId, clientId, updates) {
-        console.log('DEBUG: updateClientPhoto CALLED with:', { photoId, clientId, updates });
-        
-        // Actualizar cache local
-        if (State.clientPhotos[clientId]) {
-            const photoIndex = State.clientPhotos[clientId].findIndex(p => p.id === photoId);
-            if (photoIndex >= 0) {
-                State.clientPhotos[clientId][photoIndex] = { 
-                    ...State.clientPhotos[clientId][photoIndex],
-                    ...updates 
-                };
-            }
-        }
-        
-        const cacheIndex = State.diagnosisPhotosCache.findIndex(p => p.id === photoId);
-        if (cacheIndex >= 0) {
-            State.diagnosisPhotosCache[cacheIndex] = { 
-                ...State.diagnosisPhotosCache[cacheIndex],
-                ...updates 
-            };
-        }
-        localStorage.setItem('nymara_diagnosis_photos_cache', JSON.stringify(State.diagnosisPhotosCache));
-        
-        try {
-            const { data, error } = await supabase.from('client_photos').update(updates).eq('id', photoId).select();
-            if (error) {
-                console.error('DEBUG: Supabase update error:', error);
-            }
-            console.log('DEBUG: Supabase update response:', data);
-            return true;
-        } catch (e) {
-            console.warn('DEBUG: updateClientPhoto fallback a cache local:', e);
-            return true;
-        }
-    }
-
-    async function loadClientPhotos(clientId) {
-        try {
-            // Verificar si existe la tabla
-            const { error: tableError } = await supabase.from('client_photos').select('id').limit(1);
-            if (tableError && (tableError.message?.includes('does not exist') || tableError.code === '42P01')) {
-                console.warn('Tabla client_photos no existe, usando solo cache');
-                return State.diagnosisPhotosCache.filter(p => String(p.client_id) === String(clientId));
-            }
-            
-            // Obtener fotos de Supabase
-            const { data, error } = await supabase
-                .from('client_photos')
-                .select('*')
-                .eq('client_id', clientId)
-                .order('created_at', { ascending: false });
-            
-            if (error) throw error;
-            
-            // Obtener IDs de fotos en BD
-            const remoteIds = new Set((data || []).map(p => p.id));
-            
-            // Obtener fotos del cache local para este cliente que NO están en BD
-            const cachePhotos = State.diagnosisPhotosCache.filter(p => 
-                String(p.client_id) === String(clientId) && !remoteIds.has(p.id)
-            );
-            
-            // Combinar sin duplicados
-            const allPhotos = [...(data || []), ...cachePhotos];
-            const uniquePhotos = allPhotos.reduce((acc, photo) => {
-                if (!acc.find(p => p.id === photo.id)) {
-                    acc.push(photo);
-                }
-                return acc;
-            }, []);
-            
-            return uniquePhotos;
-        } catch (e) {
-            console.warn('client_photos error:', e);
-            return State.diagnosisPhotosCache.filter(p => String(p.client_id) === String(clientId));
-        }
-    }
-
     async function addClient(data) {
         const { error } = await supabase.from('clients').insert([data]);
         if (error) { showToast('Error al añadir cliente: ' + error.message, 'error'); return false; }
@@ -802,15 +473,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function deleteClient(id) {
-        try {
-            await supabase.from('client_photos').delete().eq('client_id', id);
-        } catch (e) {
-            console.warn('client_photos cleanup skipped');
-        }
         const { error } = await supabase.from('clients').delete().eq('id', id);
         if (error) { showToast('Error al eliminar cliente: ' + error.message, 'error'); return false; }
         State.clients = State.clients.filter(c => c.id !== id);
-        delete State.clientPhotos[id];
         showToast('Cliente eliminado');
         return true;
     }
@@ -853,7 +518,6 @@ document.addEventListener('DOMContentLoaded', () => {
             time: data.time,
             notes: data.notes,
             user_email: State.currentUserEmail || '',
-            appointment_photos: data.appointmentPhotos || [],
         };
         const { error } = await supabase.from('appointments').insert([dbRow]);
         if (error) { showToast('Error al agendar cita: ' + error.message, 'error'); return false; }
@@ -880,51 +544,6 @@ document.addEventListener('DOMContentLoaded', () => {
         State.appointments = State.appointments.filter(a => a.id !== id);
         showToast('Cita cancelada');
         return true;
-    }
-
-    async function updateAppointmentPhotos(appointmentId, photos) {
-        const { error } = await supabase.from('appointments').update({ appointment_photos: photos }).eq('id', appointmentId);
-        if (error) {
-            console.error('Error updating photos:', error);
-            showToast('Error al actualizar fotos: ' + error.message, 'error');
-            return false;
-        }
-        const apt = State.appointments.find(a => a.id === appointmentId);
-        if (apt) apt.appointmentPhotos = photos;
-        return true;
-    }
-
-    async function uploadAppointmentPhoto(file, appointmentId, clientId) {
-        // Calcular hash para deduplicación
-        const buffer = await file.arrayBuffer();
-        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-        const hash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-        
-        // Verificar duplicados en client_appointment_photos
-        const existingPhoto = State.clientAptPhotos.find(p => p.client_id === clientId && p.photo_hash === hash);
-        if (existingPhoto) {
-            showToast('Esta foto ya existe en el historial del cliente');
-            return null;
-        }
-        
-        const fileExt = file.name.split('.').pop();
-        const fileName = `appointments/${appointmentId}/${generateId()}.${fileExt}`;
-        
-        const { data, error } = await supabase.storage
-            .from('client-photos')
-            .upload(fileName, file);
-
-        if (error) {
-            console.error('Error uploading photo:', error);
-            showToast('Error al subir foto: ' + error.message, 'error');
-            throw error;
-        }
-
-        const { data: { publicUrl } } = supabase.storage
-            .from('client-photos')
-            .getPublicUrl(fileName);
-        
-        return { url: publicUrl, hash };
     }
 
     /* ═══════════════════════════════════════
@@ -1109,12 +728,8 @@ document.addEventListener('DOMContentLoaded', () => {
             detailApts.forEach(apt => {
                 const client = State.clients.find(c => c.id === apt.clientId) || { name: 'Eliminado' };
                 const service = State.services.find(s => s.id === apt.serviceId) || { name: 'Eliminado', duration: 0 };
-                const endTime = new Date(new Date(`${apt.date}T${apt.time}`).getTime() + (service.duration || 0) * 60000);
+const endTime = new Date(new Date(`${apt.date}T${apt.time}`).getTime() + (service.duration || 0) * 60000);
                 const endStr = endTime.toTimeString().substring(0, 5);
-                
-                const photos = apt.appointmentPhotos || [];
-                const photosBefore = photos.filter(p => p.type === 'before');
-                const photosAfter = photos.filter(p => p.type === 'after');
                 
                 const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-primary)';
                 const userInitial = apt.userEmail ? apt.userEmail.charAt(0).toUpperCase() : '?';
@@ -1127,23 +742,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             <strong>${client.name}</strong>
                             <span>${service.name} · ${service.duration} min${apt.notes ? ' · ' + apt.notes : ''}</span>
                             <span class="apt-user-key" style="color:${userColor}" title="${apt.userEmail}">${userDisplay}</span>
-                            <div class="day-detail-photos">
-                                ${photosBefore.length > 0 ? photosBefore.map(p => `
-                                    <div class="day-photo-container">
-                                        <img src="${p.url}" class="day-photo-thumb" data-photo-url="${p.url.replace(/"/g, '&quot;')}" onclick="openModal('Foto', '<div style=text-align:center><img src=' + this.dataset.photoUrl + ' style=max-width:100%;max-height:70vh;border-radius:8px></div>')">
-                                        <span class="day-photo-label before">Antes</span>
-                                    </div>
-                                `).join('') : ''}
-                                ${photosAfter.length > 0 ? photosAfter.map(p => `
-                                    <div class="day-photo-container">
-                                        <img src="${p.url}" class="day-photo-thumb" data-photo-url="${p.url.replace(/"/g, '&quot;')}" onclick="openModal('Foto', '<div style=text-align:center><img src=' + this.dataset.photoUrl + ' style=max-width:100%;max-height:70vh;border-radius:8px></div>')">
-                                        <span class="day-photo-label after">Después</span>
-                                    </div>
-                                `).join('') : ''}
-                                <button type="button" class="edit-apt-photos-btn" data-id="${apt.id}" title="Gestionar fotos">
-                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                    ${(photosBefore.length + photosAfter.length) > 0 ? 'Editar' : 'Añadir fotos'}
-                                </button>
                             </div>
                         </div>
                         <div class="day-detail-actions">
@@ -1289,34 +887,6 @@ document.addEventListener('DOMContentLoaded', () => {
        CLIENTS VIEW
        ═══════════════════════════════════════ */
     function getClientsView() {
-function getClientAppointmentPhotos(clientId) {
-            const clientIdStr = String(clientId);
-            
-            console.log('getClientAppointmentPhotos - cliente:', clientIdStr);
-            console.log('  - clientAptPhotos total:', State.clientAptPhotos.length);
-            console.log('  - Estado photosCache total:', State.photosCache.length);
-            
-            // Combinar fotos de State con fotos del cache local
-            const allAptPhotos = [...State.clientAptPhotos];
-            const cachePhotos = State.photosCache.filter(c => !State.clientAptPhotos.some(s => s.id === c.id));
-            allAptPhotos.push(...cachePhotos);
-            
-            const filteredPhotos = allAptPhotos.filter(p => String(p.client_id) === clientIdStr);
-            console.log('  - Fotos encontradas para cliente:', filteredPhotos.length);
-            
-            const aptPhotos = filteredPhotos
-                .sort((a, b) => (b.photo_date || '').localeCompare(a.photo_date || ''));
-            // Also include true client photos
-            const truePhotos = (State.clientPhotos[clientIdStr] || []).map(p => ({
-                id: p.id,
-                photo_url: p.photo_url,
-                photo_date: p.created_at ? p.created_at.split('T')[0] : '',
-                photo_type: 'antes',
-                notes: ''
-            }));
-            return [...aptPhotos, ...truePhotos].sort((a, b) => (b.photo_date || '').localeCompare(a.photo_date || ''));
-        }
-
         let rows = '';
         if (State.clients.length === 0) {
             rows = `
@@ -1327,7 +897,6 @@ function getClientAppointmentPhotos(clientId) {
             </div>`;
         } else {
             rows = `<div class="clients-list">${State.clients.map(c => {
-                const photos = getClientAppointmentPhotos(c.id);
                 return `
                 <div class="client-card" data-client-id="${c.id}">
                     <div class="client-header">
@@ -1349,30 +918,6 @@ function getClientAppointmentPhotos(clientId) {
                             </button>
                         </div>
                     </div>
-                    ${photos.length > 0 ? `
-                    <div class="client-photos-container">
-                        <div class="client-photos-header">
-                            <span style="font-size:0.8rem;font-weight:600;color:var(--text-secondary)">📷 Fotos (${photos.length})</span>
-                        </div>
-                        <div class="client-photos-grid">
-                            ${photos.map((p) => {
-                                const isGeneral = p.photo_type === 'true';
-                                const badgeColor = isGeneral ? '#6366f1' : (p.photo_type === 'before' ? '#f59e0b' : '#10b981');
-                                const badgeText = isGeneral ? 'Foto' : (p.photo_type === 'before' ? 'Antes' : 'Después');
-                                return `
-                                <div class="client-photo-item" style="position:relative" data-apt-id="${p.appointment_id || ''}" data-photo-id="${p.id}" data-client-id="${c.id}" data-is-true="${isGeneral}">
-                                    <img src="${p.photo_url}" class="client-apt-photo view-client-photo" data-url="${p.photo_url}" data-date="${p.photo_date}" data-type="${p.photo_type}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer">
-                                    <span class="client-photo-badge" style="position:absolute;bottom:2px;left:2px;font-size:0.6rem;background:${badgeColor};color:white;padding:1px 4px;border-radius:4px">${badgeText}</span>
-                                    <span class="client-photo-date" style="position:absolute;top:2px;left:2px;font-size:0.55rem;background:rgba(0,0,0,0.6);color:white;padding:1px 4px;border-radius:4px">${p.photo_date || ''}</span>
-                                    <div class="client-photo-actions" style="position:absolute;top:0;right:0;display:flex;gap:2px">
-                                        <button type="button" class="edit-client-photo-btn" data-is-true="${isGeneral}" data-apt-id="${p.appointment_id || ''}" data-photo-id="${p.id}" data-client-id="${c.id}" data-date="${p.photo_date || ''}" data-notes="${p.notes || ''}" data-type="${p.photo_type}" title="Editar" style="background:rgba(0,0,0,0.5);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px">✏️</button>
-                                        <button type="button" class="delete-client-photo-btn" data-is-true="${isGeneral}" data-apt-id="${p.appointment_id || ''}" data-photo-id="${p.id}" data-client-id="${c.id}" title="Eliminar" style="background:rgba(0,0,0,0.5);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px">🗑️</button>
-                                    </div>
-                                </div>`;
-                            }).join('')}
-                        </div>
-                    </div>
-                    ` : `<div class="client-photos-empty" style="padding:8px;font-size:0.8rem;color:var(--text-secondary)">Sin fotos</div>`}
                 </div>`;
             }).join('')}</div>`;
         }
@@ -2025,61 +1570,6 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             });
         });
 
-        // Edit appointment photos buttons
-        document.querySelectorAll('.edit-apt-photos-btn').forEach(btn => {
-            btn.addEventListener('click', e => {
-                const id = e.currentTarget.dataset.id;
-                showAppointmentPhotosForm(id);
-            });
-        });
-
-        // Client appointment photos click - show full size
-        document.querySelectorAll('.client-apt-photo').forEach(img => {
-            img.addEventListener('click', e => {
-                const url = e.currentTarget.dataset.url;
-                const date = e.currentTarget.dataset.date;
-                const time = e.currentTarget.dataset.time;
-                const type = e.currentTarget.dataset.type;
-                const title = `${type === 'before' ? 'Foto Antes' : 'Foto Después'} - ${date}${time ? ' ' + time : ''}`;
-                openModal(title, `<div style="text-align:center"><img src="${url}" style="max-width:100%;max-height:70vh;border-radius:8px"></div>`);
-            });
-        });
-
-        // Edit client photo button
-        document.querySelectorAll('.edit-client-photo-btn').forEach(btn => {
-            btn.addEventListener('click', e => {
-                e.stopPropagation();
-                const aptId = e.currentTarget.dataset.aptId;
-                const photoId = e.currentTarget.dataset.photoId;
-                const clientId = e.currentTarget.dataset.clientId;
-                const currentDate = e.currentTarget.dataset.date;
-                const currentNotes = e.currentTarget.dataset.notes;
-                const currentType = e.currentTarget.dataset.type;
-                const isGeneral = e.currentTarget.dataset.isGeneral === 'true';
-                if (isGeneral) {
-                    editGeneralClientPhoto(photoId, clientId);
-                } else {
-                    editClientAppointmentPhoto(aptId, photoId, currentDate, currentNotes, currentType);
-                }
-            });
-        });
-
-        // Delete client photo button
-        document.querySelectorAll('.delete-client-photo-btn').forEach(btn => {
-            btn.addEventListener('click', e => {
-                e.stopPropagation();
-                const aptId = e.currentTarget.dataset.aptId;
-                const photoId = e.currentTarget.dataset.photoId;
-                const clientId = e.currentTarget.dataset.clientId;
-                const isGeneral = e.currentTarget.dataset.isGeneral === 'true';
-                if (isGeneral) {
-                    deleteGeneralClientPhoto(photoId, clientId);
-                } else {
-                    deleteClientAppointmentPhoto(aptId, photoId, clientId);
-                }
-            });
-        });
-
         // WhatsApp Reminder direct buttons
         document.querySelectorAll('.send-reminder-btn').forEach(btn => {
             btn.addEventListener('click', async e => {
@@ -2222,9 +1712,6 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         sessionStorage.setItem('nymara_diagnosis_client_id', client.id);
         sessionStorage.setItem('nymara_diagnosis_client_name', client.name);
         sessionStorage.setItem('nymara_uploaded_hashes', '[]');
-        
-        // Cargar fotos existentes para evitar duplicados
-        State.clientPhotos[client.id] = await loadClientPhotos(client.id);
         
         // Inicializar eventos de diagnóstico integrado
         initDiagnosisEvents();
@@ -2690,22 +2177,6 @@ window.addEventListener('message', async (event) => {
                     <label>Observaciones</label>
                     <textarea class="form-control" name="observations" rows="3" placeholder="Notas sobre el cliente...">${isEdit ? (info.observations || '') : ''}</textarea>
                 </div>
-                <div class="form-group">
-                    <label>Fotos</label>
-                    <input type="file" class="form-control" name="photos" accept="image/*" multiple id="client-photos-input" style="display:none">
-                    <input type="file" accept="image/*" capture="environment" multiple id="client-camera-input" style="display:none">
-                    <div style="display:flex;gap:8px;margin-bottom:10px">
-                        <button type="button" class="btn btn-secondary" id="btn-gallery-photo">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            Galería
-                        </button>
-                        <button type="button" class="btn btn-secondary" id="btn-camera-photo">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
-                            Cámara
-                        </button>
-                    </div>
-                    <div id="client-photos-gallery" style="display:flex;flex-wrap:wrap;gap:8px"></div>
-                </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
                     <button type="submit" class="btn btn-primary">${isEdit ? 'Guardar' : 'Añadir'}</button>
@@ -2714,133 +2185,6 @@ window.addEventListener('message', async (event) => {
 
         openModal(isEdit ? 'Editar Cliente' : 'Nuevo Cliente', html, async () => {
             let currentClientId = isEdit ? info.id : generateId();
-            
-            // Array local para esta sesión, NO referencia a State
-            let sessionPhotos = [];
-            
-            if (isEdit && info?.id) {
-                // Cargar fotos UNA SOLA VEZ al abrir el modal
-                try {
-                    const { data, error } = await supabase
-                        .from('client_photos')
-                        .select('*')
-                        .eq('client_id', info.id);
-                    
-                    if (!error && data) {
-                        sessionPhotos = data;
-                    } else {
-                        sessionPhotos = State.diagnosisPhotosCache.filter(p => String(p.client_id) === String(info.id));
-                    }
-                } catch (e) {
-                    sessionPhotos = State.diagnosisPhotosCache.filter(p => String(p.client_id) === String(info.id));
-                }
-            }
-            
-            const gallery = document.getElementById('client-photos-gallery');
-            const btnGalleryPhoto = document.getElementById('btn-gallery-photo');
-            const btnCameraPhoto = document.getElementById('btn-camera-photo');
-            const photosInput = document.getElementById('client-photos-input');
-            const cameraInput = document.getElementById('client-camera-input');
-            let pendingFiles = [];
-            let pendingPreviews = [];
-
-            const renderGallery = () => {
-                if (!gallery) return;
-                
-                let html = '';
-                
-                // Render fotos existentes
-                sessionPhotos.forEach(p => {
-                    html += '<div class="photo-thumb" data-id="' + p.id + '">' +
-                        '<img src="' + (p.photo_url || '') + '" data-url="' + (p.photo_url || '') + '">' +
-                        '<button type="button" class="del-btn" data-id="' + p.id + '">×</button>' +
-                        '</div>';
-                });
-                
-                // Render fotos pendientes
-                pendingPreviews.forEach((url, idx) => {
-                    html += '<div class="photo-thumb pending" data-idx="' + idx + '">' +
-                        '<img src="' + url + '">' +
-                        '<button type="button" class="del-pending-btn" data-idx="' + idx + '">×</button>' +
-                        '</div>';
-                });
-                
-                gallery.innerHTML = html;
-            };
-
-            // Render inicial
-            renderGallery();
-
-            // Click en galería (delegación de eventos)
-            gallery.addEventListener('click', async e => {
-                // Eliminar foto existente
-                const delBtn = e.target.closest('.del-btn');
-                if (delBtn) {
-                    const photoId = delBtn.dataset.id;
-                    if (!confirm('Eliminar foto?')) return;
-                    
-                    const success = await deleteClientPhoto(photoId, currentClientId);
-                    if (success) {
-                        sessionPhotos = sessionPhotos.filter(p => p.id !== photoId);
-                        renderGallery();
-                        showToast('Foto eliminada');
-                    }
-                    return;
-                }
-                
-                // Eliminar foto pendiente
-                const delPending = e.target.closest('.del-pending-btn');
-                if (delPending) {
-                    const idx = parseInt(delPending.dataset.idx);
-                    pendingFiles.splice(idx, 1);
-                    pendingPreviews.splice(idx, 1);
-                    renderGallery();
-                    return;
-                }
-                
-                // Ver foto
-                const img = e.target.closest('.photo-thumb img');
-                if (img && img.dataset.url) {
-                    openModal('Foto', '<div style="text-align:center"><img src="' + img.dataset.url + '" style="max-width:100%;max-height:70vh"></div>');
-                }
-            });
-
-            if (btnGalleryPhoto && photosInput) {
-                btnGalleryPhoto.addEventListener('click', () => photosInput.click());
-            }
-            if (btnCameraPhoto && cameraInput) {
-                btnCameraPhoto.addEventListener('click', () => cameraInput.click());
-            }
-            if (photosInput) {
-                photosInput.addEventListener('change', e => {
-                    const files = Array.from(e.target.files);
-                    files.forEach(file => {
-                        pendingFiles.push(file);
-                        const reader = new FileReader();
-                        reader.onload = ev => {
-                            pendingPreviews.push(ev.target.result);
-                            renderGallery();
-                        };
-                        reader.readAsDataURL(file);
-                    });
-                    photosInput.value = '';
-                });
-            }
-            if (cameraInput) {
-                cameraInput.addEventListener('change', e => {
-                    const files = Array.from(e.target.files);
-                    files.forEach(file => {
-                        pendingFiles.push(file);
-                        const reader = new FileReader();
-                        reader.onload = ev => {
-                            pendingPreviews.push(ev.target.result);
-                            renderGallery();
-                        };
-                        reader.readAsDataURL(file);
-                    });
-                    cameraInput.value = '';
-                });
-            }
 
             document.getElementById('client-form').addEventListener('submit', async e => {
                 e.preventDefault();
@@ -2861,15 +2205,6 @@ window.addEventListener('message', async (event) => {
                 let success;
                 if (isEdit) success = await updateClient(data);
                 else success = await addClient(data);
-
-                if (success && pendingFiles.length > 0) {
-                    try {
-                        await uploadClientPhotos(pendingFiles, currentClientId);
-                        showToast('Fotos guardadas');
-                    } catch (err) {
-                        showToast('Error fotos', 'error');
-                    }
-                }
 
                 if (success) { closeModal(); renderRoute(); }
                 else { submitBtn.disabled = false; submitBtn.textContent = isEdit ? 'Guardar' : 'Añadir'; }
@@ -2959,132 +2294,6 @@ window.addEventListener('message', async (event) => {
         });
     }
 
-    function showAppointmentPhotosForm(appointmentId) {
-        window.currentAptId = appointmentId;
-        const apt = State.appointments.find(a => a.id === appointmentId);
-        if (!apt) return;
-        
-        const client = State.clients.find(c => c.id === apt.clientId) || { name: 'Cliente' };
-        const service = State.services.find(s => s.id === apt.serviceId) || { name: 'Servicio' };
-
-        const html = `
-            <div id="apt-photos-modal">
-                <p style="margin-bottom:15px;color:var(--text-secondary)">Cita: <strong>${client.name}</strong> - ${service.name}</p>
-                <div id="apt-photos-container">
-                    ${renderPhotosForApt(apt)}
-                </div>
-                <div class="form-actions" style="margin-top:20px">
-                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cerrar</button>
-                </div>
-            </div>
-        `;
-
-        openModal('Gestionar Fotos de la Cita', html, () => {
-            const container = document.getElementById('apt-photos-container');
-            
-            // Delegar eventos para las fotos de la cita
-            container.addEventListener('click', async e => {
-                // Eliminar foto
-                const deleteBtn = e.target.closest('.apt-photo-delete-btn');
-                if (deleteBtn) {
-                    const photoItem = deleteBtn.closest('.apt-photo-item');
-                    const photoId = photoItem?.dataset.photoId;
-                    if (photoId && confirm('Eliminar esta foto?')) {
-                        // Eliminar de appointment
-                        if (apt.appointmentPhotos) {
-                            apt.appointmentPhotos = apt.appointmentPhotos.filter(p => p.id !== photoId);
-                            await updateAppointmentPhotos(appointmentId, apt.appointmentPhotos);
-                        }
-                        // Eliminar de BD
-                        await supabase.from('client_appointment_photos').delete().eq('id', photoId);
-                        State.clientAptPhotos = State.clientAptPhotos.filter(p => p.id !== photoId);
-                        // Re-renderizar
-                        container.innerHTML = renderPhotosForApt(apt);
-                        showToast('Foto eliminada');
-                    }
-                    return;
-                }
-                
-                // Editar foto
-                const editBtn = e.target.closest('.apt-photo-edit-btn');
-                if (editBtn) {
-                    const photoItem = editBtn.closest('.apt-photo-item');
-                    const photoId = photoItem?.dataset.photoId;
-                    const photoUrl = photoItem?.dataset.photoUrl;
-                    const photoDate = photoItem?.dataset.photoDate || '';
-                    const photoType = photoItem?.dataset.photoType || 'before';
-                    if (photoId) {
-                        window.editAptPhoto(photoId, photoType, photoDate, '');
-                    }
-                    return;
-                }
-                
-                // Ver foto
-                const img = e.target.closest('.apt-clickable-photo');
-                if (img) {
-                    const photoItem = img.closest('.apt-photo-item');
-                    const photoUrl = photoItem?.dataset.photoUrl || img.src;
-                    openModal('Foto', '<div style="text-align:center"><img src="' + photoUrl + '" style="max-width:100%;max-height:70vh;border-radius:8px"></div>');
-                    return;
-                }
-            });
-            
-            document.querySelectorAll('.apt-new-photo').forEach(input => {
-                input.addEventListener('change', async () => {
-                    if (input.files.length === 0) return;
-                    
-                    const type = input.dataset.type;
-                    const file = input.files[0];
-                    
-                    try {
-                        const result = await uploadAppointmentPhoto(file, appointmentId, apt.clientId);
-                        if (!result) return; // Duplicate detected
-                        const { url, hash } = result;
-                        const newPhotoId = generateId();
-                        const newPhoto = {
-                            id: newPhotoId,
-                            url: url,
-                            type: type,
-                            date: toLocalDateStr(new Date()),
-                            notes: ''
-                        };
-                        
-                        const updatedPhotos = [...(apt.appointmentPhotos || []), newPhoto];
-                        if (await updateAppointmentPhotos(appointmentId, updatedPhotos)) {
-                            apt.appointmentPhotos = updatedPhotos;
-                            // Guardar también en tabla separada para que sobreviva al borrar la cita
-                            await supabase.from('client_appointment_photos').insert([{
-                                id: newPhotoId,
-                                client_id: apt.clientId,
-                                appointment_id: appointmentId,
-                                photo_url: url,
-                                photo_date: newPhoto.date,
-                                photo_type: type,
-                                notes: '',
-                                photo_hash: hash
-                            }]);
-                            // Actualizar State
-                            State.clientAptPhotos.unshift({
-                                id: newPhotoId,
-                                client_id: apt.clientId,
-                                appointment_id: appointmentId,
-                                photo_url: url,
-                                photo_date: newPhoto.date,
-                                photo_type: type,
-                                notes: '',
-                                photo_hash: hash
-                            });
-                            container.innerHTML = renderPhotosForApt(apt);
-                            showToast('Foto añadida');
-                        }
-                    } catch (err) {
-                        console.error('Error uploading photo:', err);
-                    }
-                });
-            });
-        });
-    }
-
     function findNextAvailableTime(dateStr, durationMinutes) {
         const [startH, startM] = State.settings.startTime.split(':').map(Number);
         const [endH, endM] = State.settings.endTime.split(':').map(Number);
@@ -3161,44 +2370,6 @@ window.addEventListener('message', async (event) => {
                     <textarea class="form-control" name="notes" rows="2" placeholder="Información adicional..."></textarea>
                 </div>
                 
-                <div class="form-group">
-                    <label>Foto Antes (opcional)</label>
-                    <div class="apt-photo-upload">
-                        <input type="file" class="form-control" id="apt-photo-before" accept="image/*" style="display:none">
-                        <input type="file" accept="image/*" capture="environment" id="apt-photo-before-camera" style="display:none">
-                        <div style="display:flex;gap:8px;margin-bottom:8px">
-                            <button type="button" class="btn btn-sm btn-secondary" id="btn-before-gallery">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                Galería
-                            </button>
-                            <button type="button" class="btn btn-sm btn-secondary" id="btn-before-camera">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
-                                Cámara
-                            </button>
-                        </div>
-                        <div id="apt-photo-before-preview" class="apt-photo-preview"></div>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label>Foto Después (opcional)</label>
-                    <div class="apt-photo-upload">
-                        <input type="file" class="form-control" id="apt-photo-after" accept="image/*" style="display:none">
-                        <input type="file" accept="image/*" capture="environment" id="apt-photo-after-camera" style="display:none">
-                        <div style="display:flex;gap:8px;margin-bottom:8px">
-                            <button type="button" class="btn btn-sm btn-secondary" id="btn-after-gallery">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                Galería
-                            </button>
-                            <button type="button" class="btn btn-sm btn-secondary" id="btn-after-camera">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
-                                Cámara
-                            </button>
-                        </div>
-                        <div id="apt-photo-after-preview" class="apt-photo-preview"></div>
-                    </div>
-                </div>
-                
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Agendar Cita</button>
@@ -3210,38 +2381,6 @@ window.addEventListener('message', async (event) => {
             const dateInput = form.querySelector('[name="date"]');
             const timeInput = form.querySelector('[name="time"]');
             const serviceSelect = form.querySelector('[name="serviceId"]');
-            const photoBeforeInput = document.getElementById('apt-photo-before');
-            const photoAfterInput = document.getElementById('apt-photo-after');
-            const beforePreview = document.getElementById('apt-photo-before-preview');
-            const afterPreview = document.getElementById('apt-photo-after-preview');
-
-            const btnBeforeGallery = document.getElementById('btn-before-gallery');
-            const btnBeforeCamera = document.getElementById('btn-before-camera');
-            const btnAfterGallery = document.getElementById('btn-after-gallery');
-            const btnAfterCamera = document.getElementById('btn-after-camera');
-            const photoBeforeCameraInput = document.getElementById('apt-photo-before-camera');
-            const photoAfterCameraInput = document.getElementById('apt-photo-after-camera');
-
-            if (btnBeforeGallery) btnBeforeGallery.addEventListener('click', () => photoBeforeInput.click());
-            if (btnBeforeCamera) btnBeforeCamera.addEventListener('click', () => photoBeforeCameraInput.click());
-            if (btnAfterGallery) btnAfterGallery.addEventListener('click', () => photoAfterInput.click());
-            if (btnAfterCamera) btnAfterCamera.addEventListener('click', () => photoAfterCameraInput.click());
-
-            function showPhotoPreview(input, previewEl) {
-                previewEl.innerHTML = '';
-                if (input.files && input.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        previewEl.innerHTML = `<img src="${e.target.result}" class="photo-preview-img">`;
-                    };
-                    reader.readAsDataURL(input.files[0]);
-                }
-            }
-
-            photoBeforeInput.addEventListener('change', () => showPhotoPreview(photoBeforeInput, beforePreview));
-            photoAfterInput.addEventListener('change', () => showPhotoPreview(photoAfterInput, afterPreview));
-            photoBeforeCameraInput.addEventListener('change', () => showPhotoPreview(photoBeforeCameraInput, beforePreview));
-            photoAfterCameraInput.addEventListener('change', () => showPhotoPreview(photoAfterCameraInput, afterPreview));
 
             form.querySelectorAll('.form-control').forEach(input => {
                 input.style.borderColor = userColor;
@@ -3273,94 +2412,10 @@ window.addEventListener('message', async (event) => {
                     date: fd.get('date'),
                     time: fd.get('time'),
                     notes: fd.get('notes'),
-                    userEmail: State.currentUserEmail || '',
-                    appointmentPhotos: []
+                    userEmail: State.currentUserEmail || ''
                 };
 
                 const todayStr = toLocalDateStr(new Date());
-                try {
-                    const beforeFile = photoBeforeInput.files.length > 0 ? photoBeforeInput.files[0] : (photoBeforeCameraInput.files.length > 0 ? photoBeforeCameraInput.files[0] : null);
-                    const afterFile = photoAfterInput.files.length > 0 ? photoAfterInput.files[0] : (photoAfterCameraInput.files.length > 0 ? photoAfterCameraInput.files[0] : null);
-
-                    if (beforeFile) {
-                        const result = await uploadAppointmentPhoto(beforeFile, appointmentId, data.clientId);
-                        if (result) {
-                            const { url, hash } = result;
-                            const photoId = generateId();
-                            data.appointmentPhotos.push({
-                                id: photoId,
-                                url: url,
-                                type: 'before',
-                                date: todayStr,
-                                notes: ''
-                            });
-                            await supabase.from('client_appointment_photos').insert([{
-                                id: photoId,
-                                client_id: data.clientId,
-                                appointment_id: appointmentId,
-                                photo_url: url,
-                                photo_date: todayStr,
-                                photo_type: 'before',
-                                notes: '',
-                                photo_hash: hash
-                            }]);
-                            // Actualizar cache local
-                            State.photosCache.push({
-                                id: photoId,
-                                client_id: data.clientId,
-                                appointment_id: appointmentId,
-                                photo_url: url,
-                                photo_date: todayStr,
-                                photo_type: 'before',
-                                notes: '',
-                                photo_hash: hash,
-                                created_at: new Date().toISOString()
-                            });
-                            localStorage.setItem('nymara_photos_cache', JSON.stringify(State.photosCache));
-                        }
-                    }
-                    if (afterFile) {
-                        const result = await uploadAppointmentPhoto(afterFile, appointmentId, data.clientId);
-                        if (result) {
-                            const { url, hash } = result;
-                            const photoId = generateId();
-                            data.appointmentPhotos.push({
-                                id: photoId,
-                                url: url,
-                                type: 'after',
-                                date: todayStr,
-                                notes: ''
-                            });
-                            await supabase.from('client_appointment_photos').insert([{
-                                id: photoId,
-                                client_id: data.clientId,
-                                appointment_id: appointmentId,
-                                photo_url: url,
-                                photo_date: todayStr,
-                                photo_type: 'after',
-                                notes: '',
-                                photo_hash: hash
-                            }]);
-                            // Actualizar cache local
-                            State.photosCache.push({
-                                id: photoId,
-                                client_id: data.clientId,
-                                appointment_id: appointmentId,
-                                photo_url: url,
-                                photo_date: todayStr,
-                                photo_type: 'after',
-                                notes: '',
-                                photo_hash: hash,
-                                created_at: new Date().toISOString()
-                            });
-                            localStorage.setItem('nymara_photos_cache', JSON.stringify(State.photosCache));
-                        }
-                    }
-                } catch (err) {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Agendar Cita';
-                    return;
-                }
 
                 // Validar que no se solape con otra cita existente en el mismo día
                 const [targetHour, targetMin] = data.time.split(':').map(Number);
@@ -3433,189 +2488,6 @@ window.addEventListener('message', async (event) => {
 
         // Also remove readonly on focus as a fallback
         emailInput.addEventListener('focus', () => emailInput.readOnly = false);
-        passwordInput.addEventListener('focus', () => passwordInput.readOnly = false);
-    }
-
-    window.deleteAptPhoto = async function(photoId) {
-        if (!confirm('¿Eliminar esta foto?')) return;
-        const apt = State.appointments.find(a => a.id === window.currentAptId);
-        if (!apt) return;
-        const updatedPhotos = apt.appointmentPhotos.filter(p => p.id !== photoId);
-        if (await updateAppointmentPhotos(window.currentAptId, updatedPhotos)) {
-            apt.appointmentPhotos = updatedPhotos;
-            // Eliminar también de la tabla separada
-            await supabase.from('client_appointment_photos').delete().eq('id', photoId);
-            State.clientAptPhotos = State.clientAptPhotos.filter(p => p.id !== photoId);
-            showToast('Foto eliminada');
-            renderRoute();
-            const container = document.getElementById('apt-photos-container');
-            if (container) {
-                container.innerHTML = renderPhotosForApt(apt);
-            }
-        }
-    };
-
-    window.editAptPhoto = function(photoId, type, date, notes) {
-        openModal('Editar Foto', `
-            <form id="edit-photo-form">
-                <div class="form-group">
-                    <label>Fecha</label>
-                    <input type="date" class="form-control" id="edit-photo-date" value="${date}">
-                </div>
-                <div class="form-group">
-                    <label>Tipo de foto</label>
-                    <select class="form-control" id="edit-photo-type">
-                        <option value="before" ${type === 'before' ? 'selected' : ''}>Foto Antes</option>
-                        <option value="after" ${type === 'after' ? 'selected' : ''}>Foto Después</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Notas</label>
-                    <textarea class="form-control" id="edit-photo-notes" rows="3">${notes}</textarea>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar</button>
-                </div>
-            </form>
-        `, () => {
-            document.getElementById('edit-photo-form').addEventListener('submit', async e => {
-                e.preventDefault();
-                const newDate = document.getElementById('edit-photo-date').value;
-                const newType = document.getElementById('edit-photo-type').value;
-                const newNotes = document.getElementById('edit-photo-notes').value;
-                const apt = State.appointments.find(a => a.id === window.currentAptId);
-                if (!apt) return;
-                const updatedPhotos = apt.appointmentPhotos.map(p => {
-                    if (p.id === photoId) {
-                        return { ...p, date: newDate, type: newType, notes: newNotes };
-                    }
-                    return p;
-                });
-                if (await updateAppointmentPhotos(window.currentAptId, updatedPhotos)) {
-                    apt.appointmentPhotos = updatedPhotos;
-                    // También actualizar en la tabla separada
-                    await supabase.from('client_appointment_photos').update({
-                        photo_date: newDate,
-                        photo_type: newType,
-                        notes: newNotes
-                    }).eq('id', photoId);
-                    const cap = State.clientAptPhotos.find(p => p.id === photoId);
-                    if (cap) {
-                        cap.photo_date = newDate;
-                        cap.photo_type = newType;
-                        cap.notes = newNotes;
-                    }
-                    closeModal();
-                    showToast('Foto actualizada');
-                    renderRoute();
-                }
-            });
-        });
-    };
-
-    window.deleteClientAppointmentPhoto = async function(aptId, photoId, clientId) {
-        if (!confirm('¿Eliminar esta foto?')) return;
-        const { error } = await supabase.from('client_appointment_photos').delete().eq('id', photoId);
-        if (error) {
-            showToast('Error al eliminar', 'error');
-            return;
-        }
-        State.clientAptPhotos = State.clientAptPhotos.filter(p => p.id !== photoId);
-        showToast('Foto eliminada');
-        renderRoute();
-    };
-
-    function editClientAppointmentPhoto(aptId, photoId, currentDate, currentNotes, currentType) {
-        openModal('Editar Foto', `
-            <form id="edit-client-photo-form">
-                <div class="form-group">
-                    <label>Fecha</label>
-                    <input type="date" class="form-control" id="edit-client-photo-date" value="${currentDate}">
-                </div>
-                <div class="form-group">
-                    <label>Tipo de foto</label>
-                    <select class="form-control" id="edit-client-photo-type">
-                        <option value="before" ${currentType === 'before' ? 'selected' : ''}>Foto Antes</option>
-                        <option value="after" ${currentType === 'after' ? 'selected' : ''}>Foto Después</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Notas</label>
-                    <textarea class="form-control" id="edit-client-photo-notes" rows="3">${currentNotes}</textarea>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar</button>
-                </div>
-            </form>
-        `, () => {
-            document.getElementById('edit-client-photo-form').addEventListener('submit', async e => {
-                e.preventDefault();
-                const newDate = document.getElementById('edit-client-photo-date').value;
-                const newType = document.getElementById('edit-client-photo-type').value;
-                const newNotes = document.getElementById('edit-client-photo-notes').value;
-                const { error } = await supabase.from('client_appointment_photos').update({
-                    photo_date: newDate,
-                    photo_type: newType,
-                    notes: newNotes
-                }).eq('id', photoId);
-                if (error) {
-                    showToast('Error al actualizar', 'error');
-                    return;
-                }
-                const photo = State.clientAptPhotos.find(p => p.id === photoId);
-                if (photo) {
-                    photo.photo_date = newDate;
-                    photo.photo_type = newType;
-                    photo.notes = newNotes;
-                }
-                closeModal();
-                showToast('Foto actualizada');
-                renderRoute();
-            });
-        });
-    };
-
-    function renderPhotosForApt(apt) {
-        const allPhotos = apt.appointmentPhotos || [];
-        const beforePhotos = allPhotos.filter(p => p.type === 'before');
-        const afterPhotos = allPhotos.filter(p => p.type === 'after');
-        let html = '';
-        html += '<div class="apt-photos-section">';
-        html += '<h4>Foto Antes (' + beforePhotos.length + ')</h4>';
-        html += '<div class="apt-photos-grid">';
-        if (beforePhotos.length === 0) html += '<p class="no-photos">No hay fotos antes</p>';
-        beforePhotos.forEach(p => {
-            html += '<div class="apt-photo-item" data-photo-id="' + p.id + '" data-photo-url="' + (p.url || '').replace(/"/g, '&quot;') + '" data-photo-date="' + (p.date || '') + '" data-photo-type="' + (p.type || 'before') + '" data-photo-notes="">';
-            html += '<img src="' + (p.url || '').replace(/"/g, '&quot;') + '" class="apt-clickable-photo">';
-            html += '<div class="apt-photo-overlay">';
-            html += '<button type="button" class="apt-photo-edit-btn"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>';
-            html += '<button type="button" class="apt-photo-delete-btn"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 2 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>';
-            html += '</div>';
-            if (p.date) html += '<span class="apt-photo-date">' + p.date + '</span>';
-            html += '</div>';
-        });
-        html += '</div>';
-        html += '<input type="file" class="form-control apt-new-photo" id="apt-new-before" accept="image/*" data-type="before" style="margin-top:10px">';
-        html += '</div>';
-        html += '<div class="apt-photos-section">';
-        html += '<h4>Foto Despu\u00e9s (' + afterPhotos.length + ')</h4>';
-        html += '<div class="apt-photos-grid">';
-        if (afterPhotos.length === 0) html += '<p class="no-photos">No hay fotos despu\u00e9s</p>';
-        afterPhotos.forEach(p => {
-            html += '<div class="apt-photo-item" data-photo-id="' + p.id + '" data-photo-url="' + (p.url || '').replace(/"/g, '&quot;') + '" data-photo-date="' + (p.date || '') + '" data-photo-type="' + (p.type || 'after') + '" data-photo-notes="">';
-            html += '<img src="' + (p.url || '').replace(/"/g, '&quot;') + '" class="apt-clickable-photo">';
-            html += '<div class="apt-photo-overlay">';
-            html += '<button type="button" class="apt-photo-edit-btn"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>';
-            html += '<button type="button" class="apt-photo-delete-btn"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 2 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>';
-            html += '</div>';
-            if (p.date) html += '<span class="apt-photo-date">' + p.date + '</span>';
-            html += '</div>';
-        });
-        html += '</div>';
-        html += '<input type="file" class="form-control apt-new-photo" id="apt-new-after" accept="image/*" data-type="after" style="margin-top:10px">';
-        html += '</div>';
-        return html;
+passwordInput.addEventListener('focus', () => passwordInput.readOnly = false);
     }
 });
