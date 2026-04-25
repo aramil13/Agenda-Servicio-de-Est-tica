@@ -300,6 +300,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 userEmail: a.user_email || '',
                 appointmentPhotos: a.appointment_photos || [],
             }));
+            
+            // Cargar todas las fotos de clientes
+            await loadAllClientPhotos();
 
             } catch (err) {
             console.error('Error loading data from Supabase:', err);
@@ -543,6 +546,31 @@ document.addEventListener('DOMContentLoaded', () => {
             return data || [];
         } catch (e) {
             console.warn('Error loading photos:', e);
+            return [];
+        }
+    }
+
+    async function loadAllClientPhotos() {
+        try {
+            const { data, error } = await supabase
+                .from('client_photos')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            if (error) throw error;
+            
+            State.clientPhotos = {};
+            if (data) {
+                data.forEach(p => {
+                    if (!State.clientPhotos[p.client_id]) {
+                        State.clientPhotos[p.client_id] = [];
+                    }
+                    State.clientPhotos[p.client_id].push(p);
+                });
+            }
+            return data || [];
+        } catch (e) {
+            console.warn('Error loading all photos:', e);
             return [];
         }
     }
@@ -1109,6 +1137,18 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                                 <span class="${c.enviar_was ? 'status-success' : 'status-danger'}" style="font-size:0.75rem">WA: ${c.enviar_was ? 'Sí' : 'No'}</span>
                             </div>
                             ${c.observations ? `<p style="font-size:0.8rem;color:var(--text-secondary);margin:4px 0 0;font-style:italic">"${c.observations}"</p>` : ''}
+                            ${State.clientPhotos && State.clientPhotos[c.id] && State.clientPhotos[c.id].length > 0 ? `
+                                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
+                                    ${State.clientPhotos[c.id].slice(0, 4).map(p => {
+                                        const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
+                                        return `<div style="position:relative;text-align:center">
+                                            <img src="${p.photo_url}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                                            <div style="font-size:0.5rem;color:var(--text-secondary)">${photoType}</div>
+                                        </div>`;
+                                    }).join('')}
+                                    ${State.clientPhotos[c.id].length > 4 ? `<div style="font-size:0.7rem;color:var(--text-secondary);align-self:center">+${State.clientPhotos[c.id].length - 4}</div>` : ''}
+                                </div>
+                            ` : ''}
                         </div>
                         <div class="client-actions">
                             <button class="edit-btn" data-id="${c.id}" data-type="client" title="Editar">
