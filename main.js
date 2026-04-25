@@ -460,6 +460,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const photoId = generateId();
         const fileName = `${clientId}/${photoId}.${fileExt}`;
         
+        // Calcular hash para evitar duplicados
+        const buffer = await file.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        const photoHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        
         const { data, error } = await supabase.storage
             .from('client-photos')
             .upload(fileName, file);
@@ -477,6 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
             id: photoId,
             client_id: clientId,
             photo_url: publicUrl,
+            photo_hash: photoHash,
             photo_date: photoDate,
             photo_type: photoType,
             notes: photoNotes,
@@ -592,6 +598,7 @@ document.addEventListener('DOMContentLoaded', () => {
             time: data.time,
             notes: data.notes,
             user_email: State.currentUserEmail || '',
+            appointment_photos: data.appointmentPhotos || [],
         };
         const { error } = await supabase.from('appointments').insert([dbRow]);
         if (error) { showToast('Error al agendar cita: ' + error.message, 'error'); return false; }
@@ -2601,6 +2608,18 @@ window.addEventListener('message', async (event) => {
                     <textarea class="form-control" name="notes" rows="2" placeholder="Información adicional..."></textarea>
                 </div>
                 
+                <div class="form-group">
+                    <label>Fotos de la Cita</label>
+                    <div id="apt-photos-list" style="margin-bottom:10px"></div>
+                    <div style="display:flex;gap:8px;margin-bottom:10px">
+                        <button type="button" class="btn btn-sm btn-secondary" id="btn-add-apt-photo">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                            Añadir Foto
+                        </button>
+                    </div>
+                    <input type="file" id="apt-photo-input" accept="image/*" style="display:none">
+                </div>
+                
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Agendar Cita</button>
@@ -2612,6 +2631,82 @@ window.addEventListener('message', async (event) => {
             const dateInput = form.querySelector('[name="date"]');
             const timeInput = form.querySelector('[name="time"]');
             const serviceSelect = form.querySelector('[name="serviceId"]');
+            
+            let pendingFiles = [];
+            let uploadedHashes = [];
+
+            const renderAptPhotos = () => {
+                const container = document.getElementById('apt-photos-list');
+                if (!container) return;
+                
+                let html = '';
+                pendingFiles.forEach((pf, idx) => {
+                    const badgeColor = pf.type === 'before' ? '#f59e0b' : '#10b981';
+                    const badgeText = pf.type === 'before' ? 'Antes' : 'Después';
+                    html += `
+                        <div class="apt-photo-item" data-idx="${idx}" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px;background:var(--bg-secondary);border-radius:8px">
+                            <img src="${pf.preview}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${pf.preview} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                            <div style="flex:1">
+                                <div style="display:flex;gap:8px;margin-bottom:4px">
+                                    <select class="form-control apt-photo-type" data-idx="${idx}" style="font-size:0.75rem;padding:4px">
+                                        <option value="before" ${pf.type === 'before' ? 'selected' : ''}>Antes</option>
+                                        <option value="after" ${pf.type === 'after' ? 'selected' : ''}>Después</option>
+                                    </select>
+                                    <input type="date" class="form-control apt-photo-date" data-idx="${idx}" value="${pf.date || toLocalDateStr(new Date())}" style="font-size:0.75rem;padding:4px">
+                                </div>
+                                <input type="text" class="form-control apt-photo-notes" data-idx="${idx}" value="${pf.notes || ''}" placeholder="Notas..." style="font-size:0.75rem;padding:4px">
+                            </div>
+                            <button type="button" class="delete-apt-pending-btn" data-idx="${idx}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1.2rem">×</button>
+                        </div>`;
+                });
+                
+                container.innerHTML = html || '<p style="color:var(--text-secondary);font-size:0.85rem">No hay fotos</p>';
+            };
+
+            const btnAddPhoto = document.getElementById('btn-add-apt-photo');
+            const photoInput = document.getElementById('apt-photo-input');
+            
+            if (btnAddPhoto && photoInput) {
+                btnAddPhoto.addEventListener('click', () => photoInput.click());
+                
+                photoInput.addEventListener('change', async e => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    const buffer = await file.arrayBuffer();
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+                    const hash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+                    
+                    const isDuplicate = uploadedHashes.includes(hash);
+                    if (isDuplicate) {
+                        showToast('Esta foto ya existe', 'error');
+                        photoInput.value = '';
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = ev => {
+                        pendingFiles.push({ file, hash, preview: ev.target.result, type: 'before', date: toLocalDateStr(new Date()), notes: '' });
+                        uploadedHashes.push(hash);
+                        renderAptPhotos();
+                    };
+                    reader.readAsDataURL(file);
+                    photoInput.value = '';
+                });
+            }
+
+            const photosList = document.getElementById('apt-photos-list');
+            if (photosList) {
+                photosList.addEventListener('click', e => {
+                    const delPending = e.target.closest('.delete-apt-pending-btn');
+                    if (delPending) {
+                        const idx = parseInt(delPending.dataset.idx);
+                        uploadedHashes.splice(idx, 1);
+                        pendingFiles.splice(idx, 1);
+                        renderAptPhotos();
+                    }
+                });
+            }
 
             form.querySelectorAll('.form-control').forEach(input => {
                 input.style.borderColor = userColor;
@@ -2647,6 +2742,17 @@ window.addEventListener('message', async (event) => {
                 };
 
                 const todayStr = toLocalDateStr(new Date());
+                
+                // Guardar fotos de la cita
+                if (pendingFiles.length > 0) {
+                    data.appointmentPhotos = [];
+                    for (const pf of pendingFiles) {
+                        const photoRecord = await uploadClientPhoto(pf.file, data.clientId, pf.date, pf.type, pf.notes);
+                        if (photoRecord) {
+                            data.appointmentPhotos.push(photoRecord);
+                        }
+                    }
+                }
 
                 // Validar que no se solape con otra cita existente en el mismo día
                 const [targetHour, targetMin] = data.time.split(':').map(Number);
