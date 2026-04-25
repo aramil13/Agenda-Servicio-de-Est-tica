@@ -2662,6 +2662,7 @@ window.addEventListener('message', async (event) => {
     const btnGalleryPhoto = document.getElementById('btn-gallery-photo');
             const photosInput = document.getElementById('client-photos-input');
             const cameraInput = document.getElementById('client-camera-input');
+            const gallery = document.getElementById('client-photos-gallery');
             let pendingFiles = [];
             if (btnGalleryPhoto && photosInput) {
                 btnGalleryPhoto.addEventListener('click', () => photosInput.click());
@@ -2711,7 +2712,6 @@ window.addEventListener('message', async (event) => {
                 });
             }
 
-            const gallery = document.getElementById('client-photos-gallery');
             if (gallery) {
                 // Usar delegación de eventos más robusta
                 gallery.onclick = async e => {
