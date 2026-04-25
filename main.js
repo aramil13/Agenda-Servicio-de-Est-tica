@@ -495,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Inserting photo record:', photoRecord);
         const { error: insertError } = await supabase.from('client_photos').insert(photoRecord);
         if (insertError) {
-            console.error('Database insert error:', insertError);
+            console.error('Database insert error details:', JSON.stringify(insertError, null, 2));
             showToast('Error al guardar foto en BD: ' + insertError.message, 'error');
         }
         return photoRecord;
