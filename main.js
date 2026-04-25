@@ -2714,49 +2714,28 @@ window.addEventListener('message', async (event) => {
 
         openModal(isEdit ? 'Editar Cliente' : 'Nuevo Cliente', html, async () => {
             let currentClientId = isEdit ? info.id : generateId();
-            let currentPhotos = [];
+            
+            // Array local para esta sesión, NO referencia a State
+            let sessionPhotos = [];
             
             if (isEdit && info?.id) {
-                // Usar SOLO datos de Supabase para evitar duplicados
+                // Cargar fotos UNA SOLA VEZ al abrir el modal
                 try {
                     const { data, error } = await supabase
                         .from('client_photos')
                         .select('*')
-                        .eq('client_id', info.id)
-                        .order('created_at', { ascending: false });
+                        .eq('client_id', info.id);
                     
-                    if (!error && data && data.length > 0) {
-                        // Usar Map para eliminar duplicados de forma segura
-                        const photosMap = new Map();
-                        data.forEach(p => {
-                            if (!photosMap.has(p.id)) {
-                                photosMap.set(p.id, p);
-                            }
-                        });
-                        currentPhotos = Array.from(photosMap.values());
+                    if (!error && data) {
+                        sessionPhotos = data;
                     } else {
-                        // Fallback al cache local
-                        const photosMap = new Map();
-                        State.diagnosisPhotosCache.forEach(p => {
-                            if (String(p.client_id) === String(info.id) && !photosMap.has(p.id)) {
-                                photosMap.set(p.id, p);
-                            }
-                        });
-                        currentPhotos = Array.from(photosMap.values());
+                        sessionPhotos = State.diagnosisPhotosCache.filter(p => String(p.client_id) === String(info.id));
                     }
                 } catch (e) {
-                    console.warn('Error cargando fotos:', e);
-                    const photosMap = new Map();
-                    State.diagnosisPhotosCache.forEach(p => {
-                        if (String(p.client_id) === String(info.id) && !photosMap.has(p.id)) {
-                            photosMap.set(p.id, p);
-                        }
-                    });
-                    currentPhotos = Array.from(photosMap.values());
+                    sessionPhotos = State.diagnosisPhotosCache.filter(p => String(p.client_id) === String(info.id));
                 }
-                State.clientPhotos[info.id] = currentPhotos;
             }
-
+            
             const gallery = document.getElementById('client-photos-gallery');
             const btnGalleryPhoto = document.getElementById('btn-gallery-photo');
             const btnCameraPhoto = document.getElementById('btn-camera-photo');
@@ -2765,46 +2744,66 @@ window.addEventListener('message', async (event) => {
             let pendingFiles = [];
             let pendingPreviews = [];
 
-            const renderPhotos = () => {
-                const galleryEl = document.getElementById('client-photos-gallery');
-                if (!galleryEl) return;
+            const renderGallery = () => {
+                if (!gallery) return;
                 
-                // Usar Map para garantizar sin duplicados
-                const photosMap = new Map();
-                currentPhotos.forEach(p => {
-                    if (!photosMap.has(p.id)) {
-                        photosMap.set(p.id, p);
-                    }
-                });
-                const uniquePhotos = Array.from(photosMap.values());
+                let html = '';
                 
-                let photosHtml = '';
-                uniquePhotos.forEach(p => {
-                    photosHtml += '<div class="photo-thumb" style="position:relative;width:60px;height:60px" data-id="' + p.id + '">' +
-                        '<img src="' + (p.photo_url || '') + '" style="width:100%;height:100%;border-radius:8px;object-fit:cover;cursor:pointer" class="view-photo" data-url="' + (p.photo_url || '') + '">' +
-                        '<button type="button" class="edit-client-photo" data-id="' + p.id + '" data-date="' + (p.photo_date || '') + '" data-type="' + (p.photo_type || 'before') + '" data-notes="' + (p.notes || '') + '" style="position:absolute;top:-6px;right:14px;background:#2196F3;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">✎</button>' +
-                        '<button type="button" class="remove-client-photo" data-id="' + p.id + '" style="position:absolute;top:-6px;right:-6px;background:red;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">×</button>' +
+                // Render fotos existentes
+                sessionPhotos.forEach(p => {
+                    html += '<div class="photo-thumb" data-id="' + p.id + '">' +
+                        '<img src="' + (p.photo_url || '') + '" data-url="' + (p.photo_url || '') + '">' +
+                        '<button type="button" class="del-btn" data-id="' + p.id + '">×</button>' +
                         '</div>';
                 });
                 
-                let pendingHtml = '';
-                pendingPreviews.forEach((preview, idx) => {
-                    pendingHtml += '<div class="photo-thumb pending" style="position:relative;width:60px;height:60px">' +
-                        '<img src="' + preview + '" style="width:100%;height:100%;border-radius:8px;object-fit:cover;opacity:0.7">' +
-                        '<button type="button" class="remove-pending-photo" data-idx="' + idx + '" style="position:absolute;top:-6px;right:-6px;background:red;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">×</button>' +
+                // Render fotos pendientes
+                pendingPreviews.forEach((url, idx) => {
+                    html += '<div class="photo-thumb pending" data-idx="' + idx + '">' +
+                        '<img src="' + url + '">' +
+                        '<button type="button" class="del-pending-btn" data-idx="' + idx + '">×</button>' +
                         '</div>';
                 });
                 
-                galleryEl.innerHTML = photosHtml + pendingHtml;
-                
-                galleryEl.querySelectorAll('.view-photo').forEach(img => {
-                    img.addEventListener('click', () => {
-                        openModal('Foto', '<div style="text-align:center"><img src="' + img.dataset.url + '" style="max-width:100%;max-height:70vh;border-radius:8px"></div>');
-                    });
-                });
+                gallery.innerHTML = html;
             };
 
-            renderPhotos();
+            // Render inicial
+            renderGallery();
+
+            // Click en galería (delegación de eventos)
+            gallery.addEventListener('click', async e => {
+                // Eliminar foto existente
+                const delBtn = e.target.closest('.del-btn');
+                if (delBtn) {
+                    const photoId = delBtn.dataset.id;
+                    if (!confirm('Eliminar foto?')) return;
+                    
+                    const success = await deleteClientPhoto(photoId, currentClientId);
+                    if (success) {
+                        sessionPhotos = sessionPhotos.filter(p => p.id !== photoId);
+                        renderGallery();
+                        showToast('Foto eliminada');
+                    }
+                    return;
+                }
+                
+                // Eliminar foto pendiente
+                const delPending = e.target.closest('.del-pending-btn');
+                if (delPending) {
+                    const idx = parseInt(delPending.dataset.idx);
+                    pendingFiles.splice(idx, 1);
+                    pendingPreviews.splice(idx, 1);
+                    renderGallery();
+                    return;
+                }
+                
+                // Ver foto
+                const img = e.target.closest('.photo-thumb img');
+                if (img && img.dataset.url) {
+                    openModal('Foto', '<div style="text-align:center"><img src="' + img.dataset.url + '" style="max-width:100%;max-height:70vh"></div>');
+                }
+            });
 
             if (btnGalleryPhoto && photosInput) {
                 btnGalleryPhoto.addEventListener('click', () => photosInput.click());
@@ -2815,145 +2814,31 @@ window.addEventListener('message', async (event) => {
             if (photosInput) {
                 photosInput.addEventListener('change', e => {
                     const files = Array.from(e.target.files);
-                    if (files.length > 0) {
-                        pendingFiles = [...pendingFiles, ...files];
-                        files.forEach(file => {
-                            const reader = new FileReader();
-                            reader.onload = ev => {
-                                pendingPreviews.push(ev.target.result);
-                                renderPhotos();
-                            };
-                            reader.readAsDataURL(file);
-                        });
-                        photosInput.value = '';
-                    }
+                    files.forEach(file => {
+                        pendingFiles.push(file);
+                        const reader = new FileReader();
+                        reader.onload = ev => {
+                            pendingPreviews.push(ev.target.result);
+                            renderGallery();
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                    photosInput.value = '';
                 });
             }
-
             if (cameraInput) {
                 cameraInput.addEventListener('change', e => {
                     const files = Array.from(e.target.files);
-                    if (files.length > 0) {
-                        pendingFiles = [...pendingFiles, ...files];
-                        files.forEach(file => {
-                            const reader = new FileReader();
-                            reader.onload = ev => {
-                                pendingPreviews.push(ev.target.result);
-                                renderPhotos();
-                            };
-                            reader.readAsDataURL(file);
-                        });
-                        cameraInput.value = '';
-                    }
-                });
-            }
-
-            if (gallery) {
-                gallery.addEventListener('click', async e => {
-                    const removeBtn = e.target.closest('.remove-client-photo');
-                    if (removeBtn) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const photoId = removeBtn.dataset.id;
-                        if (confirm('Eliminar esta foto permanentemente?')) {
-                            const success = await deleteClientPhoto(photoId, currentClientId);
-                            if (success) {
-                                // Filtrar TODAS las fotos con ese ID (no solo una)
-                                currentPhotos = currentPhotos.filter(p => p.id !== photoId);
-                                // Eliminar duplicados por si acaso
-                                const seenIds = new Set();
-                                currentPhotos = currentPhotos.filter(p => {
-                                    if (seenIds.has(p.id)) return false;
-                                    seenIds.add(p.id);
-                                    return true;
-                                });
-                                renderPhotos();
-                            }
-                        }
-                        return;
-                    }
-
-                    const editBtn = e.target.closest('.edit-client-photo');
-                    if (editBtn) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const photoId = editBtn.dataset.id;
-                        const currentDate = editBtn.dataset.date || new Date().toISOString().split('T')[0];
-                        const currentType = editBtn.dataset.type || 'before';
-                        const currentNotes = editBtn.dataset.notes || '';
-                        
-                        // Create form using DOM
-                        const form = document.createElement('form');
-                        form.id = 'edit-diagnosis-photo-form';
-                        
-                        const dateGroup = document.createElement('div');
-                        dateGroup.className = 'form-group';
-                        dateGroup.innerHTML = '<label>Fecha</label><input type="date" class="form-control" id="edit-diagnosis-photo-date" value="' + currentDate + '">';
-                        
-                        const typeGroup = document.createElement('div');
-                        typeGroup.className = 'form-group';
-                        typeGroup.innerHTML = '<label>Tipo de foto</label><select class="form-control" id="edit-diagnosis-photo-type"><option value="before"' + (currentType === 'before' ? ' selected' : '') + '>Foto Antes</option><option value="after"' + (currentType === 'after' ? ' selected' : '') + '>Foto Despu\u00e9s</option></select>';
-                        
-                        const notesGroup = document.createElement('div');
-                        notesGroup.className = 'form-group';
-                        notesGroup.innerHTML = '<label>Notas</label><textarea class="form-control" id="edit-diagnosis-photo-notes" rows="3">' + currentNotes + '</textarea>';
-                        
-                        const actionsDiv = document.createElement('div');
-                        actionsDiv.className = 'form-actions';
-                        const cancelBtn = document.createElement('button');
-                        cancelBtn.type = 'button';
-                        cancelBtn.className = 'btn btn-secondary';
-                        cancelBtn.textContent = 'Cancelar';
-                        cancelBtn.onclick = closeModal;
-                        const saveBtn = document.createElement('button');
-                        saveBtn.type = 'submit';
-                        saveBtn.className = 'btn btn-primary';
-                        saveBtn.textContent = 'Guardar';
-                        actionsDiv.appendChild(cancelBtn);
-                        actionsDiv.appendChild(saveBtn);
-                        
-                        form.appendChild(dateGroup);
-                        form.appendChild(typeGroup);
-                        form.appendChild(notesGroup);
-                        form.appendChild(actionsDiv);
-                        
-                        openModal('Editar Foto', form.outerHTML, () => {
-                            document.getElementById('edit-diagnosis-photo-form').addEventListener('submit', async ev => {
-                                ev.preventDefault();
-                                const newDate = document.getElementById('edit-diagnosis-photo-date').value;
-                                const newType = document.getElementById('edit-diagnosis-photo-type').value;
-                                const newNotes = document.getElementById('edit-diagnosis-photo-notes').value;
-                                const updates = { photo_date: newDate, photo_type: newType, notes: newNotes };
-                                const success = await updateClientPhoto(photoId, currentClientId, updates);
-                                if (success) {
-                                    const photoIndex = currentPhotos.findIndex(p => p.id === photoId);
-                                    if (photoIndex >= 0) currentPhotos[photoIndex] = { ...currentPhotos[photoIndex], ...updates };
-                                    renderPhotos();
-                                    closeModal();
-                                    showToast('Foto actualizada');
-                                }
-                            });
-                        });
-                        return;
-                    }
-
-                    const pendingBtn = e.target.closest('.remove-pending-photo');
-                    if (pendingBtn) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const idx = parseInt(pendingBtn.dataset.idx);
-                        if (idx >= 0 && idx < pendingFiles.length) {
-                            pendingFiles.splice(idx, 1);
-                            pendingPreviews.splice(idx, 1);
-                            renderPhotos();
-                        }
-                        return;
-                    }
-                    
-                    const viewImg = e.target.closest('.view-photo');
-                    if (viewImg) {
-                        openModal('Foto', '<div style="text-align:center"><img src="' + viewImg.dataset.url + '" style="max-width:100%;max-height:70vh;border-radius:8px"></div>');
-                    }
+                    files.forEach(file => {
+                        pendingFiles.push(file);
+                        const reader = new FileReader();
+                        reader.onload = ev => {
+                            pendingPreviews.push(ev.target.result);
+                            renderGallery();
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                    cameraInput.value = '';
                 });
             }
 
@@ -2964,10 +2849,8 @@ window.addEventListener('message', async (event) => {
                 submitBtn.textContent = 'Guardando…';
 
                 const fd = new FormData(e.target);
-                const clientId = currentClientId;
-
                 const data = { 
-                    id: clientId, 
+                    id: currentClientId, 
                     name: fd.get('name'), 
                     phone: fd.get('phone'), 
                     email: fd.get('email'),
@@ -2981,11 +2864,10 @@ window.addEventListener('message', async (event) => {
 
                 if (success && pendingFiles.length > 0) {
                     try {
-                        await uploadClientPhotos(pendingFiles, clientId);
-                        showToast('Fotos guardadas correctamente');
+                        await uploadClientPhotos(pendingFiles, currentClientId);
+                        showToast('Fotos guardadas');
                     } catch (err) {
-                        console.error('Error uploading pending photos:', err);
-                        showToast('Error al guardar fotos', 'error');
+                        showToast('Error fotos', 'error');
                     }
                 }
 
@@ -2993,7 +2875,7 @@ window.addEventListener('message', async (event) => {
                 else { submitBtn.disabled = false; submitBtn.textContent = isEdit ? 'Guardar' : 'Añadir'; }
             });
         });
-    }
+}
 
     function showServiceForm(info = null) {
         const isEdit = !!info;
