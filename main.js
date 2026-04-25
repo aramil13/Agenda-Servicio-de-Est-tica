@@ -2158,6 +2158,29 @@ if (analyzeBtn) {
             displayDiagnosisProducts(getMariaNilaRecommendations(diagnosis));
             displayDiagnosisTreatments(getOlaplexRecommendations(diagnosis));
             
+            // Guardar foto del diagnóstico en la base de datos del cliente
+            if (diagnosisClientId && currentDiagnosisImage) {
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = currentDiagnosisImage.width;
+                    canvas.height = currentDiagnosisImage.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(currentDiagnosisImage, 0, 0);
+                    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.8));
+                    const file = new File([blob], 'diagnosis.jpg', { type: 'image/jpeg' });
+                    
+                    const notes = `Diagnóstico: Densidad ${density}, Grosor ${thickness}, Hidratación ${hydration}%, Sebo ${sebumLevel}%, Caspa ${dandruff}`;
+                    await uploadClientPhoto(file, diagnosisClientId, toLocalDateStr(new Date()), 'before', notes);
+                    
+                    // Actualizar State.clientPhotos
+                    await loadAllClientPhotos();
+                    renderRoute();
+                    showToast('Foto de diagnóstico guardada');
+                } catch (err) {
+                    console.error('Error saving diagnosis photo:', err);
+                }
+            }
+            
             if (statusBadge) {
                 statusBadge.textContent = '✓ Análisis completado';
                 statusBadge.style.background = '#10b981';
