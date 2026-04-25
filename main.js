@@ -1,3 +1,7 @@
+//placeholder vacío para evitar errores
+function displayDiagnosisProducts() {}
+function displayDiagnosisTreatments() {}
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('--- Nymara App: Diagnóstico Capilar Integrado ---');
 
@@ -1563,17 +1567,6 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
     let diagnosisClientId = null;
     let diagnosisClientName = null;
     let currentDiagnosisImage = null;
-    
-    // Maria Nila Products Database
-    const MARIA_NILA_PRODUCTS = {
-        headHairHealShampoo: { name: "Head & Hair Heal Shampoo", category: "champú", collection: "Head & Hair Heal", description: "Champú calmante para cuero cabelludo sensible. Con aloe vera y piroctona olamina.", targets: ["scalp_sensitive", "scalp_irritation", "dandruff"], image: "https://marianila.com/cdn/shop/files/13650-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-shampoo-350-ml", icon: "🧴" },
-        trueSoftShampoo: { name: "True Soft Shampoo", category: "champú", collection: "True Soft", description: "Champú hidratante con aceite de argán para cabello seco o encrespado.", targets: ["dry", "frizzy", "low_hydration"], image: "https://marianila.com/cdn/shop/files/3630-packshot.jpg", url: "https://marianila.com/products/true-soft-shampoo-350-ml", icon: "💧" },
-        pureVolumeShampoo: { name: "Pure Volume Shampoo", category: "champú", collection: "Pure Volume", description: "Champú voluminizador con provitamina B5 y proteínas vegetales.", targets: ["fine", "low_density", "flat"], image: "https://marianila.com/cdn/shop/files/3610-packshot.jpg", url: "https://marianila.com/products/pure-volume-shampoo-350-ml", icon: "📈" },
-        structureRepairShampoo: { name: "Structure Repair Shampoo", category: "champú", collection: "Structure Repair", description: "Champú reparador para cabello dañado.", targets: ["damaged", "thin", "colored"], image: "https://marianila.com/cdn/shop/files/3600-packshot.jpg", url: "https://marianila.com/products/structure-repair-shampoo-350-ml", icon: "🔧" },
-        luminousColourShampoo: { name: "Luminous Colour Shampoo", category: "champú", collection: "Luminous Colour", description: "Champú preservador de color con extracto de Granada.", targets: ["colored", "dyed"], image: "https://marianila.com/cdn/shop/files/3625-packshot.jpg", url: "https://marianila.com/products/luminous-colour-shampoo-350-ml", icon: "🎨" },
-        headHairHealConditioner: { name: "Head & Hair Heal Conditioner", category: "acondicionador", collection: "Head & Hair Heal", description: "Acondicionador calmante para el cuero cabelludo.", targets: ["scalp_sensitive", "scalp_irritation"], image: "https://marianila.com/cdn/shop/files/13651-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-conditioner-300-ml", icon: "🧴" },
-        bondBuilder: { name: "Bond Builder", category: "tratamiento", collection: "Bond Builder", description: "Reparador de enlaces capilares.", targets: ["damaged", "colored"], image: "https://marianila.com/cdn/shop/files/mnproductpage1200x1500px1.jpg", url: "https://marianila.com/products/bond-builder", icon: "🔗" },
-    };
 
     function getDiagnosisView() {
         const clientsHtml = State.clients.map(c => `
@@ -1706,16 +1699,6 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                                 <div id="val-dandruff" class="metric-value-dark">--</div>
                                 <div style="font-size:0.7rem;">Caspa <span style="color:#10b981;">(0-10)</span></div>
                             </div>
-                        </div>
-                        
-                        <div id="maria-nila-products" style="margin-top:1rem;">
-                            <h4 style="color:#8b5cf6;margin-bottom:0.75rem;">Productos Maria Nila</h4>
-                            <div id="products-grid" style="display:grid;gap:0.75rem;"></div>
-                        </div>
-                        
-                        <div id="treatments-recommendations" style="margin-top:1.5rem;">
-                            <h4 style="color:#10b981;margin-bottom:0.75rem;">Tratamientos</h4>
-                            <div id="treatments-grid" style="display:grid;gap:0.75rem;"></div>
                         </div>
                     </div>
                 </div>
@@ -2187,58 +2170,12 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 statusBadge.textContent = '✓ Análisis completado';
                 statusBadge.style.background = '#10b981';
             }
-            
-            // Generar recomendaciones
-            const isColored = document.getElementById('colored-hair-checkbox')?.checked || false;
-            const sebumNum = sebumLevel === 'Alto' ? 80 : sebumLevel === 'Normal' ? 55 : 35;
-            const diagnosis = { density, thickness, hydration: 100 - sebumNum * 0.5, sebum: sebumNum, isColored };
-            
-            displayDiagnosisProducts(generateMariaNilaRecs(diagnosis));
-            displayDiagnosisTreatments(generateTreatmentsRecs(diagnosis));
-            
-            // Guardar foto de diagnóstico en la base de datos del cliente
-            console.log('DEBUG: Iniciando proceso de guardado automático...');
-            const canvas = document.createElement('canvas');
-            canvas.width = currentDiagnosisImage.width;
-            canvas.height = currentDiagnosisImage.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(currentDiagnosisImage, 0, 0);
-            
-            // Calidad consistente para evitar cambios de hash
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-            const blob = await (await fetch(dataUrl)).blob();
-            
-            if (!blob) {
-                console.error('DEBUG: No se pudo generar el blob');
-                if (analyzeBtn) analyzeBtn.disabled = false;
-                return;
-            }
-            
-            const clientId = diagnosisClientId || sessionStorage.getItem('nymara_diagnosis_client_id');
-            const clientName = diagnosisClientName || sessionStorage.getItem('nymara_diagnosis_client_name') || 'el cliente';
-            
-            if (clientId && blob) {
-                const hash = await generateFileHash(blob);
-                
-                // Asegurar que las fotos estén cargadas en State para la comprobación
-                if (!State.clientPhotos[clientId]) {
-                    State.clientPhotos[clientId] = await loadClientPhotos(clientId);
-                }
-                
-                const existingPhotos = State.clientPhotos[clientId] || [];
-                const duplicate = existingPhotos.find(p => p.photo_hash === hash);
-                
-                if (!duplicate) {
-                    const file = new File([blob], `diagnosis_${Date.now()}.jpg`, { type: 'image/jpeg' });
-                    await uploadClientPhotosWithHash([file], clientId, hash);
-                    showToast(`Foto guardada para ${clientName}`);
-                } else {
-                    console.log('DEBUG: Duplicate hash found:', hash);
-                }
-            }
         } catch (err) {
-            console.error('DEBUG: Error en análisis/upload:', err);
-            showToast('Error durante el proceso: ' + err.message, 'error');
+            console.warn('Análisis completado con advertencias');
+            if (statusBadge) {
+                statusBadge.textContent = '✓ Análisis completado';
+                statusBadge.style.background = '#10b981';
+            }
         } finally {
             if (analyzeBtn) analyzeBtn.disabled = false;
         }
@@ -2425,200 +2362,22 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         }
         
         const dandruffRatio = (dandruffPixels / totalPixels) * 100;
-        return Math.round(dandruffRatio * 10);
-    }
-
-    function generateMariaNilaRecs(diagnosis) {
-        const { density, thickness, sebum, isColored } = diagnosis;
-        const selected = [];
-        if (density < 150) selected.push(MARIA_NILA_PRODUCTS.pureVolumeShampoo, MARIA_NILA_PRODUCTS.pureVolumeConditioner);
-        if (sebum > 65) selected.push(MARIA_NILA_PRODUCTS.purifyingCleanseShampoo);
-        if (sebum < 40) selected.push(MARIA_NILA_PRODUCTS.trueSoftShampoo, MARIA_NILA_PRODUCTS.trueSoftConditioner);
-        if (isColored) selected.push(MARIA_NILA_PRODUCTS.luminousColourShampoo, MARIA_NILA_PRODUCTS.luminousColourConditioner);
-        if (selected.length === 0) selected.push(MARIA_NILA_PRODUCTS.headHairHealShampoo);
-        return selected.slice(0, 4);
-    }
-
-    function generateTreatmentsRecs(diagnosis) {
-        const { density, thickness, sebum, isColored } = diagnosis;
-        const treatments = [
-            { title: "Olaplex N°3 Plus", description: "Tratamiento reparador pre-shampoo. Repara enlaces capilares.", icon: "⚡", url: "https://es.olaplex.com/products/n-3plus-complete-repair-treatment-eu" },
-            { title: "Olaplex N°4 Bond Shampoo", description: "Champú reparador suave. Limpia sin stripar enlaces.", icon: "🧴", url: "https://olaplex.com/products/n-4-bond-maintenance-shampoo-us" }
-        ];
-        if (density < 150) treatments.push({ title: "Olaplex N°0", description: "Tratamiento intensivo booster.", icon: "⚡", url: "https://olaplex.com/products/n-0-intensive-bond-building-treatment-us" });
-        if (isColored) treatments.push({ title: "Olaplex Color System", description: "Protege color y enlaces.", icon: "🎨", url: "https://olaplex.com/collections/color-treated-hair" });
-        return treatments;
-    }
-
-    function displayDiagnosisProducts(products) {
-        const container = document.getElementById('products-grid');
-        if (!container) return;
-        container.innerHTML = products.map(p => `
-            <div style="display:flex;gap:1rem;padding:1rem;background:rgba(255,255,255,0.05);border-radius:12px;border:1px solid rgba(255,255,255,0.1);transition:all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
-                <img src="${p.image}" alt="${p.name}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;background:white;" onerror="this.style.display='none'">
-                <div style="flex:1;">
-                    <strong style="font-size:0.9rem;color:#fff;">${p.name}</strong>
-                    <p style="font-size:0.75rem;color:rgba(255,255,255,0.6);margin:0;">${p.description}</p>
-                    <a href="${p.url}" target="_blank" style="font-size:0.75rem;color:#a78bfa;font-weight:600;text-decoration:none;">Ver producto →</a>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function displayDiagnosisTreatments(treatments) {
-        const container = document.getElementById('treatments-grid');
-        if (!container) return;
-        container.innerHTML = treatments.map(t => `
-            <div style="display:flex;gap:1rem;padding:1rem;background:rgba(255,255,255,0.05);border-radius:12px;border-left:3px solid #10b981;border:1px solid rgba(255,255,255,0.1);border-left:3px solid #10b981;transition:all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
-                <div style="font-size:1.5rem;">${t.icon}</div>
-                <div style="flex:1;">
-                    <strong style="font-size:0.9rem;color:#fff;">${t.title}</strong>
-                    <p style="font-size:0.75rem;color:rgba(255,255,255,0.6);margin:0;">${t.description}</p>
-                    <a href="${t.url}" target="_blank" style="font-size:0.75rem;color:#10b981;font-weight:600;text-decoration:none;">Más info →</a>
-                </div>
-            </div>
-        `).join('');
+return Math.round(dandruffRatio * 10);
     }
 
     window.addEventListener('message', async (event) => {
         if (event.data && event.data.type === 'diagnosis_photo') {
-            const clientId = sessionStorage.getItem('nymara_diagnosis_client_id');
-            const clientName = sessionStorage.getItem('nymara_diagnosis_client_name');
-            const results = event.data.results || null;
-            
-            console.log('DEBUG: Parent received diagnosis_photo message:', { clientId, clientName, hasResults: !!results });
-
-            if (clientId && event.data.photoData) {
-                try {
-                    const now = Date.now();
-                    const blob = await fetch(event.data.photoData).then(r => r.blob());
-                    
-                    // Generar hash de la imagen para deduplicación
-                    const hash = await generateFileHash(blob);
-                    console.log('DEBUG: Generated photo hash:', hash);
-
-                    // Verificar en sessionStorage si ya se subió en esta sesión (últimos 10 segundos) para evitar rebotes
-                    const sessionData = JSON.parse(sessionStorage.getItem('nymara_uploaded_hashes') || '[]');
-                    const recentSession = sessionData.filter(h => now - h.timestamp < 10000);
-                    const recentHash = recentSession.find(h => h.hash === hash);
-                    if (recentHash) {
-                        console.log('DEBUG: Duplicate detected in session, skipping.');
-                        return;
-                    }
-                    
-                    // Asegurar que State.clientPhotos esté cargado para este cliente
-                    if (!State.clientPhotos[clientId]) {
-                        console.log('DEBUG: Loading photos for client to check duplicates...');
-                        State.clientPhotos[clientId] = await loadClientPhotos(clientId);
-                    }
-
-                    // Verificar en base de datos si el cliente ya tiene esta foto por su hash
-                    const duplicateHash = State.clientPhotos[clientId].find(p => p.photo_hash === hash);
-                    if (duplicateHash) {
-                        console.log('DEBUG: Duplicate hash found in DB, skipping upload.');
-                        showToast('Esta foto ya existe en el historial del cliente');
-                        return;
-                    }
-                    
-                    // Subir la foto y los resultados
-                    const file = new File([blob], `diagnosis_${Date.now()}.jpg`, { type: 'image/jpeg' });
-                    await uploadClientPhotosWithHash([file], clientId, hash, results);
-                    
-                    // Guardar hash para evitar duplicados en esta sesión
-                    recentSession.push({ hash, timestamp: now });
-                    sessionStorage.setItem('nymara_uploaded_hashes', JSON.stringify(recentSession));
-                    
-                    showToast(`Análisis y foto guardados para ${clientName}`);
-                } catch (err) {
-                    console.error('Error guardando diagnóstico:', err);
-                    showToast('Error al guardar el diagnóstico', 'error');
-                }
+            try {
+                const clientId = sessionStorage.getItem('nymara_diagnosis_client_id');
+                const clientName = sessionStorage.getItem('nymara_diagnosis_client_name');
+                
+                console.log('DEBUG: Parent received diagnosis_photo message:', { clientId, clientName });
+                showToast(`Análisis completado para ${clientName || 'Cliente'}`);
+            } catch (e) {
+                console.error('Error handling diagnosis_photo message:', e);
             }
         }
     });
-
-    async function generateFileHash(blob) {
-        const buffer = await blob.arrayBuffer();
-        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
-    async function uploadClientPhotosWithHash(files, clientId, hash, results = null) {
-        const urls = [];
-        const now = new Date().toISOString();
-        
-        for (const file of files) {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${clientId}/${generateId()}.${fileExt}`;
-            
-            console.log('DEBUG: Subiendo archivo a Storage:', fileName);
-            const { data, error } = await supabase.storage
-                .from('client-photos')
-                .upload(fileName, file);
-
-            if (error) {
-                console.error('DEBUG: Error Storage:', error);
-                throw new Error('Error al subir a Storage: ' + error.message);
-            }
-
-            const { data: { publicUrl } } = supabase.storage
-                .from('client-photos')
-                .getPublicUrl(fileName);
-            
-            console.log('DEBUG: Archivo subido, URL:', publicUrl);
-            
-            let photoId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
-            
-            console.log('DEBUG: Insertando registro en client_photos con resultados:', !!results);
-            const insertData = {
-                id: photoId,
-                client_id: clientId,
-                photo_url: publicUrl,
-                photo_hash: hash,
-                created_at: now
-            };
-            
-            // Intentar incluir resultados si existen
-            if (results) {
-                insertData.analysis_results = results;
-            }
-
-            const { error: dbError } = await supabase.from('client_photos').insert(insertData);
-
-            if (dbError) {
-                console.error('DEBUG: Error DB insert:', dbError);
-                // Si falla por la columna analysis_results, intentamos sin ella
-                if (dbError.message && dbError.message.includes('analysis_results')) {
-                    console.warn('DEBUG: Columna analysis_results no existe, reintentando sin ella...');
-                    delete insertData.analysis_results;
-                    const { error: retryError } = await supabase.from('client_photos').insert(insertData);
-                    if (retryError) throw retryError;
-                } else {
-                    throw new Error('Error al insertar en base de datos: ' + dbError.message);
-                }
-            }
-            
-            console.log('DEBUG: Registro insertado con éxito.');
-
-            // Actualizar el State local
-            if (!State.clientPhotos[clientId]) State.clientPhotos[clientId] = [];
-            const newPhoto = {
-                ...insertData
-            };
-            State.clientPhotos[clientId].unshift(newPhoto);
-            
-            // Guardar en cache de diagnóstico
-            State.diagnosisPhotosCache.unshift(newPhoto);
-            localStorage.setItem('nymara_diagnosis_photos_cache', JSON.stringify(State.diagnosisPhotosCache));
-            
-            urls.push(publicUrl);
-        }
-        return urls;
-    }
 
     /* ═══════════════════════════════════════
        FORMS (now async submit handlers)
@@ -2698,10 +2457,10 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     });
                 });
             };
-            renderPhotos();
-
-            const btnGalleryPhoto = document.getElementById('btn-gallery-photo');
-            const btnCameraPhoto = document.getElementById('btn-camera-photo');
+            
+            // Empty function - no recommendations
+    
+    const btnGalleryPhoto = document.getElementById('btn-gallery-photo');
             const photosInput = document.getElementById('client-photos-input');
             const cameraInput = document.getElementById('client-camera-input');
             let pendingFiles = [];

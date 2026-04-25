@@ -132,22 +132,7 @@
             margin-bottom: 10px;
         }
 
-        .product-card {
-            display: flex;
-            gap: 15px;
-            padding: 15px;
-            background: rgba(255,255,255,0.03);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            margin-bottom: 10px;
-            transition: all 0.3s;
-        }
-        .product-card:hover { background: rgba(255,255,255,0.06); border-color: var(--accent-color); }
-        .product-img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; background: #fff; }
-        .product-info { flex: 1; }
-        .product-name { font-weight: 600; font-size: 0.9rem; display: block; color: #fff; }
-        .product-desc { font-size: 0.75rem; color: var(--text-secondary); margin: 4px 0; }
-        .product-link { font-size: 0.75rem; color: var(--accent-color); text-decoration: none; font-weight: 600; }
+
 
         #camera-container {
             position: relative;
@@ -230,33 +215,11 @@
                         <div class="metric-label">Nivel Caspa</div>
                     </div>
                 </div>
-
-                <div id="recommendations-section" style="margin-top: 30px; display: none;">
-                    <h3 style="font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px;">Productos Recomendados</h3>
-                    <div id="products-grid"></div>
-                </div>
-
-                <div id="treatments-section" style="margin-top: 30px; display: none;">
-                    <h3 style="font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px;">Tratamientos en Cabina</h3>
-                    <div id="treatments-grid"></div>
-                </div>
             </section>
         </main>
     </div>
 
     <script>
-        const MARIA_NILA_PRODUCTS = [
-            { name: "Head & Hair Heal Shampoo", desc: "Calma el cuero cabelludo sensible y estimula el crecimiento.", img: "https://marianila.com/cdn/shop/files/13650-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-shampoo-350-ml" },
-            { name: "Pure Volume Shampoo", desc: "Aporta grosor y vitalidad al cabello fino.", img: "https://marianila.com/cdn/shop/files/3610-packshot.jpg", url: "https://marianila.com/products/pure-volume-shampoo-350-ml" },
-            { name: "True Soft Argan Oil", desc: "Hidratación profunda y brillo para cabellos secos.", img: "https://marianila.com/cdn/shop/files/IMG_c_s_3637_soft_argan_oil_100_ml.jpg", url: "https://marianila.com/products/true-soft-argan-oil-100-ml" },
-            { name: "Structure Repair Masque", desc: "Repara intensamente cabellos dañados o teñidos.", img: "https://marianila.com/cdn/shop/files/3602-packshot.jpg", url: "https://marianila.com/products/structure-repair-masque-300-ml" }
-        ];
-
-        const TREATMENTS = [
-            { name: "Olaplex Profesional Nº1 + Nº2", desc: "Reparación profunda de puentes disulfuro.", icon: "🔗" },
-            { name: "Peeling Oxigenante", desc: "Limpieza profunda para exceso de sebo/caspa.", icon: "✨" }
-        ];
-
         let currentImgData = null;
         const elements = {
             fileInput: document.getElementById('file-input'),
@@ -270,8 +233,7 @@
             actionButtons: document.getElementById('action-buttons'),
             analyzeBtn: document.getElementById('analyze-btn'),
             statusBadge: document.getElementById('status-badge'),
-            productsGrid: document.getElementById('products-grid'),
-            treatmentsGrid: document.getElementById('treatments-grid')
+            coloredHair: document.getElementById('colored-hair-checkbox')
         };
 
         elements.fileInput.onchange = e => {
@@ -335,7 +297,8 @@
                     thickness: 65 + Math.floor(Math.random() * 15),
                     hydration: 55 + Math.floor(Math.random() * 20),
                     sebum: 'Normal',
-                    dandruff: Math.floor(Math.random() * 5)
+                    dandruff: Math.floor(Math.random() * 5),
+                    isColored: elements.coloredHair.checked
                 };
 
                 document.getElementById('val-density').textContent = results.density;
@@ -348,43 +311,19 @@
                 elements.statusBadge.style.background = '#10b981';
                 elements.analyzeBtn.disabled = false;
 
-                renderRecommendations(results);
-
                 if (window.parent !== window) {
-                    window.parent.postMessage({
-                        type: 'diagnosis_photo',
-                        photoData: currentImgData,
-                        results: results
-                    }, '*');
+                    try {
+                        window.parent.postMessage({
+                            type: 'diagnosis_photo',
+                            photoData: currentImgData || null,
+                            results: results || null
+                        }, '*');
+                    } catch (e) {
+                        console.warn('Error sending message:', e);
+                    }
                 }
             }, 2500);
         };
-
-        function renderRecommendations(res) {
-            document.getElementById('recommendations-section').style.display = 'block';
-            document.getElementById('treatments-section').style.display = 'block';
-
-            elements.productsGrid.innerHTML = MARIA_NILA_PRODUCTS.map(p => `
-                <div class="product-card">
-                    <img src="${p.img}" class="product-img" onerror="this.src='https://via.placeholder.com/60'">
-                    <div class="product-info">
-                        <span class="product-name">${p.name}</span>
-                        <p class="product-desc">${p.desc}</p>
-                        <a href="${p.url}" target="_blank" class="product-link">Ver producto →</a>
-                    </div>
-                </div>
-            `).join('');
-
-            elements.treatmentsGrid.innerHTML = TREATMENTS.map(t => `
-                <div class="product-card">
-                    <div style="font-size: 24px; width: 60px; display: flex; align-items: center; justify-content: center;">${t.icon}</div>
-                    <div class="product-info">
-                        <span class="product-name">${t.name}</span>
-                        <p class="product-desc">${t.desc}</p>
-                    </div>
-                </div>
-            `).join('');
-        }
 
         document.getElementById('reset-btn').onclick = () => location.reload();
     </script>
