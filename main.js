@@ -2259,15 +2259,13 @@ window.addEventListener('message', async (event) => {
                     <textarea class="form-control" name="observations" rows="3" placeholder="Notas sobre el cliente...">${isEdit ? (info.observations || '') : ''}</textarea>
                 </div>
                 ${isEdit ? `
-                <div class="form-group" id="client-photos-section" style="display:none">
+                <div class="form-group">
                     <label>Fotos del Cliente</label>
-                    <div id="client-photos-list"></div>
-                    <div style="display:flex;gap:8px;margin-top:10px">
-                        <button type="button" class="btn btn-sm btn-secondary" id="btn-add-client-photo">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                            Añadir Foto
-                        </button>
-                    </div>
+                    <div id="client-photos-list" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px"></div>
+                    <button type="button" class="btn btn-sm btn-secondary" id="btn-add-client-photo">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                        Añadir Foto
+                    </button>
                     <input type="file" id="client-photo-input" accept="image/*" style="display:none">
                 </div>
                 ` : ''}
@@ -2285,21 +2283,12 @@ window.addEventListener('message', async (event) => {
 
             const renderPhotos = () => {
                 const container = document.getElementById('client-photos-list');
-                const section = document.getElementById('client-photos-section');
                 if (!container) return;
                 
                 let html = '';
-                if (sessionPhotos.length === 0 && pendingFiles.length === 0) {
-                    container.innerHTML = '';
-                    if (section) section.style.display = 'none';
-                    return;
-                }
-                
-                if (section) section.style.display = 'block';
-                
                 sessionPhotos.forEach((p) => {
                     html += `
-                        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-right:10px">
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
                             <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                             <span style="font-size:0.7rem;color:var(--text-secondary)">${p.photo_date || ''}</span>
                             <button type="button" class="delete-btn" data-id="${p.id}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">🗑️</button>
@@ -2308,7 +2297,7 @@ window.addEventListener('message', async (event) => {
                 
                 pendingFiles.forEach((pf) => {
                     html += `
-                        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-right:10px">
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
                             <img src="${pf.preview}" style="width:60px;height:60px;object-fit:cover;border-radius:8px">
                             <span style="font-size:0.7rem;color:var(--text-secondary)">${toLocalDateStr(new Date())}</span>
                             <button type="button" class="delete-pending-btn" data-idx="${pendingFiles.indexOf(pf)}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">🗑️</button>
@@ -2597,15 +2586,13 @@ window.addEventListener('message', async (event) => {
                     <textarea class="form-control" name="notes" rows="2" placeholder="Información adicional..."></textarea>
                 </div>
                 
-                <div class="form-group" id="apt-photos-section" style="display:none">
+                <div class="form-group">
                     <label>Fotos de la Cita</label>
-                    <div id="apt-photos-list"></div>
-                    <div style="display:flex;gap:8px;margin-top:10px">
-                        <button type="button" class="btn btn-sm btn-secondary" id="btn-add-apt-photo">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                            Añadir Foto
-                        </button>
-                    </div>
+                    <div id="apt-photos-list" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px"></div>
+                    <button type="button" class="btn btn-sm btn-secondary" id="btn-add-apt-photo">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                        Añadir Foto
+                    </button>
                     <input type="file" id="apt-photo-input" accept="image/*" style="display:none">
                 </div>
                 
@@ -2626,21 +2613,12 @@ window.addEventListener('message', async (event) => {
 
             const renderAptPhotos = () => {
                 const container = document.getElementById('apt-photos-list');
-                const section = document.getElementById('apt-photos-section');
                 if (!container) return;
                 
                 let html = '';
-                if (pendingFiles.length === 0) {
-                    container.innerHTML = '';
-                    if (section) section.style.display = 'none';
-                    return;
-                }
-                
-                if (section) section.style.display = 'block';
-                
                 pendingFiles.forEach((pf, idx) => {
                     html += `
-                        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-right:10px">
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
                             <img src="${pf.preview}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${pf.preview} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                             <span style="font-size:0.7rem;color:var(--text-secondary)">${pf.date || toLocalDateStr(new Date())}</span>
                             <button type="button" class="delete-apt-pending-btn" data-idx="${idx}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">🗑️</button>
