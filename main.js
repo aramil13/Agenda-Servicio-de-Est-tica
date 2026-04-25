@@ -2589,8 +2589,8 @@ window.addEventListener('message', async (event) => {
                 <div class="form-group">
                     <label>Fotos de la Cita</label>
                     <div id="apt-photos-list" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px"></div>
-                    <button type="button" class="btn btn-sm btn-secondary" id="btn-add-apt-photo">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                    <button type="button" class="btn btn-sm btn-secondary" id="btn-add-apt-photo" style="display:inline-flex">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                         Añadir Foto
                     </button>
                     <input type="file" id="apt-photo-input" accept="image/*" style="display:none">
