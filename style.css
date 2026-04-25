@@ -1645,10 +1645,13 @@ textarea.form-control {
 
 .day-detail-photos {
     display: flex;
-    gap: 6px;
     flex-wrap: wrap;
-    margin-top: 8px;
-    align-items: flex-start;
+    gap: 8px;
+}
+
+.apt-mini-photo:hover .apt-mini-photo > div,
+.apt-mini-photo:hover .day-detail-photos > .apt-mini-photo > div {
+    opacity: 1 !important;
 }
 
 .day-photo-container {

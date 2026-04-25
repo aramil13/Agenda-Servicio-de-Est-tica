@@ -608,6 +608,44 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
+    window.editAptPhoto = async function(photoId, aptId, currentDate, currentNotes) {
+        openModal('Editar Foto', `
+            <form id="edit-apt-photo-form">
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <input type="date" class="form-control" id="edit-apt-photo-date" value="${currentDate}">
+                </div>
+                <div class="form-group">
+                    <label>Notas</label>
+                    <textarea class="form-control" id="edit-apt-photo-notes" rows="3">${currentNotes}</textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        `, () => {
+            document.getElementById('edit-apt-photo-form').addEventListener('submit', async e => {
+                e.preventDefault();
+                const newDate = document.getElementById('edit-apt-photo-date').value;
+                const newNotes = document.getElementById('edit-apt-photo-notes').value;
+                
+                const apt = State.appointments.find(a => a.id === aptId);
+                if (apt && apt.appointmentPhotos) {
+                    const photoIdx = apt.appointmentPhotos.findIndex(p => p.id === photoId);
+                    if (photoIdx >= 0) {
+                        apt.appointmentPhotos[photoIdx].photo_date = newDate;
+                        apt.appointmentPhotos[photoIdx].notes = newNotes;
+                        await supabase.from('appointments').update({ appointment_photos: apt.appointmentPhotos }).eq('id', aptId);
+                        closeModal();
+                        showToast('Foto actualizada');
+                        renderRoute();
+                    }
+                }
+            });
+        });
+    }
+
     async function markAppointmentReminded(id) {
         // Intentamos actualizar la columna whatsapp_sent
         const { error } = await supabase.from('appointments').update({ whatsapp_sent: true }).eq('id', id);
@@ -823,9 +861,13 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     photosHtml = '<div class="day-detail-photos" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px">';
                     appointmentPhotos.forEach(p => {
                         photosHtml += `
-                            <div style="text-align:center">
+                            <div class="apt-mini-photo" data-apt-id="${apt.id}" data-photo-id="${p.id}" style="position:relative;text-align:center">
                                 <img src="${p.photo_url}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                                 <div style="font-size:0.65rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
+                                <div style="position:absolute;top:0;left:0;right:0;display:flex;justify-content:center;gap:2px;opacity:0;transition:opacity 0.2s">
+                                    <button type="button" class="apt-photo-edit-btn" data-photo-id="${p.id}" title="Editar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px">✏️</button>
+                                    <button type="button" class="apt-photo-delete-btn" data-photo-id="${p.id}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px">🗑️</button>
+                                </div>
                             </div>`;
                     });
                     photosHtml += '</div>';
@@ -1654,6 +1696,52 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                         if (await deleteAppointment(id)) renderRoute();
                     }
                 }
+            });
+        });
+
+        // Photo edit buttons for appointments
+        document.querySelectorAll('.apt-photo-edit-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                const photoId = e.currentTarget.dataset.photoId;
+                const aptItem = e.currentTarget.closest('.apt-mini-photo');
+                const aptId = aptItem?.dataset.aptId;
+                const apt = State.appointments.find(a => a.id === aptId);
+                const photo = apt?.appointmentPhotos?.find(p => p.id === photoId);
+                if (photo && aptId) {
+                    window.editAptPhoto(photoId, aptId, photo.photo_date || '', photo.notes || '');
+                }
+            });
+        });
+
+        // Photo delete buttons for appointments
+        document.querySelectorAll('.apt-photo-delete-btn').forEach(btn => {
+            btn.addEventListener('click', async e => {
+                e.stopPropagation();
+                const photoId = e.currentTarget.dataset.photoId;
+                const aptItem = e.currentTarget.closest('.apt-mini-photo');
+                const aptId = aptItem?.dataset.aptId;
+                if (aptId && photoId && confirm('¿Eliminar esta foto?')) {
+                    const apt = State.appointments.find(a => a.id === aptId);
+                    if (apt && apt.appointmentPhotos) {
+                        apt.appointmentPhotos = apt.appointmentPhotos.filter(p => p.id !== photoId);
+                        await supabase.from('appointments').update({ appointment_photos: apt.appointmentPhotos }).eq('id', aptId);
+                        showToast('Foto eliminada');
+                        renderRoute();
+                    }
+                }
+            });
+        });
+
+        // Hover show photo buttons
+        document.querySelectorAll('.apt-mini-photo').forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                const btns = el.querySelector('div[style*="position:absolute"]');
+                if (btns) btns.style.opacity = '1';
+            });
+            el.addEventListener('mouseleave', () => {
+                const btns = el.querySelector('div[style*="position:absolute"]');
+                if (btns) btns.style.opacity = '0';
             });
         });
 
