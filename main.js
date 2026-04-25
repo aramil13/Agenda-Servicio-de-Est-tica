@@ -19,13 +19,15 @@ const MARIA_NILA_PRODUCTS = {
 
 // Base de datos de tratamientos Olaplex
 const OLAPLEX_TREATMENTS = {
-    olaplexNo0: { name: "Olaplex N°0", desc: "Tratamiento intensivo bond builder. Repara enlaces capilares dañados.", url: "https://olaplex.com/products/n-0-intensive-bond-building-treatment" },
-    olaplexNo3: { name: "Olaplex N°3", desc: "Hair Perfector. Reparador sin enjuague para uso diario.", url: "https://olaplex.com/products/n-3-hair-perfector" },
-    olaplexNo4: { name: "Olaplex N°4", desc: "Bond Maintenance Shampoo. Limpia sin dañar enlaces.", url: "https://olaplex.com/products/n-4-bond-maintenance-shampoo" },
-    olaplexNo5: { name: "Olaplex N°5", desc: "Bond Maintenance Conditioner. Hidrata y repara.", url: "https://olaplex.com/products/n-5-bond-maintenance-conditioner" },
-    olaplexNo6: { name: "Olaplex N°6", desc: "Crystal Shine. Suavidad y brillo extremo.", url: "https://olaplex.com/products/n-6-crystal-shine" },
-    olaplexNo7: { name: "Olaplex N°7", desc: "Bond Oil. Aceite reparador ligero.", url: "https://olaplex.com/products/n-7-bond-oil" },
-    olaplexNo2: { name: "Olaplex N°2", desc: "Perfection. Servicio profesional de salón.", url: "https://olaplex.com/products/n-2-perfection" }
+    olaplexNo1: { name: "Olaplex N°1", desc: "Tratamiento intensivo de construcción de enlaces. Solo uso profesional.", url: "https://es.olaplex.com/products/n-1-intensive-bond-building-treatment" },
+    olaplexNo2: { name: "Olaplex N°2", desc: "Perfection. Servicio profesional de salón para reparar enlaces.", url: "https://es.olaplex.com/products/n-2-perfection" },
+    olaplexNo3: { name: "Olaplex N°3", desc: "Hair Perfector. Reparador sin enjuague para uso diario.", url: "https://es.olaplex.com/products/n-3-hair-perfector" },
+    olaplexNo4: { name: "Olaplex N°4", desc: "Bond Maintenance Shampoo. Limpia sin dañar enlaces capilares.", url: "https://es.olaplex.com/products/n-4-bond-maintenance-shampoo" },
+    olaplexNo5: { name: "Olaplex N°5", desc: "Bond Maintenance Conditioner. Acondicionador Hidratante y reparador.", url: "https://es.olaplex.com/products/n-5-bond-maintenance-conditioner" },
+    olaplexNo6: { name: "Olaplex N°6", desc: "Bond Smoother. Suavidad y anti-frizz.", url: "https://es.olaplex.com/products/n-6-bond-smoother" },
+    olaplexNo7: { name: "Olaplex N°7", desc: "Bonding Oil. Aceite reparador ligero.", url: "https://es.olaplex.com/products/n-7-bonding-oil" },
+    olaplexNo8: { name: "Olaplex N°8", desc: "Bond Mascarilla Hidratante Intensa.", url: "https://es.olaplex.com/products/n-8-bond-mask" },
+    olaplexNo3Plus: { name: "Olaplex N°3 Plus", desc: "Tratamiento reparador pre-shampoo mejorado.", url: "https://es.olaplex.com/products/n-3-plus-complete-repair-treatment" }
 };
 
 function getMariaNilaRecommendations(diagnosis) {
@@ -61,23 +63,31 @@ function getMariaNilaRecommendations(diagnosis) {
 
 function getOlaplexRecommendations(diagnosis) {
     const recommendations = [];
-    const { density, thickness, hydration, sebum, isColored } = diagnosis;
+    const { density, thickness, hydration, isColored } = diagnosis;
     
-    // Tratamientos según resultados
+    // Tratamientos según resultados - sistema N°1+N°2 para salón
     if (density < 150 || thickness < 65) {
-        recommendations.push(OLAPLEX_TREATMENTS.olaplexNo0);
+        recommendations.push(OLAPLEX_TREATMENTS.olaplexNo1);
+        recommendations.push(OLAPLEX_TREATMENTS.olaplexNo2);
     }
-    if (hydration < 50) {
+    // Mantenimiento con N°4 y N°5
+    if (hydration < 55) {
         recommendations.push(OLAPLEX_TREATMENTS.olaplexNo4);
         recommendations.push(OLAPLEX_TREATMENTS.olaplexNo5);
     }
+    // Para cabello teñido
     if (isColored) {
         recommendations.push(OLAPLEX_TREATMENTS.olaplexNo6);
     }
+    // Tratamiento intensivo N°3 Plus
+    if (density < 120 || thickness < 60) {
+        recommendations.push(OLAPLEX_TREATMENTS.olaplexNo3Plus);
+    }
+    // Default: N°3 para mantenimiento diario
     if (recommendations.length === 0) {
         recommendations.push(OLAPLEX_TREATMENTS.olaplexNo3);
     }
-    return recommendations.slice(0, 3);
+    return recommendations.slice(0, 4);
 }
 
 function displayDiagnosisProducts(products) {
