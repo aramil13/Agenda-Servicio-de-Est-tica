@@ -254,8 +254,8 @@
         };
 
         const OLAPLEX_TREATMENTS = {
-            treatmentPremium: { name: "Tratamiento Premium Olaplex - Sesión de Salón", desc: "Régenera puentes de disulfuro. Protocolo: 1) Broad Spectrum Chelating (3 min). 2) Olaplex N°1 (5 min). 3) Olaplex N°2 (3 min). 4) Champú N°4 (1 min). 5) Mascarilla N°5 (3 min).", url: "https://es.olaplex.com/collections/hair-treatment-maintenance-products-es" },
-            treatmentExpress: { name: "Tratamiento Olaplex Express", desc: "Tratamiento 3 veces más fuerte, suave y elástico en 3 min. Paso 1: Prechampu. Paso 2: Olaplex N°3 Plus de raíces a puntas.", url: "https://es.olaplex.com/products/n-3-plus-complete-repair-treatment" }
+            treatmentPremium: { name: "Tratamiento Premium Olaplex", desc: "Régenera puentes de disulfuro" },
+            treatmentExpress: { name: "Tratamiento Olaplex Express", desc: "Tratamiento rápido en 3 min" }
         };
 
         let currentImgData = null;
@@ -463,7 +463,7 @@
             const container = document.getElementById('treatments-grid');
             if (!container) return;
             container.innerHTML = treatments.map(t => 
-                '<div class="product-card" style="border-left:3px solid #10b981"><div style="font-size:24px">💊</div><div class="product-info"><strong>' + t.name + '</strong><p>' + t.desc + '</p><a href="' + t.url + '" target="_blank">Más info →</a></div></div>'
+                '<div class="product-card" style="border-left:3px solid #10b981"><div style="font-size:24px">💊</div><div class="product-info"><strong>' + t.name + '</strong><p>' + (t.desc || '') + '</p></div></div>'
             ).join('');
         }
     </script>

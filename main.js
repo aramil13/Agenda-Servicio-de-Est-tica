@@ -20,14 +20,12 @@ const MARIA_NILA_PRODUCTS = {
 // Tratamiento Premium Olaplex del Salón
 const OLAPLEX_TREATMENTS = {
     treatmentPremium: { 
-        name: "Tratamiento Premium Olaplex - Sesión de Salón", 
-        desc: "Régenera puentes de disulfuro. Protocolo: 1) Broad Spectrum Chelating (3 min) - elimina minerales. 2) Olaplex N°1 (5 min) - recupera enlaces. 3) Olaplex N°2 (3 min) - sella enlaces. 4) Champú N°4 (1 min). 5) Mascarilla N°5 (3 min - encapsulado sin oxígeno).",
-        url: "https://es.olaplex.com/collections/hair-treatment-maintenance-products-es"
+        name: "Tratamiento Premium Olaplex", 
+        desc: "Régenera puentes de disulfuro",
     },
     treatmentExpress: { 
         name: "Tratamiento Olaplex Express", 
-        desc: "Tratamiento 3 veces más fuerte, 3 veces más suave, 3 veces más elástico en 3 min. Paso 1: Prechampu. Paso 2: Olaplex N°3 Plus aplicado con las manos de raíces a puntas.",
-        url: "https://es.olaplex.com/products/n-3-plus-complete-repair-treatment"
+        desc: "Tratamiento rápido en 3 min",
     }
 };
 
@@ -103,8 +101,7 @@ function displayDiagnosisTreatments(treatments) {
         html += '<div style="display:flex;gap:1rem;padding:1rem;background:rgba(255,255,255,0.05);border-radius:12px;border-left:3px solid #10b981;">';
         html += '<div style="font-size:1.5rem;">💊</div>';
         html += '<div style="flex:1;"><strong style="color:#fff;">' + t.name + '</strong>';
-        html += '<p style="font-size:0.75rem;color:rgba(255,255,255,0.6);">' + t.desc + '</p>';
-        html += '<a href="' + t.url + '" target="_blank" style="color:#10b981;">Más info →</a></div></div>';
+        html += '<p style="font-size:0.75rem;color:rgba(255,255,255,0.6);">' + (t.desc || '') + '</p></div></div>';
     }
     container.innerHTML = html || '<p style="color:#888;">No hay recomendaciones</p>';
 }
