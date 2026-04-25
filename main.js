@@ -619,23 +619,54 @@ document.addEventListener('DOMContentLoaded', () => {
     async function deleteClientPhoto(photoId, clientId) {
         console.log('DEBUG: deleteClientPhoto CALLED with:', { photoId, clientId });
         
+        if (!photoId) {
+            console.error('DEBUG: photoId es undefined o null');
+            showToast('Error: ID de foto inválido', 'error');
+            return false;
+        }
+        
         // Primero actualizar cache local
-        if (State.clientPhotos[clientId]) {
+        if (clientId && State.clientPhotos[clientId]) {
             State.clientPhotos[clientId] = State.clientPhotos[clientId].filter(p => p.id !== photoId);
         }
         State.diagnosisPhotosCache = State.diagnosisPhotosCache.filter(p => p.id !== photoId);
         localStorage.setItem('nymara_diagnosis_photos_cache', JSON.stringify(State.diagnosisPhotosCache));
         
+        // Buscar la foto para eliminar el archivo de storage
+        const photo = State.diagnosisPhotosCache.find(p => p.id === photoId) || 
+                     (clientId && State.clientPhotos[clientId]?.find(p => p.id === photoId));
+        
+        if (photo?.photo_url) {
+            try {
+                const filePath = photo.photo_url.split('/client-photos/')[1];
+                if (filePath) {
+                    await supabase.storage.from('client-photos').remove([filePath]);
+                }
+            } catch (storageErr) {
+                console.warn('No se pudo eliminar archivo de storage:', storageErr);
+            }
+        }
+        
         try {
-            const { data, error } = await supabase.from('client_photos').delete().eq('id', photoId).select();
+            // Eliminar de la base de datos
+            const { data, error } = await supabase.from('client_photos').delete().eq('id', photoId);
             if (error) {
                 console.error('DEBUG: Supabase delete error:', error);
+                // Verificar si es error de tabla inexistente
+                if (error.message?.includes('does not exist') || error.code === '42P01') {
+                    console.warn('Tabla client_photos no existe, solo se eliminó del cache local');
+                } else {
+                    showToast('Error al eliminar foto: ' + (error.message || 'Error'), 'error');
+                    return false;
+                }
             }
             console.log('DEBUG: Supabase delete response:', data);
-            
+            showToast('Foto eliminada');
             return true;
         } catch (e) {
-            console.warn('DEBUG: deleteClientPhoto fallback a cache local:', e);
+            console.error('DEBUG: deleteClientPhoto exception:', e);
+            // Si hay excepción, asumimos que la foto se eliminó del cache y está bien
+            showToast('Foto eliminada (cache local)');
             return true;
         }
     }
@@ -678,16 +709,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadClientPhotos(clientId) {
         try {
+            // Primero verificar si existe la tabla
+            const { error: tableError } = await supabase.from('client_photos').select('id').limit(1);
+            if (tableError && (tableError.message?.includes('does not exist') || tableError.code === '42P01')) {
+                console.warn('Tabla client_photos no existe, usando solo cache');
+                const cached = State.diagnosisPhotosCache.filter(p => String(p.client_id) === String(clientId));
+                return cached;
+            }
+            
             const { data, error } = await supabase.from('client_photos').select('*').eq('client_id', clientId).order('created_at', { ascending: false });
             if (error) throw error;
-            if (data && data.length > 0) {
-                return data;
-            }
-            // Si no hay datos remotos, usar cache local
-            const cached = State.diagnosisPhotosCache.filter(p => String(p.client_id) === String(clientId));
-            return cached;
+            
+            // Combinar datos remotos con cache local
+            const remoteIds = new Set((data || []).map(p => p.id));
+            const cached = State.diagnosisPhotosCache.filter(p => String(p.client_id) === String(clientId) && !remoteIds.has(p.id));
+            
+            return [...(data || []), ...cached];
         } catch (e) {
-            console.warn('client_photos not available, usando cache local');
+            console.warn('client_photos error:', e);
             const cached = State.diagnosisPhotosCache.filter(p => String(p.client_id) === String(clientId));
             return cached;
         }
