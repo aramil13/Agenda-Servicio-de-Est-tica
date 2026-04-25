@@ -955,7 +955,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 const userInitial = apt.userEmail ? apt.userEmail.charAt(0).toUpperCase() : '?';
                 const userDisplay = apt.userEmail ? apt.userEmail.split('@')[0] : 'Sistema';
                 
-                const appointmentPhotos = apt.appointmentPhotos || [];
+                const appointmentPhotos = apt.appointmentPhotos && apt.appointmentPhotos.length > 0 
+                    ? apt.appointmentPhotos 
+                    : (State.clientPhotos && State.clientPhotos[apt.clientId] ? State.clientPhotos[apt.clientId] : []);
                 let photosHtml = '';
                 if (appointmentPhotos.length > 0) {
                     photosHtml = '<div class="day-detail-photos" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px">';
