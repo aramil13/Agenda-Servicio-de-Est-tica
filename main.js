@@ -864,9 +864,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             <div class="apt-mini-photo" data-apt-id="${apt.id}" data-photo-id="${p.id}" style="position:relative;text-align:center">
                                 <img src="${p.photo_url}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                                 <div style="font-size:0.65rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
-                                <div style="position:absolute;top:0;left:0;right:0;display:flex;justify-content:center;gap:2px;opacity:0;transition:opacity 0.2s">
-                                    <button type="button" class="apt-photo-edit-btn" data-photo-id="${p.id}" title="Editar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px">✏️</button>
-                                    <button type="button" class="apt-photo-delete-btn" data-photo-id="${p.id}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px">🗑️</button>
+                                <div style="position:absolute;top:0;left:0;right:0;display:flex;justify-content:center;gap:2px">
+                                    <button type="button" class="apt-photo-edit-btn" data-photo-id="${p.id}" title="Editar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">✏️</button>
+                                    <button type="button" class="apt-photo-delete-btn" data-photo-id="${p.id}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">🗑️</button>
                                 </div>
                             </div>`;
                     });
@@ -1741,7 +1741,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             });
             el.addEventListener('mouseleave', () => {
                 const btns = el.querySelector('div[style*="position:absolute"]');
-                if (btns) btns.style.opacity = '0';
+                if (btns) btns.style.opacity = '0.8';
             });
         });
 
