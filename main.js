@@ -17,17 +17,18 @@ const MARIA_NILA_PRODUCTS = {
     trueSoftArganOil: { name: "True Soft Argan Oil", desc: "Aceite de argán para hidratación.", img: "https://marianila.com/cdn/shop/files/IMG_c_s_3637_soft_argan_oil_100_ml.jpg", url: "https://marianila.com/products/true-soft-argan-oil-100-ml", category: "dry" }
 };
 
-// Base de datos de tratamientos Olaplex
+// Tratamiento Premium Olaplex del Salón
 const OLAPLEX_TREATMENTS = {
-    olaplexNo1: { name: "Olaplex N°1", desc: "Tratamiento intensivo de construcción de enlaces. Solo uso profesional.", url: "https://es.olaplex.com/products/n-1-intensive-bond-building-treatment" },
-    olaplexNo2: { name: "Olaplex N°2", desc: "Perfection. Servicio profesional de salón para reparar enlaces.", url: "https://es.olaplex.com/products/n-2-perfection" },
-    olaplexNo3: { name: "Olaplex N°3", desc: "Hair Perfector. Reparador sin enjuague para uso diario.", url: "https://es.olaplex.com/products/n-3-hair-perfector" },
-    olaplexNo4: { name: "Olaplex N°4", desc: "Bond Maintenance Shampoo. Limpia sin dañar enlaces capilares.", url: "https://es.olaplex.com/products/n-4-bond-maintenance-shampoo" },
-    olaplexNo5: { name: "Olaplex N°5", desc: "Bond Maintenance Conditioner. Acondicionador Hidratante y reparador.", url: "https://es.olaplex.com/products/n-5-bond-maintenance-conditioner" },
-    olaplexNo6: { name: "Olaplex N°6", desc: "Bond Smoother. Suavidad y anti-frizz.", url: "https://es.olaplex.com/products/n-6-bond-smoother" },
-    olaplexNo7: { name: "Olaplex N°7", desc: "Bonding Oil. Aceite reparador ligero.", url: "https://es.olaplex.com/products/n-7-bonding-oil" },
-    olaplexNo8: { name: "Olaplex N°8", desc: "Bond Mascarilla Hidratante Intensa.", url: "https://es.olaplex.com/products/n-8-bond-mask" },
-    olaplexNo3Plus: { name: "Olaplex N°3 Plus", desc: "Tratamiento reparador pre-shampoo mejorado.", url: "https://es.olaplex.com/products/n-3-plus-complete-repair-treatment" }
+    treatmentPremium: { 
+        name: "Tratamiento Premium Olaplex - Sesión de Salón", 
+        desc: "Régenera puentes de disulfuro. Protocolo: 1) Broad Spectrum Chelating (3 min) - elimina minerales. 2) Olaplex N°1 (5 min) - recupera enlaces. 3) Olaplex N°2 (3 min) - sella enlaces. 4) Champú N°4 (1 min). 5) Mascarilla N°5 (3 min - encapsulado sin oxígeno).",
+        url: "https://es.olaplex.com/collections/hair-treatment-maintenance-products-es"
+    },
+    treatmentExpress: { 
+        name: "Tratamiento Olaplex Express", 
+        desc: "Tratamiento 3 veces más fuerte, 3 veces más suave, 3 veces más elástico en 3 min. Paso 1: Prechampu. Paso 2: Olaplex N°3 Plus aplicado con las manos de raíces a puntas.",
+        url: "https://es.olaplex.com/products/n-3-plus-complete-repair-treatment"
+    }
 };
 
 function getMariaNilaRecommendations(diagnosis) {
@@ -65,29 +66,15 @@ function getOlaplexRecommendations(diagnosis) {
     const recommendations = [];
     const { density, thickness, hydration, isColored } = diagnosis;
     
-    // Tratamientos según resultados - sistema N°1+N°2 para salón
-    if (density < 150 || thickness < 65) {
-        recommendations.push(OLAPLEX_TREATMENTS.olaplexNo1);
-        recommendations.push(OLAPLEX_TREATMENTS.olaplexNo2);
+    // Tratamiento Premium para casos severos
+    if (density < 130 || thickness < 60 || hydration < 45) {
+        recommendations.push(OLAPLEX_TREATMENTS.treatmentPremium);
     }
-    // Mantenimiento con N°4 y N°5
-    if (hydration < 55) {
-        recommendations.push(OLAPLEX_TREATMENTS.olaplexNo4);
-        recommendations.push(OLAPLEX_TREATMENTS.olaplexNo5);
+    // Tratamiento Express para casos leves/moderados
+    if (recommendations.length === 0 || (density < 160 && thickness < 70)) {
+        recommendations.push(OLAPLEX_TREATMENTS.treatmentExpress);
     }
-    // Para cabello teñido
-    if (isColored) {
-        recommendations.push(OLAPLEX_TREATMENTS.olaplexNo6);
-    }
-    // Tratamiento intensivo N°3 Plus
-    if (density < 120 || thickness < 60) {
-        recommendations.push(OLAPLEX_TREATMENTS.olaplexNo3Plus);
-    }
-    // Default: N°3 para mantenimiento diario
-    if (recommendations.length === 0) {
-        recommendations.push(OLAPLEX_TREATMENTS.olaplexNo3);
-    }
-    return recommendations.slice(0, 4);
+    return recommendations.slice(0, 2);
 }
 
 function displayDiagnosisProducts(products) {
@@ -2506,9 +2493,25 @@ return Math.round(dandruffRatio * 10);
             try {
                 const clientId = sessionStorage.getItem('nymara_diagnosis_client_id');
                 const clientName = sessionStorage.getItem('nymara_diagnosis_client_name');
+                const results = event.data.results;
                 
-                console.log('DEBUG: Parent received diagnosis_photo message:', { clientId, clientName });
+                console.log('DEBUG: Parent received diagnosis_photo message:', { clientId, clientName, results });
                 showToast(`Análisis completado para ${clientName || 'Cliente'}`);
+                
+                // Mostrar recomendaciones en la app principal
+                if (results) {
+                    const diagnosis = {
+                        density: results.density || 150,
+                        thickness: results.thickness || 65,
+                        hydration: parseInt(results.hydration) || 55,
+                        sebum: results.sebum === 'Alto' ? 80 : results.sebum === 'Normal' ? 55 : 35,
+                        isColored: results.isColored || false
+                    };
+                    const products = getMariaNilaRecommendations(diagnosis);
+                    const treatments = getOlaplexRecommendations(diagnosis);
+                    displayDiagnosisProducts(products);
+                    displayDiagnosisTreatments(treatments);
+                }
             } catch (e) {
                 console.error('Error handling diagnosis_photo message:', e);
             }
