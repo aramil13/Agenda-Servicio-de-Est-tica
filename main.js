@@ -2264,7 +2264,11 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 
                 console.log('DEBUG: Insert:', photoRecord);
                 
+                console.log('DEBUG: Before insert, photoRecord:', JSON.stringify(photoRecord));
+                
                 const { error: insertError } = await supabase.from('client_photos').insert(photoRecord);
+                
+                console.log('DEBUG: After insert, error:', insertError);
                 
                 if (insertError) {
                     console.error('ERROR insert:', insertError);
