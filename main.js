@@ -1144,6 +1144,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                                         return `<div style="position:relative;text-align:center">
                                             <img src="${p.photo_url}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                                             <div style="font-size:0.5rem;color:var(--text-secondary)">${photoType}</div>
+                                            <div style="font-size:0.45rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
                                         </div>`;
                                     }).join('')}
                                     ${State.clientPhotos[c.id].length > 4 ? `<div style="font-size:0.7rem;color:var(--text-secondary);align-self:center">+${State.clientPhotos[c.id].length - 4}</div>` : ''}
