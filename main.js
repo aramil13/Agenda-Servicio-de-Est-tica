@@ -1048,13 +1048,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="day-detail-photos">
                                 ${photosBefore.length > 0 ? photosBefore.map(p => `
                                     <div class="day-photo-container">
-                                        <img src="${p.url}" class="day-photo-thumb" onclick="window.open('${p.url}', '_blank')">
+                                        <img src="${p.url}" class="day-photo-thumb" onclick="openModal('Foto', '<div style=\'text-align:center\'><img src=\'${p.url}\' style=\'max-width:100%;max-height:70vh;border-radius:8px\'></div>')">
                                         <span class="day-photo-label before">Antes</span>
                                     </div>
                                 `).join('') : ''}
                                 ${photosAfter.length > 0 ? photosAfter.map(p => `
                                     <div class="day-photo-container">
-                                        <img src="${p.url}" class="day-photo-thumb" onclick="window.open('${p.url}', '_blank')">
+                                        <img src="${p.url}" class="day-photo-thumb" onclick="openModal('Foto', '<div style=\'text-align:center\'><img src=\'${p.url}\' style=\'max-width:100%;max-height:70vh;border-radius:8px\'></div>')">
                                         <span class="day-photo-label after">Después</span>
                                     </div>
                                 `).join('') : ''}
@@ -2639,34 +2639,39 @@ window.addEventListener('message', async (event) => {
                 State.clientPhotos[info.id] = currentPhotos;
             }
 
-            renderPhotos(); // Mostrar fotos existentes
+            const gallery = document.getElementById('client-photos-gallery');
+            const btnGalleryPhoto = document.getElementById('btn-gallery-photo');
+            const btnCameraPhoto = document.getElementById('btn-camera-photo');
+            const photosInput = document.getElementById('client-photos-input');
+            const cameraInput = document.getElementById('client-camera-input');
+            let pendingFiles = [];
+            let pendingPreviews = [];
 
             const renderPhotos = () => {
-                const gallery = document.getElementById('client-photos-gallery');
-                if (!gallery) return;
-                gallery.innerHTML = currentPhotos.map(p => `
+                const galleryEl = document.getElementById('client-photos-gallery');
+                if (!galleryEl) return;
+                galleryEl.innerHTML = currentPhotos.map(p => `
                     <div class="photo-thumb" style="position:relative;width:60px;height:60px" data-id="${p.id}">
                         <img src="${p.photo_url}" style="width:100%;height:100%;border-radius:8px;object-fit:cover;cursor:pointer" class="view-photo" data-url="${p.photo_url}">
                         <button type="button" class="edit-client-photo" data-id="${p.id}" data-date="${p.photo_date || ''}" data-type="${p.photo_type || 'before'}" data-notes="${p.notes || ''}" style="position:absolute;top:-6px;right:14px;background:#2196F3;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">✎</button>
                         <button type="button" class="remove-client-photo" data-id="${p.id}" style="position:absolute;top:-6px;right:-6px;background:red;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">×</button>
                     </div>
+                `).join('') + pendingPreviews.map((preview, idx) => `
+                    <div class="photo-thumb pending" style="position:relative;width:60px;height:60px">
+                        <img src="${preview}" style="width:100%;height:100%;border-radius:8px;object-fit:cover;opacity:0.7">
+                        <button type="button" class="remove-pending-photo" data-idx="${idx}" style="position:absolute;top:-6px;right:-6px;background:red;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">×</button>
+                    </div>
                 `).join('');
                 
-                gallery.querySelectorAll('.view-photo').forEach(img => {
+                galleryEl.querySelectorAll('.view-photo').forEach(img => {
                     img.addEventListener('click', () => {
                         openModal('Foto', `<div style="text-align:center"><img src="${img.dataset.url}" style="max-width:100%;max-height:70vh;border-radius:8px"></div>`);
                     });
                 });
             };
-            
-            // Empty function - no recommendations
-    
-    const btnGalleryPhoto = document.getElementById('btn-gallery-photo');
-            const btnCameraPhoto = document.getElementById('btn-camera-photo');
-            const photosInput = document.getElementById('client-photos-input');
-            const cameraInput = document.getElementById('client-camera-input');
-            const gallery = document.getElementById('client-photos-gallery');
-            let pendingFiles = [];
+
+            renderPhotos();
+
             if (btnGalleryPhoto && photosInput) {
                 btnGalleryPhoto.addEventListener('click', () => photosInput.click());
             }
@@ -2681,11 +2686,8 @@ window.addEventListener('message', async (event) => {
                         files.forEach(file => {
                             const reader = new FileReader();
                             reader.onload = ev => {
-                                const div = document.createElement('div');
-                                div.className = 'photo-thumb pending';
-                                div.style.cssText = 'position:relative;width:60px;height:60px';
-                                div.innerHTML = `<img src="${ev.target.result}" style="width:100%;height:100%;border-radius:8px;object-fit:cover"><button type="button" class="remove-pending-photo" style="position:absolute;top:-6px;right:-6px;background:red;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">×</button>`;
-                                gallery.appendChild(div);
+                                pendingPreviews.push(ev.target.result);
+                                renderPhotos();
                             };
                             reader.readAsDataURL(file);
                         });
@@ -2702,11 +2704,8 @@ window.addEventListener('message', async (event) => {
                         files.forEach(file => {
                             const reader = new FileReader();
                             reader.onload = ev => {
-                                const div = document.createElement('div');
-                                div.className = 'photo-thumb pending';
-                                div.style.cssText = 'position:relative;width:60px;height:60px';
-                                div.innerHTML = `<img src="${ev.target.result}" style="width:100%;height:100%;border-radius:8px;object-fit:cover"><button type="button" class="remove-pending-photo" style="position:absolute;top:-6px;right:-6px;background:red;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">×</button>`;
-                                gallery.appendChild(div);
+                                pendingPreviews.push(ev.target.result);
+                                renderPhotos();
                             };
                             reader.readAsDataURL(file);
                         });
@@ -2716,8 +2715,7 @@ window.addEventListener('message', async (event) => {
             }
 
             if (gallery) {
-                // Usar delegación de eventos más robusta
-                gallery.onclick = async e => {
+                gallery.addEventListener('click', async e => {
                     const removeBtn = e.target.closest('.remove-client-photo');
                     if (removeBtn) {
                         e.preventDefault();
@@ -2798,12 +2796,12 @@ window.addEventListener('message', async (event) => {
                     if (pendingBtn) {
                         e.preventDefault();
                         e.stopPropagation();
-                        const pendingThumbs = gallery.querySelectorAll('.photo-thumb.pending');
-                        const pendingIdx = Array.from(pendingThumbs).indexOf(pendingBtn.parentElement);
-                        if (pendingIdx >= 0 && pendingIdx < pendingFiles.length) {
-                            pendingFiles.splice(pendingIdx, 1);
+                        const idx = parseInt(pendingBtn.dataset.idx);
+                        if (idx >= 0 && idx < pendingFiles.length) {
+                            pendingFiles.splice(idx, 1);
+                            pendingPreviews.splice(idx, 1);
+                            renderPhotos();
                         }
-                        pendingBtn.parentElement.remove();
                         return;
                     }
                     
