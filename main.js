@@ -966,7 +966,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                         const photoDate = p.photo_date || '';
                         photosHtml += `
                             <div class="apt-mini-photo" data-apt-id="${apt.id}" data-photo-id="${p.id}" style="position:relative;text-align:center">
-                                <img src="${p.photo_url}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:90vw;max-height:90vh;border-radius:8px>')">
+                                <img src="${p.photo_url}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                                 <div style="font-size:0.65rem;color:var(--text-secondary)">${photoType}</div>
                                 <div style="font-size:0.6rem;color:var(--text-secondary)">${photoDate}</div>
                                 <div style="position:absolute;top:0;left:0;right:0;display:flex;justify-content:center;gap:2px">
@@ -1157,7 +1157,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                                     ${State.clientPhotos[c.id].slice(0, 4).map(p => {
                                         const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
                                         return `<div style="position:relative;text-align:center">
-                                            <img src="${p.photo_url}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:90vw;max-height:90vh;border-radius:8px>')">
+                                            <img src="${p.photo_url}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                                             <div style="font-size:0.5rem;color:var(--text-secondary)">${photoType}</div>
                                             <div style="font-size:0.45rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
                                         </div>`;
@@ -2539,7 +2539,7 @@ window.addEventListener('message', async (event) => {
                     const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
                     html += `
                         <div class="client-mini-photo" data-photo-id="${p.id}" style="position:relative;text-align:center">
-                            <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:90vw;max-height:90vh;border-radius:8px>')">
+                            <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                             <div style="font-size:0.65rem;color:var(--text-secondary)">${photoType}</div>
                             <div style="font-size:0.6rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
                             <div style="display:flex;gap:2px;justify-content:center">
