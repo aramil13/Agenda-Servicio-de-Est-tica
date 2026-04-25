@@ -1,6 +1,116 @@
-//placeholder vacío para evitar errores
-function displayDiagnosisProducts() {}
-function displayDiagnosisTreatments() {}
+// Base de datos de productos Maria Nila
+const MARIA_NILA_PRODUCTS = {
+    // Champús
+    headHairHealShampoo: { name: "Head & Hair Heal Shampoo", desc: "Calma cuero cabelludo sensible con aloe vera y piroctona olamina.", img: "https://marianila.com/cdn/shop/files/13650-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-shampoo-350-ml", category: "scalp" },
+    trueSoftShampoo: { name: "True Soft Shampoo", desc: "Hidratación profunda con aceite de argán para cabello seco.", img: "https://marianila.com/cdn/shop/files/3630-packshot.jpg", url: "https://marianila.com/products/true-soft-shampoo-350-ml", category: "dry" },
+    pureVolumeShampoo: { name: "Pure Volume Shampoo", desc: "Voluminizador con provitamina B5 para cabello fino.", img: "https://marianila.com/cdn/shop/files/3610-packshot.jpg", url: "https://marianila.com/products/pure-volume-shampoo-350-ml", category: "fine" },
+    luminousColourShampoo: { name: "Luminous Colour Shampoo", desc: "Preserva color con extracto de Granada.", img: "https://marianila.com/cdn/shop/files/3625-packshot.jpg", url: "https://marianila.com/products/luminous-colour-shampoo-350-ml", category: "colored" },
+    purifyingCleanseShampoo: { name: "Purifying Cleanse Shampoo", desc: "Champú purificante para cuero cabelludo graso.", img: "https://marianila.com/cdn/shop/files/3615-packshot.jpg", url: "https://marianila.com/products/purifying-cleanse-shampoo-350-ml", category: "oily" },
+    structureRepairShampoo: { name: "Structure Repair Shampoo", desc: "Repara cabello dañado con keratina.", img: "https://marianila.com/cdn/shop/files/3600-packshot.jpg", url: "https://marianila.com/products/structure-repair-shampoo-350-ml", category: "damaged" },
+    // Acondicionadores
+    headHairHealConditioner: { name: "Head & Hair Heal Conditioner", desc: "Acondicionador calmante para el cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/13651-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-conditioner-300-ml", category: "scalp" },
+    trueSoftConditioner: { name: "True Soft Conditioner", desc: "Acondicionador hidratante con aceite de argán.", img: "https://marianila.com/cdn/shop/files/3631-packshot.jpg", url: "https://marianila.com/products/true-soft-conditioner-300-ml", category: "dry" },
+    pureVolumeConditioner: { name: "Pure Volume Conditioner", desc: "Acondicionador voluminizador ligero.", img: "https://marianila.com/cdn/shop/files/3611-packshot.jpg", url: "https://marianila.com/products/pure-volume-conditioner-300-ml", category: "fine" },
+    luminousColourConditioner: { name: "Luminous Colour Conditioner", desc: "Acondicionador preservador de color.", img: "https://marianila.com/cdn/shop/files/3626-packshot.jpg", url: "https://marianila.com/products/luminous-colour-conditioner-300-ml", category: "colored" },
+    // Tratamientos
+    bondBuilder: { name: "Bond Builder", desc: "Reparador de enlaces capilares intensivo.", img: "https://marianila.com/cdn/shop/files/mnproductpage1200x1500px1.jpg", url: "https://marianila.com/products/bond-builder", category: "damaged" },
+    trueSoftArganOil: { name: "True Soft Argan Oil", desc: "Aceite de argán para hidratación.", img: "https://marianila.com/cdn/shop/files/IMG_c_s_3637_soft_argan_oil_100_ml.jpg", url: "https://marianila.com/products/true-soft-argan-oil-100-ml", category: "dry" }
+};
+
+// Base de datos de tratamientos Olaplex
+const OLAPLEX_TREATMENTS = {
+    olaplexNo0: { name: "Olaplex N°0", desc: "Tratamiento intensivo bond builder. Repara enlaces capilares dañados.", url: "https://olaplex.com/products/n-0-intensive-bond-building-treatment" },
+    olaplexNo3: { name: "Olaplex N°3", desc: "Hair Perfector. Reparador sin enjuague para uso diario.", url: "https://olaplex.com/products/n-3-hair-perfector" },
+    olaplexNo4: { name: "Olaplex N°4", desc: "Bond Maintenance Shampoo. Limpia sin dañar enlaces.", url: "https://olaplex.com/products/n-4-bond-maintenance-shampoo" },
+    olaplexNo5: { name: "Olaplex N°5", desc: "Bond Maintenance Conditioner. Hidrata y repara.", url: "https://olaplex.com/products/n-5-bond-maintenance-conditioner" },
+    olaplexNo6: { name: "Olaplex N°6", desc: "Crystal Shine. Suavidad y brillo extremo.", url: "https://olaplex.com/products/n-6-crystal-shine" },
+    olaplexNo7: { name: "Olaplex N°7", desc: "Bond Oil. Aceite reparador ligero.", url: "https://olaplex.com/products/n-7-bond-oil" },
+    olaplexNo2: { name: "Olaplex N°2", desc: "Perfection. Servicio profesional de salón.", url: "https://olaplex.com/products/n-2-perfection" }
+};
+
+function getMariaNilaRecommendations(diagnosis) {
+    const recommendations = [];
+    const { density, thickness, hydration, sebum, isColored } = diagnosis;
+    
+    // Lógica de recomendaciones según resultados
+    if (hydration < 50) {
+        recommendations.push(MARIA_NILA_PRODUCTS.trueSoftShampoo);
+        recommendations.push(MARIA_NILA_PRODUCTS.trueSoftConditioner);
+    }
+    if (density < 150) {
+        recommendations.push(MARIA_NILA_PRODUCTS.pureVolumeShampoo);
+        recommendations.push(MARIA_NILA_PRODUCTS.pureVolumeConditioner);
+    }
+    if (sebum > 65 || sebum === 'Alto') {
+        recommendations.push(MARIA_NILA_PRODUCTS.purifyingCleanseShampoo);
+    }
+    if (isColored) {
+        recommendations.push(MARIA_NILA_PRODUCTS.luminousColourShampoo);
+        recommendations.push(MARIA_NILA_PRODUCTS.luminousColourConditioner);
+    }
+    if (thickness < 65) {
+        recommendations.push(MARIA_NILA_PRODUCTS.bondBuilder);
+    }
+    // Default si no hay recomendaciones específicas
+    if (recommendations.length === 0) {
+        recommendations.push(MARIA_NILA_PRODUCTS.headHairHealShampoo);
+        recommendations.push(MARIA_NILA_PRODUCTS.headHairHealConditioner);
+    }
+    return recommendations.slice(0, 4);
+}
+
+function getOlaplexRecommendations(diagnosis) {
+    const recommendations = [];
+    const { density, thickness, hydration, sebum, isColored } = diagnosis;
+    
+    // Tratamientos según resultados
+    if (density < 150 || thickness < 65) {
+        recommendations.push(OLAPLEX_TREATMENTS.olaplexNo0);
+    }
+    if (hydration < 50) {
+        recommendations.push(OLAPLEX_TREATMENTS.olaplexNo4);
+        recommendations.push(OLAPLEX_TREATMENTS.olaplexNo5);
+    }
+    if (isColored) {
+        recommendations.push(OLAPLEX_TREATMENTS.olaplexNo6);
+    }
+    if (recommendations.length === 0) {
+        recommendations.push(OLAPLEX_TREATMENTS.olaplexNo3);
+    }
+    return recommendations.slice(0, 3);
+}
+
+function displayDiagnosisProducts(products) {
+    const container = document.getElementById('products-grid');
+    if (!container || !products || !Array.isArray(products)) return;
+    
+    let html = '';
+    for (const p of products) {
+        if (!p) continue;
+        html += '<div style="display:flex;gap:1rem;padding:1rem;background:rgba(255,255,255,0.05);border-radius:12px;">';
+        html += '<img src="' + p.img + '" alt="" style="width:60px;height:60px;object-fit:cover;border-radius:8px;background:white;" onerror="this.style.display=\'none\'">';
+        html += '<div style="flex:1;"><strong style="color:#fff;">' + p.name + '</strong>';
+        html += '<p style="font-size:0.75rem;color:rgba(255,255,255,0.6);">' + p.desc + '</p>';
+        html += '<a href="' + p.url + '" target="_blank" style="color:#a78bfa;">Ver producto →</a></div></div>';
+    }
+    container.innerHTML = html || '<p style="color:#888;">No hay recomendaciones</p>';
+}
+
+function displayDiagnosisTreatments(treatments) {
+    const container = document.getElementById('treatments-grid');
+    if (!container || !treatments || !Array.isArray(treatments)) return;
+    
+    let html = '';
+    for (const t of treatments) {
+        if (!t) continue;
+        html += '<div style="display:flex;gap:1rem;padding:1rem;background:rgba(255,255,255,0.05);border-radius:12px;border-left:3px solid #10b981;">';
+        html += '<div style="font-size:1.5rem;">💊</div>';
+        html += '<div style="flex:1;"><strong style="color:#fff;">' + t.name + '</strong>';
+        html += '<p style="font-size:0.75rem;color:rgba(255,255,255,0.6);">' + t.desc + '</p>';
+        html += '<a href="' + t.url + '" target="_blank" style="color:#10b981;">Más info →</a></div></div>';
+    }
+    container.innerHTML = html || '<p style="color:#888;">No hay recomendaciones</p>';
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('--- Nymara App: Diagnóstico Capilar Integrado ---');
@@ -1700,6 +1810,16 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                                 <div style="font-size:0.7rem;">Caspa <span style="color:#10b981;">(0-10)</span></div>
                             </div>
                         </div>
+                        
+                        <div id="maria-nila-products" style="margin-top:1rem;">
+                            <h4 style="color:#8b5cf6;margin-bottom:0.75rem;">Productos Maria Nila</h4>
+                            <div id="products-grid" style="display:grid;gap:0.75rem;"></div>
+                        </div>
+                        
+                        <div id="treatments-recommendations" style="margin-top:1.5rem;">
+                            <h4 style="color:#10b981;margin-bottom:0.75rem;">Tratamientos Olaplex</h4>
+                            <div id="treatments-grid" style="display:grid;gap:0.75rem;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2165,6 +2285,12 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             document.getElementById('val-hydration').textContent = hydration;
             document.getElementById('val-sebum').textContent = sebumLevel;
             document.getElementById('val-dandruff').textContent = dandruff;
+            
+            const isColored = document.getElementById('colored-hair-checkbox')?.checked || false;
+            const diagnosis = { density, thickness, hydration: parseInt(hydration), sebum: parseInt(sebumLevel) || 50, isColored };
+            
+            displayDiagnosisProducts(getMariaNilaRecommendations(diagnosis));
+            displayDiagnosisTreatments(getOlaplexRecommendations(diagnosis));
             
             if (statusBadge) {
                 statusBadge.textContent = '✓ Análisis completado';
