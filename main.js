@@ -1718,7 +1718,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 const apt = State.appointments.find(a => a.id === aptId);
                 const photo = apt?.appointmentPhotos?.find(p => p.id === photoId);
                 if (photo && aptId) {
-                    window.editAptPhoto(photoId, aptId, photo.photo_date || '', photo.notes || '');
+                    window.editAptPhoto(photoId, aptId, photo.photo_date || '', photo.notes || '', photo.photo_type || 'before');
                 }
             });
         });
