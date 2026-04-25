@@ -2279,6 +2279,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             if (statusBadge) {
                 statusBadge.textContent = '✓ Análisis completado';
                 statusBadge.style.background = '#10b981';
+            }
             // Guardar resultados para usar al guardar
             currentDiagnosisResults = { density, thickness, hydration, sebumLevel, isColored };
         } catch (err) {
