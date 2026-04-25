@@ -2258,8 +2258,8 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     client_id: clientId,
                     photo_url: publicUrl,
                     photo_date: new Date().toISOString().split('T')[0],
-                    photo_type: 'diagnosis',
-                    notes: `Densidad: ${r.density}, Grosor: ${r.thickness}, Hidratación: ${r.hydration}%, Sebo: ${r.sebumLevel}`
+                    photo_type: 'general',
+                    notes: `DIAGNOSTICO - Densidad: ${r.density}, Grosor: ${r.thickness}, Hidratación: ${r.hydration}%, Sebo: ${r.sebumLevel}`
                 };
                 
                 console.log('DEBUG: Insert:', photoRecord);
