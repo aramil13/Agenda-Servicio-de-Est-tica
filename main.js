@@ -2174,6 +2174,25 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
 });
         }
         
+if (analyzeBtn) {
+            analyzeBtn.onclick = () => {
+                console.log('Analyze button clicked');
+                runDiagnosisAnalysis();
+            };
+        }
+        
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                document.getElementById('preview-container').style.display = 'none';
+                document.getElementById('action-buttons').style.display = 'none';
+                document.getElementById('drop-zone').style.display = 'block';
+                document.getElementById('colored-hair-toggle').style.display = 'none';
+                currentDiagnosisImage = null;
+                currentDiagnosisResults = null;
+                diagnosisImage = null;
+            });
+        }
+        
         if (cameraBtn) {
             cameraBtn.addEventListener('click', async () => {
                 try {
@@ -2235,6 +2254,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
     }
 
     async function runDiagnosisAnalysis() {
+        console.log('runDiagnosisAnalysis called, currentDiagnosisImage:', !!currentDiagnosisImage);
         if (!currentDiagnosisImage) return;
         
         const analyzeBtn = document.getElementById('analyze-btn');
@@ -2247,8 +2267,11 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         }
         
         try {
+            console.log('Starting diagnosis analysis...');
+            
             // Validar imagen primero
             if (!validateDiagnosisImage(currentDiagnosisImage)) {
+                console.log('Image validation failed');
                 if (statusBadge) {
                     statusBadge.textContent = 'Imagen no válida';
                     statusBadge.style.background = '#ef4444';
@@ -2258,11 +2281,16 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 return;
             }
             
+            console.log('Running detection functions...');
             // Análisis real de la imagen
             const density = detectHairDensity(currentDiagnosisImage);
+            console.log('Density:', density);
             const thickness = detectHairThickness(currentDiagnosisImage);
+            console.log('Thickness:', thickness);
             const { hydration, sebumLevel } = detectHydrationAndSebum(currentDiagnosisImage);
+            console.log('Hydration:', hydration, 'Sebum:', sebumLevel);
             const dandruff = detectDandruffLevel(currentDiagnosisImage);
+            console.log('Dandruff:', dandruff);
             
             document.getElementById('val-density').textContent = density;
             document.getElementById('val-thickness').textContent = thickness;
@@ -2283,12 +2311,14 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             // Guardar resultados para usar al guardar
             currentDiagnosisResults = { density, thickness, hydration, sebumLevel, isColored };
         } catch (err) {
+            console.error('ERROR in diagnosis:', err);
             console.warn('Análisis completado con advertencias');
             if (statusBadge) {
                 statusBadge.textContent = '✓ Análisis completado';
                 statusBadge.style.background = '#10b981';
             }
         } finally {
+            console.log('Finally block - re-enabling button');
             if (analyzeBtn) analyzeBtn.disabled = false;
         }
     }
