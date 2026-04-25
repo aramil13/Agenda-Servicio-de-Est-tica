@@ -21,11 +21,11 @@ const MARIA_NILA_PRODUCTS = {
 const OLAPLEX_TREATMENTS = {
     treatmentPremium: { 
         name: "Tratamiento Premium Olaplex", 
-        desc: "Régenera puentes de disulfuro",
+        desc: "Régenera puentes de disulfuro. Protocolo: 1) Broad Spectrum Chelating (3 min) - elimina minerales. 2) Olaplex N°1 (5 min) - recupera enlaces. 3) Olaplex N°2 (3 min) - sella enlaces. 4) Champú N°4 (1 min). 5) Mascarilla N°5 (3 min - encapsulado sin oxígeno).",
     },
     treatmentExpress: { 
         name: "Tratamiento Olaplex Express", 
-        desc: "Tratamiento rápido en 3 min",
+        desc: "Tratamiento 3 veces más fuerte, 3 veces más suave, 3 veces más elástico en 3 min. Paso 1: Prechampu. Paso 2: Olaplex N°3 Plus aplicado con las manos de raíces a puntas.",
     }
 };
 
