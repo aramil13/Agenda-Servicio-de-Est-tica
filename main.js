@@ -556,13 +556,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const today = new Date();
         const defaultDate = photoDate || today.toISOString().split('T')[0];
         
-        // Verificar si la tabla existe
-        let tableExists = false;
+        // Verificar si la tabla existe y tiene datos reales
+        let useDatabase = false;
         try {
             const { error: checkError } = await supabase.from('client_photos').select('id').limit(1);
-            tableExists = !checkError || (!checkError.message?.includes('does not exist') && checkError.code !== '42P01');
+            useDatabase = !checkError || (!checkError.message?.includes('does not exist') && checkError.code !== '42P01');
         } catch (e) {
             console.warn('No se pudo verificar tabla client_photos:', e);
+            useDatabase = false;
         }
         
         for (const file of files) {
@@ -586,8 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .from('client-photos')
                 .getPublicUrl(fileName);
             
-            // Crear objeto de foto
-            const newPhoto = {
+            const photoRecord = {
                 id: newPhotoId,
                 client_id: clientId,
                 photo_url: publicUrl,
@@ -597,8 +597,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 created_at: new Date().toISOString()
             };
             
-            // Insertar en BD solo si la tabla existe
-            if (tableExists) {
+            if (useDatabase) {
+                // Insertar SOLO en BD (la fuente de verdad)
                 const { error: insertError } = await supabase.from('client_photos').insert({
                     id: newPhotoId,
                     client_id: clientId,
@@ -609,11 +609,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 if (insertError) {
                     console.error('Error al insertar en BD:', insertError);
+                    // Fallback al cache
+                    State.diagnosisPhotosCache.push(photoRecord);
                 }
+            } else {
+                // Sin BD, usar cache local
+                State.diagnosisPhotosCache.push(photoRecord);
             }
             
-            // Siempre guardar en cache local
-            State.diagnosisPhotosCache.push(newPhoto);
             urls.push(publicUrl);
         }
         
@@ -2714,14 +2717,34 @@ window.addEventListener('message', async (event) => {
             let currentPhotos = [];
             
             if (isEdit && info?.id) {
-                const loadedPhotos = await loadClientPhotos(info.id);
-                // Eliminar duplicados al cargar
-                const seenIds = new Set();
-                currentPhotos = loadedPhotos.filter(p => {
-                    if (seenIds.has(p.id)) return false;
-                    seenIds.add(p.id);
-                    return true;
-                });
+                // Usar SOLO datos de Supabase para evitar duplicados
+                try {
+                    const { data, error } = await supabase
+                        .from('client_photos')
+                        .select('*')
+                        .eq('client_id', info.id)
+                        .order('created_at', { ascending: false });
+                    
+                    if (!error && data && data.length > 0) {
+                        // Eliminar duplicados por ID
+                        const seenIds = new Set();
+                        currentPhotos = data.filter(p => {
+                            if (seenIds.has(p.id)) return false;
+                            seenIds.add(p.id);
+                            return true;
+                        });
+                    } else {
+                        // Fallback al cache local si no hay datos en BD
+                        currentPhotos = State.diagnosisPhotosCache.filter(p => 
+                            String(p.client_id) === String(info.id)
+                        );
+                    }
+                } catch (e) {
+                    console.warn('Error cargando fotos de BD, usando cache:', e);
+                    currentPhotos = State.diagnosisPhotosCache.filter(p => 
+                        String(p.client_id) === String(info.id)
+                    );
+                }
                 State.clientPhotos[info.id] = currentPhotos;
             }
 
@@ -2736,7 +2759,19 @@ window.addEventListener('message', async (event) => {
             const renderPhotos = () => {
                 const galleryEl = document.getElementById('client-photos-gallery');
                 if (!galleryEl) return;
-                galleryEl.innerHTML = currentPhotos.map(p => `
+                
+                // Siempre eliminar duplicados antes de renderizar
+                const seenIds = new Set();
+                const uniquePhotos = currentPhotos.filter(p => {
+                    if (seenIds.has(p.id)) {
+                        console.log('DUPLICADO ENCONTRADO:', p.id);
+                        return false;
+                    }
+                    seenIds.add(p.id);
+                    return true;
+                });
+                
+                galleryEl.innerHTML = uniquePhotos.map(p => `
                     <div class="photo-thumb" style="position:relative;width:60px;height:60px" data-id="${p.id}">
                         <img src="${p.photo_url}" style="width:100%;height:100%;border-radius:8px;object-fit:cover;cursor:pointer" class="view-photo" data-url="${p.photo_url}">
                         <button type="button" class="edit-client-photo" data-id="${p.id}" data-date="${p.photo_date || ''}" data-type="${p.photo_type || 'before'}" data-notes="${p.notes || ''}" style="position:absolute;top:-6px;right:14px;background:#2196F3;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px">✎</button>
@@ -2751,7 +2786,7 @@ window.addEventListener('message', async (event) => {
                 
                 galleryEl.querySelectorAll('.view-photo').forEach(img => {
                     img.addEventListener('click', () => {
-                        openModal('Foto', `<div style="text-align:center"><img src="${img.dataset.url}" style="max-width:100%;max-height:70vh;border-radius:8px"></div>`);
+                        openModal('Foto', '<div style="text-align:center"><img src="' + img.dataset.url + '" style="max-width:100%;max-height:70vh;border-radius:8px"></div>');
                     });
                 });
             };
