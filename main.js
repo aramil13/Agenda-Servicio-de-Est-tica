@@ -298,6 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 notes: a.notes || '',
                 whatsappSent: a.whatsapp_sent || false,
                 userEmail: a.user_email || '',
+                appointmentPhotos: a.appointment_photos || [],
             }));
 
             } catch (err) {
@@ -812,9 +813,23 @@ document.addEventListener('DOMContentLoaded', () => {
 const endTime = new Date(new Date(`${apt.date}T${apt.time}`).getTime() + (service.duration || 0) * 60000);
                 const endStr = endTime.toTimeString().substring(0, 5);
                 
-                const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-primary)';
+const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-primary)';
                 const userInitial = apt.userEmail ? apt.userEmail.charAt(0).toUpperCase() : '?';
                 const userDisplay = apt.userEmail ? apt.userEmail.split('@')[0] : 'Sistema';
+                
+                const appointmentPhotos = apt.appointmentPhotos || [];
+                let photosHtml = '';
+                if (appointmentPhotos.length > 0) {
+                    photosHtml = '<div class="day-detail-photos" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px">';
+                    appointmentPhotos.forEach(p => {
+                        photosHtml += `
+                            <div style="text-align:center">
+                                <img src="${p.photo_url}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                                <div style="font-size:0.65rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
+                            </div>`;
+                    });
+                    photosHtml += '</div>';
+                }
                 
                 detailHtml += `
                     <div class="day-detail-item">
@@ -823,6 +838,7 @@ const endTime = new Date(new Date(`${apt.date}T${apt.time}`).getTime() + (servic
                             <strong>${client.name}</strong>
                             <span>${service.name} · ${service.duration} min${apt.notes ? ' · ' + apt.notes : ''}</span>
                             <span class="apt-user-key" style="color:${userColor}" title="${apt.userEmail}">${userDisplay}</span>
+                            ${photosHtml}
                             </div>
                         </div>
                         <div class="day-detail-actions">
