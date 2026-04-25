@@ -2264,11 +2264,29 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 
                 console.log('DEBUG: Insert:', photoRecord);
                 
-                console.log('DEBUG: Before insert, photoRecord:', JSON.stringify(photoRecord));
+                // Intentar insert especificando campos directamente
+                const insertData = {
+                    id: photoId,
+                    client_id: clientId,
+                    photo_url: publicUrl,
+                    photo_date: new Date().toISOString().split('T')[0],
+                    photo_type: 'general',
+                    notes: 'DIAGNOSTICO'
+                };
                 
-                const { error: insertError } = await supabase.from('client_photos').insert(photoRecord);
+                console.log('DEBUG: Direct insert:', JSON.stringify(insertData));
                 
-                console.log('DEBUG: After insert, error:', insertError);
+                // Insert simple - solo photo_type: general (valor permitido)
+                const { data: newRows, error: insertError } = await supabase.from('client_photos').insert([{
+                    id: photoId,
+                    client_id: clientId,
+                    photo_url: publicUrl,
+                    photo_date: new Date().toISOString().split('T')[0],
+                    photo_type: 'general',
+                    notes: 'DIAGNOSTICO'
+                }]);
+                
+                console.log('DEBUG: Insert result:', newRows, insertError);
                 
                 if (insertError) {
                     console.error('ERROR insert:', insertError);
