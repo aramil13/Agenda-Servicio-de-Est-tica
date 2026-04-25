@@ -2193,7 +2193,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         const saveBtn = document.getElementById('save-diagnosis-btn');
         if (saveBtn) {
             saveBtn.addEventListener('click', async () => {
-                console.log('DEBUG: Save button clicked', { clientId, hasResults: !!currentDiagnosisResults, hasImage: !!currentDiagnosisImage });
+                console.log('DEBUG: Save button clicked', { clientId: sessionStorage.getItem('nymara_diagnosis_client_id'), hasResults: !!currentDiagnosisResults, hasImage: !!currentDiagnosisImage });
                 
                 if (!currentDiagnosisResults || !currentDiagnosisImage) {
                     showToast('Faltan datos para guardar', 'error');
@@ -2209,61 +2209,74 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 saveBtn.disabled = true;
                 saveBtn.textContent = 'Guardando...';
                 
-                try {
-                    // Convertir imagen a blob
+                // Convert image to blob using Promise
+                const blob = await new Promise(resolve => {
                     const canvas = document.createElement('canvas');
                     canvas.width = currentDiagnosisImage.width;
                     canvas.height = currentDiagnosisImage.height;
                     canvas.getContext('2d').drawImage(currentDiagnosisImage, 0, 0);
-                    
-                    canvas.toBlob(async blob => {
-                        console.log('DEBUG: Starting save process', { clientId, hasImage: !!blob });
-                        
-                        const fileName = `${clientId}/diagnosis_${Date.now()}.jpg`;
-                        const { data, error } = await supabase.storage
-                            .from('client-photos')
-                            .upload(fileName, blob);
-                        
-                        if (error) {
-                            console.error('ERROR uploading to storage:', error);
-                            showToast('Error al guardar: ' + error.message, 'error');
-                            saveBtn.disabled = false;
-                            saveBtn.textContent = '💾 Guardar en Cliente';
-                            return;
-                        }
-                        
-                        console.log('Upload success:', data);
-                        
-                        const { data: { publicUrl } } = supabase.storage
-                            .from('client-photos')
-                            .getPublicUrl(fileName);
-                        
-                        const photoId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-                            const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-                            return v.toString(16);
-                        });
-                        
-                        const r = currentDiagnosisResults;
-                        console.log('Inserting to client_photos:', { photoId, clientId, publicUrl, photo_type: 'diagnosis' });
-                        
-                        await supabase.from('client_photos').insert({
-                            id: photoId,
-                            client_id: clientId,
-                            photo_url: publicUrl,
-                            photo_date: new Date().toISOString().split('T')[0],
-                            photo_type: 'diagnosis',
-                            notes: `Densidad: ${r.density}, Grosor: ${r.thickness}, Hidratación: ${r.hydration}%, Sebo: ${r.sebumLevel}`
-                        });
-                        
-                        saveBtn.textContent = '✓ Guardado';
-                        showToast('Foto de diagnóstico guardada');
-                    }, 'image/jpeg', 0.9);
-                } catch (e) {
-                    console.error('Error:', e);
-                    showToast('Error al guardar', 'error');
+                    canvas.toBlob(resolve, 'image/jpeg', 0.9);
+                });
+                
+                if (!blob || blob.size === 0) {
+                    console.error('ERROR: Empty blob');
+                    showToast('Error: imagen vacía', 'error');
                     saveBtn.disabled = false;
                     saveBtn.textContent = '💾 Guardar en Cliente';
+                    return;
                 }
+                
+                const file = new File([blob], 'diagnosis.jpg', { type: 'image/jpeg' });
+                const fileName = `${clientId}/diagnosis_${Date.now()}.jpg`;
+                
+                console.log('DEBUG: Upload:', fileName, 'size:', file.size, 'type:', file.type);
+                
+                const { data, error } = await supabase.storage
+                    .from('client-photos')
+                    .upload(fileName, file);
+                
+                if (error) {
+                    console.error('ERROR upload:', error.status, error.message);
+                    showToast('Error storage: ' + error.message, 'error');
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = '💾 Guardar en Cliente';
+                    return;
+                }
+                
+                const { data: { publicUrl } } = supabase.storage
+                    .from('client-photos')
+                    .getPublicUrl(fileName);
+                
+                const photoId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+                
+                const r = currentDiagnosisResults;
+                const photoRecord = {
+                    id: photoId,
+                    client_id: clientId,
+                    photo_url: publicUrl,
+                    photo_date: new Date().toISOString().split('T')[0],
+                    photo_type: 'diagnosis',
+                    notes: `Densidad: ${r.density}, Grosor: ${r.thickness}, Hidratación: ${r.hydration}%, Sebo: ${r.sebumLevel}`
+                };
+                
+                console.log('DEBUG: Insert:', photoRecord);
+                
+                const { error: insertError } = await supabase.from('client_photos').insert(photoRecord);
+                
+                if (insertError) {
+                    console.error('ERROR insert:', insertError);
+                    showToast('Error BD: ' + insertError.message, 'error');
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = '💾 Guardar en Cliente';
+                    return;
+                }
+                
+                console.log('SUCCESS');
+                saveBtn.textContent = '✓ Guardado';
+                showToast('Foto de diagnóstico guardada');
             });
         }
         
