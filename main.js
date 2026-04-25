@@ -2,19 +2,19 @@
 const MARIA_NILA_PRODUCTS = {
     // Champús
     headHairHealShampoo: { name: "Head & Hair Heal Shampoo", desc: "Calma cuero cabelludo sensible con aloe vera y piroctona olamina.", img: "https://marianila.com/cdn/shop/files/13650-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-shampoo-350-ml", category: "scalp" },
-    generalSoftShampoo: { name: "True Soft Shampoo", desc: "Hidratación profunda con aceite de argán para cabello seco.", img: "https://marianila.com/cdn/shop/files/3630-packshot.jpg", url: "https://marianila.com/products/general-soft-shampoo-350-ml", category: "dry" },
+    trueSoftShampoo: { name: "True Soft Shampoo", desc: "Hidratación profunda con aceite de argán para cabello seco.", img: "https://marianila.com/cdn/shop/files/3630-packshot.jpg", url: "https://marianila.com/products/true-soft-shampoo-350-ml", category: "dry" },
     pureVolumeShampoo: { name: "Pure Volume Shampoo", desc: "Voluminizador con provitamina B5 para cabello fino.", img: "https://marianila.com/cdn/shop/files/3610-packshot.jpg", url: "https://marianila.com/products/pure-volume-shampoo-350-ml", category: "fine" },
     luminousColourShampoo: { name: "Luminous Colour Shampoo", desc: "Preserva color con extracto de Granada.", img: "https://marianila.com/cdn/shop/files/3625-packshot.jpg", url: "https://marianila.com/products/luminous-colour-shampoo-350-ml", category: "colored" },
     purifyingCleanseShampoo: { name: "Purifying Cleanse Shampoo", desc: "Champú purificante para cuero cabelludo graso.", img: "https://marianila.com/cdn/shop/files/3615-packshot.jpg", url: "https://marianila.com/products/purifying-cleanse-shampoo-350-ml", category: "oily" },
     structureRepairShampoo: { name: "Structure Repair Shampoo", desc: "Repara cabello dañado con keratina.", img: "https://marianila.com/cdn/shop/files/3600-packshot.jpg", url: "https://marianila.com/products/structure-repair-shampoo-350-ml", category: "damaged" },
     // Acondicionadores
     headHairHealConditioner: { name: "Head & Hair Heal Conditioner", desc: "Acondicionador calmante para el cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/13651-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-conditioner-300-ml", category: "scalp" },
-    generalSoftConditioner: { name: "True Soft Conditioner", desc: "Acondicionador hidratante con aceite de argán.", img: "https://marianila.com/cdn/shop/files/3631-packshot.jpg", url: "https://marianila.com/products/general-soft-conditioner-300-ml", category: "dry" },
+    trueSoftConditioner: { name: "True Soft Conditioner", desc: "Acondicionador hidratante con aceite de argán.", img: "https://marianila.com/cdn/shop/files/3631-packshot.jpg", url: "https://marianila.com/products/true-soft-conditioner-300-ml", category: "dry" },
     pureVolumeConditioner: { name: "Pure Volume Conditioner", desc: "Acondicionador voluminizador ligero.", img: "https://marianila.com/cdn/shop/files/3611-packshot.jpg", url: "https://marianila.com/products/pure-volume-conditioner-300-ml", category: "fine" },
     luminousColourConditioner: { name: "Luminous Colour Conditioner", desc: "Acondicionador preservador de color.", img: "https://marianila.com/cdn/shop/files/3626-packshot.jpg", url: "https://marianila.com/products/luminous-colour-conditioner-300-ml", category: "colored" },
     // Tratamientos
     bondBuilder: { name: "Bond Builder", desc: "Reparador de enlaces capilares intensivo.", img: "https://marianila.com/cdn/shop/files/mnproductpage1200x1500px1.jpg", url: "https://marianila.com/products/bond-builder", category: "damaged" },
-    generalSoftArganOil: { name: "True Soft Argan Oil", desc: "Aceite de argán para hidratación.", img: "https://marianila.com/cdn/shop/files/IMG_c_s_3637_soft_argan_oil_100_ml.jpg", url: "https://marianila.com/products/general-soft-argan-oil-100-ml", category: "dry" }
+    trueSoftArganOil: { name: "True Soft Argan Oil", desc: "Aceite de argán para hidratación.", img: "https://marianila.com/cdn/shop/files/IMG_c_s_3637_soft_argan_oil_100_ml.jpg", url: "https://marianila.com/products/true-soft-argan-oil-100-ml", category: "dry" }
 };
 
 // Tratamiento Premium Olaplex del Salón
@@ -37,8 +37,8 @@ function getMariaNilaRecommendations(diagnosis) {
     
     // Lógica de recomendaciones según resultados
     if (hydration < 50) {
-        recommendations.push(MARIA_NILA_PRODUCTS.generalSoftShampoo);
-        recommendations.push(MARIA_NILA_PRODUCTS.generalSoftConditioner);
+        recommendations.push(MARIA_NILA_PRODUCTS.trueSoftShampoo);
+        recommendations.push(MARIA_NILA_PRODUCTS.trueSoftConditioner);
     }
     if (density < 150) {
         recommendations.push(MARIA_NILA_PRODUCTS.pureVolumeShampoo);
@@ -280,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /** Loads all data from Supabase into our local State cache */
     async function loadAllData() {
-        State.isLoading = general;
+        State.isLoading = true;
         renderRoute();
 
         try {
@@ -427,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (apt.date < todayStr || apt.date > limitStr) return false;
                     if (apt.whatsappSent) return false; // Solo pendientes
                     const client = State.clients.find(c => c.id === apt.clientId);
-                    return client && (client.enviar_was === general || client.enviar_was === 'general' || client.enviar_was === 1);
+                    return client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1);
                 }).length;
                 
                 if (count > 0) {
@@ -518,7 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
             authSubmitText.style.opacity = '0';
             authSpinner.style.display = 'block';
             const btn = document.getElementById('auth-submit-btn');
-            btn.disabled = general;
+            btn.disabled = true;
 
             try {
                 const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -634,10 +634,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             console.log('DEBUG: Supabase delete response:', data);
             
-            return general;
+            return true;
         } catch (e) {
             console.warn('DEBUG: deleteClientPhoto fallback a cache local:', e);
-            return general;
+            return true;
         }
     }
 
@@ -670,10 +670,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('DEBUG: Supabase update error:', error);
             }
             console.log('DEBUG: Supabase update response:', data);
-            return general;
+            return true;
         } catch (e) {
             console.warn('DEBUG: updateClientPhoto fallback a cache local:', e);
-            return general;
+            return true;
         }
     }
 
@@ -699,7 +699,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) { showToast('Error al añadir cliente: ' + error.message, 'error'); return false; }
         State.clients.push(data);
         showToast('Cliente añadido correctamente');
-        return general;
+        return true;
     }
 
     async function updateClient(data) {
@@ -717,7 +717,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         State.clients = State.clients.map(c => c.id === data.id ? data : c);
         showToast('Cliente actualizado correctamente');
-        return general;
+        return true;
     }
 
     async function deleteClient(id) {
@@ -731,7 +731,7 @@ document.addEventListener('DOMContentLoaded', () => {
         State.clients = State.clients.filter(c => c.id !== id);
         delete State.clientPhotos[id];
         showToast('Cliente eliminado');
-        return general;
+        return true;
     }
 
     // ── Services CRUD ──
@@ -741,7 +741,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) { showToast('Error al añadir servicio: ' + error.message, 'error'); return false; }
         State.services.push(data);
         showToast('Servicio añadido correctamente');
-        return general;
+        return true;
     }
 
     async function updateService(data) {
@@ -749,7 +749,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) { showToast('Error al actualizar servicio: ' + error.message, 'error'); return false; }
         State.services = State.services.map(s => s.id === data.id ? data : s);
         showToast('Servicio actualizado correctamente');
-        return general;
+        return true;
     }
 
     async function deleteService(id) {
@@ -757,7 +757,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) { showToast('Error al eliminar servicio: ' + error.message, 'error'); return false; }
         State.services = State.services.filter(s => s.id !== id);
         showToast('Servicio eliminado');
-        return general;
+        return true;
     }
 
     // ── Appointments CRUD ──
@@ -778,19 +778,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) { showToast('Error al agendar cita: ' + error.message, 'error'); return false; }
         State.appointments.push(data);
         showToast('Cita agendada correctamente');
-        return general;
+        return true;
     }
 
     async function markAppointmentReminded(id) {
         // Intentamos actualizar la columna whatsapp_sent
-        const { error } = await supabase.from('appointments').update({ whatsapp_sent: general }).eq('id', id);
+        const { error } = await supabase.from('appointments').update({ whatsapp_sent: true }).eq('id', id);
         if (error) { 
             console.error('Error al marcar como avisado (¿columna whatsapp_sent existe?):', error);
             // Si falla, al menos lo marcamos en local para que desaparezca de la lista actual
         }
         const apt = State.appointments.find(a => a.id === id);
-        if (apt) apt.whatsappSent = general;
-        return general;
+        if (apt) apt.whatsappSent = true;
+        return true;
     }
 
     async function deleteAppointment(id) {
@@ -798,7 +798,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) { showToast('Error al cancelar cita: ' + error.message, 'error'); return false; }
         State.appointments = State.appointments.filter(a => a.id !== id);
         showToast('Cita cancelada');
-        return general;
+        return true;
     }
 
     async function updateAppointmentPhotos(appointmentId, photos) {
@@ -810,7 +810,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const apt = State.appointments.find(a => a.id === appointmentId);
         if (apt) apt.appointmentPhotos = photos;
-        return general;
+        return true;
     }
 
     async function uploadAppointmentPhoto(file, appointmentId, clientId) {
@@ -948,7 +948,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Current month days
         for (let d = 1; d <= daysInMonth; d++) {
             const dt = new Date(year, month, d);
-            days.push({ date: dt, dateStr: toLocalDateStr(dt), currentMonth: general });
+            days.push({ date: dt, dateStr: toLocalDateStr(dt), currentMonth: true });
         }
 
         // Fill remaining to complete grid (6 rows max)
@@ -1225,15 +1225,15 @@ function getClientAppointmentPhotos(clientId) {
             
             const aptPhotos = filteredPhotos
                 .sort((a, b) => (b.photo_date || '').localeCompare(a.photo_date || ''));
-            // Also include general client photos
-            const generalPhotos = (State.clientPhotos[clientIdStr] || []).map(p => ({
+            // Also include true client photos
+            const truePhotos = (State.clientPhotos[clientIdStr] || []).map(p => ({
                 id: p.id,
                 photo_url: p.photo_url,
                 photo_date: p.created_at ? p.created_at.split('T')[0] : '',
                 photo_type: 'antes',
                 notes: ''
             }));
-            return [...aptPhotos, ...generalPhotos].sort((a, b) => (b.photo_date || '').localeCompare(a.photo_date || ''));
+            return [...aptPhotos, ...truePhotos].sort((a, b) => (b.photo_date || '').localeCompare(a.photo_date || ''));
         }
 
         let rows = '';
@@ -1275,17 +1275,17 @@ function getClientAppointmentPhotos(clientId) {
                         </div>
                         <div class="client-photos-grid">
                             ${photos.map((p) => {
-                                const isGeneral = p.photo_type === 'general';
+                                const isGeneral = p.photo_type === 'true';
                                 const badgeColor = isGeneral ? '#6366f1' : (p.photo_type === 'before' ? '#f59e0b' : '#10b981');
                                 const badgeText = isGeneral ? 'Foto' : (p.photo_type === 'before' ? 'Antes' : 'Después');
                                 return `
-                                <div class="client-photo-item" style="position:relative" data-apt-id="${p.appointment_id || ''}" data-photo-id="${p.id}" data-client-id="${c.id}" data-is-general="${isGeneral}">
+                                <div class="client-photo-item" style="position:relative" data-apt-id="${p.appointment_id || ''}" data-photo-id="${p.id}" data-client-id="${c.id}" data-is-true="${isGeneral}">
                                     <img src="${p.photo_url}" class="client-apt-photo view-client-photo" data-url="${p.photo_url}" data-date="${p.photo_date}" data-type="${p.photo_type}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer">
                                     <span class="client-photo-badge" style="position:absolute;bottom:2px;left:2px;font-size:0.6rem;background:${badgeColor};color:white;padding:1px 4px;border-radius:4px">${badgeText}</span>
                                     <span class="client-photo-date" style="position:absolute;top:2px;left:2px;font-size:0.55rem;background:rgba(0,0,0,0.6);color:white;padding:1px 4px;border-radius:4px">${p.photo_date || ''}</span>
                                     <div class="client-photo-actions" style="position:absolute;top:0;right:0;display:flex;gap:2px">
-                                        <button type="button" class="edit-client-photo-btn" data-is-general="${isGeneral}" data-apt-id="${p.appointment_id || ''}" data-photo-id="${p.id}" data-client-id="${c.id}" data-date="${p.photo_date || ''}" data-notes="${p.notes || ''}" data-type="${p.photo_type}" title="Editar" style="background:rgba(0,0,0,0.5);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px">✏️</button>
-                                        <button type="button" class="delete-client-photo-btn" data-is-general="${isGeneral}" data-apt-id="${p.appointment_id || ''}" data-photo-id="${p.id}" data-client-id="${c.id}" title="Eliminar" style="background:rgba(0,0,0,0.5);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px">🗑️</button>
+                                        <button type="button" class="edit-client-photo-btn" data-is-true="${isGeneral}" data-apt-id="${p.appointment_id || ''}" data-photo-id="${p.id}" data-client-id="${c.id}" data-date="${p.photo_date || ''}" data-notes="${p.notes || ''}" data-type="${p.photo_type}" title="Editar" style="background:rgba(0,0,0,0.5);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px">✏️</button>
+                                        <button type="button" class="delete-client-photo-btn" data-is-true="${isGeneral}" data-apt-id="${p.appointment_id || ''}" data-photo-id="${p.id}" data-client-id="${c.id}" title="Eliminar" style="background:rgba(0,0,0,0.5);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px">🗑️</button>
                                     </div>
                                 </div>`;
                             }).join('')}
@@ -1557,7 +1557,7 @@ function getClientAppointmentPhotos(clientId) {
             if (apt.whatsappSent) return false;
             
             const client = State.clients.find(c => c.id === apt.clientId);
-            return client && (client.enviar_was === general || client.enviar_was === 'general' || client.enviar_was === 1);
+            return client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1);
         }).sort((a, b) => {
             if (a.date !== b.date) return a.date.localeCompare(b.date);
             return a.time.localeCompare(b.time);
@@ -1755,7 +1755,6 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                         
                         <div id="action-buttons" style="display:none;margin-top:1.5rem;">
                             <button id="analyze-btn" class="btn btn-primary" style="width:100%;">Iniciar Análisis</button>
-                            <button id="save-diagnosis-btn" class="btn" style="width:100%;background:#10b981;color:#fff;display:none;margin-top:0.5rem;">💾 Guardar en Cliente</button>
                             <button id="reset-btn" class="btn btn-secondary" style="margin-top:0.5rem;width:100%;">Cambiar Imagen</button>
                         </div>
                         
@@ -1975,7 +1974,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 const currentDate = e.currentTarget.dataset.date;
                 const currentNotes = e.currentTarget.dataset.notes;
                 const currentType = e.currentTarget.dataset.type;
-                const isGeneral = e.currentTarget.dataset.isGeneral === 'general';
+                const isGeneral = e.currentTarget.dataset.isGeneral === 'true';
                 if (isGeneral) {
                     editGeneralClientPhoto(photoId, clientId);
                 } else {
@@ -1991,7 +1990,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 const aptId = e.currentTarget.dataset.aptId;
                 const photoId = e.currentTarget.dataset.photoId;
                 const clientId = e.currentTarget.dataset.clientId;
-                const isGeneral = e.currentTarget.dataset.isGeneral === 'general';
+                const isGeneral = e.currentTarget.dataset.isGeneral === 'true';
                 if (isGeneral) {
                     deleteGeneralClientPhoto(photoId, clientId);
                 } else {
@@ -2091,7 +2090,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 <div class="form-group">
                     <label>¿Enviar mensaje de WhatsApp automático?</label>
                     <select class="form-control" name="enviar_was">
-                        <option value="general">Sí</option>
+                        <option value="true">Sí</option>
                         <option value="false" selected>No</option>
                     </select>
                 </div>
@@ -2105,7 +2104,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             document.getElementById('client-form-diagnosis').addEventListener('submit', async e => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
-                submitBtn.disabled = general;
+                submitBtn.disabled = true;
                 submitBtn.textContent = 'Guardando…';
 
                 const fd = new FormData(e.target);
@@ -2115,7 +2114,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     name: fd.get('name'),
                     phone: fd.get('phone'),
                     email: fd.get('email'),
-                    enviar_was: fd.get('enviar_was') === 'general',
+                    enviar_was: fd.get('enviar_was') === 'true',
                     observations: ''
                 };
 
@@ -2170,136 +2169,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             fileInput.addEventListener('change', e => {
                 const file = e.target.files[0];
                 if (file) processDiagnosisFile(file);
-            });
-        }
-        
-        if (analyzeBtn) {
-            analyzeBtn.onclick = runDiagnosisAnalysis;
-        }
-        
-        if (resetBtn) {
-            resetBtn.addEventListener('click', () => {
-                document.getElementById('preview-container').style.display = 'none';
-                document.getElementById('action-buttons').style.display = 'none';
-                document.getElementById('drop-zone').style.display = 'block';
-                document.getElementById('colored-hair-toggle').style.display = 'none';
-                document.getElementById('save-diagnosis-btn').style.display = 'none';
-                currentDiagnosisImage = null;
-                currentDiagnosisResults = null;
-                diagnosisImage = null;
-            });
-        }
-        
-        const saveBtn = document.getElementById('save-diagnosis-btn');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', async () => {
-                console.log('DEBUG: Save button clicked', { clientId: sessionStorage.getItem('nymara_diagnosis_client_id'), hasResults: !!currentDiagnosisResults, hasImage: !!currentDiagnosisImage });
-                
-                if (!currentDiagnosisResults || !currentDiagnosisImage) {
-                    showToast('Faltan datos para guardar', 'error');
-                    return;
-                }
-                
-                const clientId = sessionStorage.getItem('nymara_diagnosis_client_id');
-                if (!clientId) {
-                    showToast('No hay cliente seleccionado', 'error');
-                    return;
-                }
-                
-                saveBtn.disabled = general;
-                saveBtn.textContent = 'Guardando...';
-                
-                // Convert image to blob using Promise
-                const blob = await new Promise(resolve => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = currentDiagnosisImage.width;
-                    canvas.height = currentDiagnosisImage.height;
-                    canvas.getContext('2d').drawImage(currentDiagnosisImage, 0, 0);
-                    canvas.toBlob(resolve, 'image/jpeg', 0.9);
-                });
-                
-                if (!blob || blob.size === 0) {
-                    console.error('ERROR: Empty blob');
-                    showToast('Error: imagen vacía', 'error');
-                    saveBtn.disabled = false;
-                    saveBtn.textContent = '💾 Guardar en Cliente';
-                    return;
-                }
-                
-                const file = new File([blob], 'diagnosis.jpg', { type: 'image/jpeg' });
-                const fileName = `${clientId}/diagnosis_${Date.now()}.jpg`;
-                
-                console.log('DEBUG: Upload:', fileName, 'size:', file.size, 'type:', file.type);
-                
-                const { data, error } = await supabase.storage
-                    .from('client-photos')
-                    .upload(fileName, file);
-                
-                if (error) {
-                    console.error('ERROR upload:', error.status, error.message);
-                    showToast('Error storage: ' + error.message, 'error');
-                    saveBtn.disabled = false;
-                    saveBtn.textContent = '💾 Guardar en Cliente';
-                    return;
-                }
-                
-                const { data: { publicUrl } } = supabase.storage
-                    .from('client-photos')
-                    .getPublicUrl(fileName);
-                
-                const photoId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-                    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-                    return v.toString(16);
-                });
-                
-                const r = currentDiagnosisResults;
-                const photoRecord = {
-                    id: photoId,
-                    client_id: clientId,
-                    photo_url: publicUrl,
-                    photo_date: new Date().toISOString().split('T')[0],
-                    photo_type: 'antes',
-                    notes: `DIAGNOSTICO - Densidad: ${r.density}, Grosor: ${r.thickness}, Hidratación: ${r.hydration}%, Sebo: ${r.sebumLevel}`
-                };
-                
-                console.log('DEBUG: Insert:', photoRecord);
-                
-                // Intentar insert especificando campos directamente
-                const insertData = {
-                    id: photoId,
-                    client_id: clientId,
-                    photo_url: publicUrl,
-                    photo_date: new Date().toISOString().split('T')[0],
-                    photo_type: 'antes',
-                    notes: 'DIAGNOSTICO'
-                };
-                
-                console.log('DEBUG: Direct insert:', JSON.stringify(insertData));
-                
-                // Insert simple - solo photo_type: antes (valor permitido)
-                const { data: newRows, error: insertError } = await supabase.from('client_photos').insert([{
-                    id: photoId,
-                    client_id: clientId,
-                    photo_url: publicUrl,
-                    photo_date: new Date().toISOString().split('T')[0],
-                    photo_type: 'antes',
-                    notes: 'DIAGNOSTICO'
-                }]);
-                
-                console.log('DEBUG: Insert result:', newRows, insertError);
-                
-                if (insertError) {
-                    console.error('ERROR insert:', insertError);
-                    showToast('Error BD: ' + insertError.message, 'error');
-                    saveBtn.disabled = false;
-                    saveBtn.textContent = '💾 Guardar en Cliente';
-                    return;
-                }
-                
-                console.log('SUCCESS');
-                saveBtn.textContent = '✓ Guardado';
-                showToast('Foto de diagnóstico guardada');
-            });
+});
         }
         
         if (cameraBtn) {
@@ -2366,7 +2236,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         if (!currentDiagnosisImage) return;
         
         const analyzeBtn = document.getElementById('analyze-btn');
-        if (analyzeBtn) analyzeBtn.disabled = general;
+        if (analyzeBtn) analyzeBtn.disabled = true;
 
         const statusBadge = document.getElementById('status-badge');
         if (statusBadge) {
@@ -2407,16 +2277,6 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             if (statusBadge) {
                 statusBadge.textContent = '✓ Análisis completado';
                 statusBadge.style.background = '#10b981';
-            }
-            
-            // Mostrar botón guardar
-            const saveBtn = document.getElementById('save-diagnosis-btn');
-            if (saveBtn) {
-                saveBtn.style.display = 'block';
-                saveBtn.disabled = false;
-                saveBtn.textContent = '💾 Guardar en Cliente';
-            }
-            
             // Guardar resultados para usar al guardar
             currentDiagnosisResults = { density, thickness, hydration, sebumLevel, isColored };
         } catch (err) {
@@ -2710,7 +2570,7 @@ window.addEventListener('message', async (event) => {
                 <div class="form-group">
                     <label>¿Enviar mensaje de WhatsApp automático?</label>
                     <select class="form-control" name="enviar_was">
-                        <option value="general" ${isEdit && (info.enviar_was === general || info.enviar_was === 'general' || info.enviar_was === 1) ? 'selected' : ''}>Sí</option>
+                        <option value="true" ${isEdit && (info.enviar_was === true || info.enviar_was === 'true' || info.enviar_was === 1) ? 'selected' : ''}>Sí</option>
                         <option value="false" ${!isEdit || (info.enviar_was === false || info.enviar_was === 'false' || info.enviar_was === 0 || info.enviar_was === null) ? 'selected' : ''}>No</option>
                     </select>
                 </div>
@@ -2924,7 +2784,7 @@ window.addEventListener('message', async (event) => {
             document.getElementById('client-form').addEventListener('submit', async e => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
-                submitBtn.disabled = general;
+                submitBtn.disabled = true;
                 submitBtn.textContent = 'Guardando…';
 
                 const fd = new FormData(e.target);
@@ -2935,7 +2795,7 @@ window.addEventListener('message', async (event) => {
                     name: fd.get('name'), 
                     phone: fd.get('phone'), 
                     email: fd.get('email'),
-                    enviar_was: fd.get('enviar_was') === 'general',
+                    enviar_was: fd.get('enviar_was') === 'true',
                     observations: fd.get('observations')
                 };
 
@@ -2985,7 +2845,7 @@ window.addEventListener('message', async (event) => {
             document.getElementById('service-form').addEventListener('submit', async e => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
-                submitBtn.disabled = general;
+                submitBtn.disabled = true;
                 submitBtn.textContent = 'Guardando…';
 
                 const fd = new FormData(e.target);
@@ -3296,7 +3156,7 @@ window.addEventListener('message', async (event) => {
             form.addEventListener('submit', async e => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
-                submitBtn.disabled = general;
+                submitBtn.disabled = true;
                 submitBtn.textContent = 'Agendando…';
 
                 const fd = new FormData(e.target);
@@ -3439,7 +3299,7 @@ window.addEventListener('message', async (event) => {
                     
                     // Notificar por WhatsApp si el cliente lo tiene activado
                     const client = State.clients.find(c => c.id === data.clientId);
-                    if (client && (client.enviar_was === general || client.enviar_was === 'general' || client.enviar_was === 1) && client.phone) {
+                    if (client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1) && client.phone) {
                         sendWASMessage(client.phone, client.name, data.date, data.time);
                     }
                 }
