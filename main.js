@@ -461,14 +461,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function uploadClientPhoto(file, clientId, photoDate, photoType, photoNotes) {
         console.log('uploadClientPhoto called:', { clientId, photoDate, photoType });
-        const fileExt = file.name.split('.').pop();
-        const photoId = generateId();
-        const fileName = `${clientId}/${photoId}.${fileExt}`;
         
         // Calcular hash para evitar duplicados
         const buffer = await file.arrayBuffer();
         const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
         const photoHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        
+        // Verificar si ya existe una foto con este hash para este cliente
+        const { data: existingPhotos } = await supabase
+            .from('client_photos')
+            .select('id, photo_hash')
+            .eq('client_id', clientId);
+        
+        if (existingPhotos && existingPhotos.some(p => p.photo_hash === photoHash)) {
+            console.log('Duplicate photo detected:', photoHash);
+            showToast('Esta foto ya existe para este cliente', 'error');
+            return null;
+        }
+        
+        const fileExt = file.name.split('.').pop();
+        const photoId = generateId();
+        const fileName = `${clientId}/${photoId}.${fileExt}`;
         
         const { data, error } = await supabase.storage
             .from('client-photos')
@@ -2897,8 +2910,11 @@ window.addEventListener('message', async (event) => {
                     const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
                     const hash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
                     
-                    const isDuplicate = uploadedHashes.includes(hash);
-                    if (isDuplicate) {
+                    const isDuplicateInSession = uploadedHashes.includes(hash);
+                    const isDuplicateInDB = State.clientPhotos && State.clientPhotos[data.clientId] && 
+                        State.clientPhotos[data.clientId].some(p => p.photo_hash === hash);
+                    
+                    if (isDuplicateInSession || isDuplicateInDB) {
                         showToast('Esta foto ya existe', 'error');
                         photoInput.value = '';
                         return;
