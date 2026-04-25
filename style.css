@@ -1940,3 +1940,14 @@ textarea.form-control {
     transform: translateX(4px);
     box-shadow: var(--shadow-md);
 }
+
+
+.zoom-on-hover:hover {
+    transform: scale(2.5);
+    object-fit: contain !important;
+    z-index: 999;
+    transform: scale(2.5);
+    z-index: 999;
+}
+
+

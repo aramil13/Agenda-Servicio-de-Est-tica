@@ -661,6 +661,25 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
+    async function updateAppointment(data) {
+        const dbRow = {
+            client_id: data.clientId,
+            service_id: data.serviceId,
+            date: data.date,
+            time: data.time,
+            notes: data.notes
+        };
+        const { error } = await supabase.from('appointments').update(dbRow).eq('id', data.id);
+        if (error) { showToast('Error al editar cita: ' + error.message, 'error'); return false; }
+        
+        const idx = State.appointments.findIndex(a => a.id === data.id);
+        if (idx !== -1) {
+            State.appointments[idx] = { ...State.appointments[idx], ...data };
+        }
+        showToast('Cita actualizada correctamente');
+        return true;
+    }
+
     window.editClientPhoto = async function(photoId, clientId, currentDate, currentNotes, currentType) {
         openModal('Editar Foto', `
             <form id="edit-client-photo-form">
@@ -966,7 +985,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                         const photoDate = p.photo_date || '';
                         photosHtml += `
                             <div class="apt-mini-photo" data-apt-id="${apt.id}" data-photo-id="${p.id}" style="position:relative;text-align:center">
-                                <img src="${p.photo_url}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                                <img src="${p.photo_url}" class="zoom-on-hover" style="width:50px;height:50px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                                 <div style="font-size:0.65rem;color:var(--text-secondary)">${photoType}</div>
                                 <div style="font-size:0.6rem;color:var(--text-secondary)">${photoDate}</div>
                                 <div style="position:absolute;top:0;left:0;right:0;display:flex;justify-content:center;gap:2px">
@@ -989,6 +1008,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             </div>
                         </div>
                         <div class="day-detail-actions">
+                            <button class="edit-btn" data-id="${apt.id}" title="Editar cita"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
                             <button class="delete-btn" data-id="${apt.id}" title="Eliminar cita">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
@@ -1157,7 +1177,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                                     ${State.clientPhotos[c.id].slice(0, 4).map(p => {
                                         const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
                                         return `<div style="position:relative;text-align:center">
-                                            <img src="${p.photo_url}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                                            <img src="${p.photo_url}" class="zoom-on-hover" style="width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                                             <div style="font-size:0.5rem;color:var(--text-secondary)">${photoType}</div>
                                             <div style="font-size:0.45rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
                                         </div>`;
@@ -1870,6 +1890,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 const type = e.currentTarget.dataset.type;
                 if (type === 'client') showClientForm(State.clients.find(c => c.id === id));
                 else if (type === 'service') showServiceForm(State.services.find(s => s.id === id));
+                else if (!type || type === 'appointment') showAppointmentForm(State.appointments.find(a => a.id === id));
             });
         });
 
@@ -2539,7 +2560,7 @@ window.addEventListener('message', async (event) => {
                     const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
                     html += `
                         <div class="client-mini-photo" data-photo-id="${p.id}" style="position:relative;text-align:center">
-                            <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                            <img src="${p.photo_url}" class="zoom-on-hover" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                             <div style="font-size:0.65rem;color:var(--text-secondary)">${photoType}</div>
                             <div style="font-size:0.6rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
                             <div style="display:flex;gap:2px;justify-content:center">
@@ -2552,7 +2573,7 @@ window.addEventListener('message', async (event) => {
                 pendingFiles.forEach((pf, idx) => {
                     html += `
                         <div style="position:relative;text-align:center">
-                            <img src="${pf.preview}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${pf.preview} style=max-width:90vw;max-height:90vh;border-radius:8px>')">
+                            <img src="${pf.preview}" class="zoom-on-hover" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${pf.preview} style=max-width:90vw;max-height:90vh;border-radius:8px>')">
                             <div style="font-size:0.65rem;color:var(--text-secondary)">Antes</div>
                             <div style="font-size:0.6rem;color:var(--text-secondary)">${toLocalDateStr(new Date())}</div>
                             <div style="display:flex;gap:2px;justify-content:center">
@@ -2812,15 +2833,15 @@ window.addEventListener('message', async (event) => {
         return `${hStr}:${mStr}`;
     }
 
-    function showAppointmentForm() {
+    function showAppointmentForm(info = null) {
         if (State.clients.length === 0 || State.services.length === 0) {
             showToast('Debes tener al menos un cliente y un servicio antes de agendar una cita.', 'error');
             return;
         }
 
-        const defaultDate = State.selectedDate || toLocalDateStr(new Date());
+        const defaultDate = info ? info.date : (State.selectedDate || toLocalDateStr(new Date()));
         const defaultDuration = State.services.length > 0 ? parseInt(State.services[0].duration) : 30;
-        const suggestedTime = findNextAvailableTime(defaultDate, defaultDuration);
+        const suggestedTime = info ? info.time : findNextAvailableTime(defaultDate, defaultDuration);
 
         const userColor = State.currentUserColor || '#6366f1';
         const html = `
@@ -2832,13 +2853,13 @@ window.addEventListener('message', async (event) => {
                 <div class="form-group">
                     <label>Cliente</label>
                     <select class="form-control" name="clientId" required>
-                        ${State.clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+                        ${State.clients.map(c => `<option value="${c.id}" ${info && info.clientId === c.id ? "selected" : ""}>${c.name}</option>`).join('')}
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Servicio</label>
                     <select class="form-control" name="serviceId" required>
-                        ${State.services.map(s => `<option value="${s.id}">${s.name} (${s.duration} min · ${parseFloat(s.price).toFixed(2)}€)</option>`).join('')}
+                        ${State.services.map(s => `<option value="${s.id}" ${info && info.serviceId === s.id ? "selected" : ""}>${s.name} (${s.duration} min · ${parseFloat(s.price).toFixed(2)}€)</option>`).join('')}
                     </select>
                 </div>
                 <div style="display:flex;gap:1rem">
@@ -2853,7 +2874,7 @@ window.addEventListener('message', async (event) => {
                 </div>
                 <div class="form-group">
                     <label>Notas (opcional)</label>
-                    <textarea class="form-control" name="notes" rows="2" placeholder="Información adicional..."></textarea>
+                    <textarea class="form-control" name="notes" rows="2" placeholder="Información adicional...">${info ? (info.notes || "") : ""}</textarea>
                 </div>
                 
                 <div class="form-group">
@@ -2868,11 +2889,11 @@ window.addEventListener('message', async (event) => {
                 
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Agendar Cita</button>
+                    <button type="submit" class="btn btn-primary">${info ? "Guardar" : "Agendar Cita"}</button>
                 </div>
             </form>`;
 
-        openModal('Nueva Cita', html, () => {
+        openModal(info ? 'Editar Cita' : 'Nueva Cita', html, () => {
             const form = document.getElementById('appointment-form');
             const dateInput = form.querySelector('[name="date"]');
             const timeInput = form.querySelector('[name="time"]');
@@ -2889,7 +2910,7 @@ window.addEventListener('message', async (event) => {
                 pendingFiles.forEach((pf, idx) => {
                     html += `
                         <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-                            <img src="${pf.preview}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${pf.preview} style=max-width:90vw;max-height:90vh;border-radius:8px>')">
+                            <img src="${pf.preview}" class="zoom-on-hover" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${pf.preview} style=max-width:90vw;max-height:90vh;border-radius:8px>')">
                             <span style="font-size:0.7rem;color:var(--text-secondary)">${pf.date || toLocalDateStr(new Date())}</span>
                             <button type="button" class="delete-apt-pending-btn" data-idx="${idx}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">🗑️</button>
                         </div>`;
@@ -2913,8 +2934,8 @@ window.addEventListener('message', async (event) => {
                     const hash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
                     
                     const isDuplicateInSession = uploadedHashes.includes(hash);
-                    const isDuplicateInDB = State.clientPhotos && State.clientPhotos[data.clientId] && 
-                        State.clientPhotos[data.clientId].some(p => p.photo_hash === hash);
+                    const isDuplicateInDB = State.clientPhotos && State.clientPhotos[document.querySelector('#appointment-form [name="clientId"]')?.value] && 
+                        State.clientPhotos[document.querySelector('#appointment-form [name="clientId"]')?.value].some(p => p.photo_hash === hash);
                     
                     if (isDuplicateInSession || isDuplicateInDB) {
                         showToast('Esta foto ya existe', 'error');
@@ -2965,10 +2986,10 @@ window.addEventListener('message', async (event) => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Agendando…';
+                submitBtn.textContent = info ? 'Guardando…' : 'Agendando…';
 
                 const fd = new FormData(e.target);
-                const appointmentId = generateId();
+                const appointmentId = info ? info.id : generateId();
                 const data = {
                     id: appointmentId,
                     clientId: fd.get('clientId'),
@@ -3015,7 +3036,7 @@ window.addEventListener('message', async (event) => {
                 }
 
                 const hasCollision = State.appointments.some(apt => {
-                    if (apt.date !== data.date) return false;
+                    if (apt.date !== data.date || (info && apt.id === info.id)) return false;
                     const [aptHour, aptMin] = apt.time.split(':').map(Number);
                     const aptStartMinutes = aptHour * 60 + aptMin;
                     const aptService = State.services.find(s => s.id === apt.serviceId);
@@ -3032,17 +3053,27 @@ window.addEventListener('message', async (event) => {
                     return;
                 }
 
-                if (await addAppointment(data)) { 
-                    closeModal(); 
-                    renderRoute(); 
-                    
-                    // Notificar por WhatsApp si el cliente lo tiene activado
-                    const client = State.clients.find(c => c.id === data.clientId);
-                    if (client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1) && client.phone) {
-                        sendWASMessage(client.phone, client.name, data.date, data.time);
+                if (info) {
+                    if (await updateAppointment(data)) {
+                        closeModal();
+                        renderRoute();
+                    } else {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Guardar';
                     }
+                } else {
+                    if (await addAppointment(data)) { 
+                        closeModal(); 
+                        renderRoute(); 
+                        
+                        // Notificar por WhatsApp si el cliente lo tiene activado
+                        const client = State.clients.find(c => c.id === data.clientId);
+                        if (client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1) && client.phone) {
+                            sendWASMessage(client.phone, client.name, data.date, data.time);
+                        }
+                    }
+                    else { submitBtn.disabled = false; submitBtn.textContent = 'Agendar Cita'; }
                 }
-                else { submitBtn.disabled = false; submitBtn.textContent = 'Agendar Cita'; }
             });
         });
     }
@@ -3068,5 +3099,46 @@ window.addEventListener('message', async (event) => {
         // Also remove readonly on focus as a fallback
         emailInput.addEventListener('focus', () => emailInput.readOnly = false);
 passwordInput.addEventListener('focus', () => passwordInput.readOnly = false);
+    }
+});
+
+
+
+
+
+
+// Floating photo preview on hover
+document.addEventListener('mouseover', e => {
+    if (e.target.tagName === 'IMG' && e.target.classList.contains('zoom-on-hover')) {
+        let pv = document.getElementById('hover-photo-preview');
+        let pi = document.getElementById('hover-photo-img');
+        if (!pv) {
+            pv = document.createElement('div');
+            pv.id = 'hover-photo-preview';
+            pv.style.cssText = 'display:none; position:fixed; z-index:999999; border-radius:12px; box-shadow:0 20px 40px rgba(0,0,0,0.6); pointer-events:none; background:var(--bg-card, white); padding:6px; border:1px solid var(--border-color, #eee);';
+            pv.innerHTML = '<img id="hover-photo-img" style="max-width:500px; max-height:80vh; border-radius:8px; display:block; object-fit:contain;">';
+            document.body.appendChild(pv);
+            pi = document.getElementById('hover-photo-img');
+        }
+        pi.src = e.target.src;
+        pv.style.display = 'block';
+        
+        const rect = e.target.getBoundingClientRect();
+        let left = rect.right + 15;
+        let top = rect.top - 50;
+        
+        if (left + 500 > window.innerWidth) left = rect.left - 520;
+        if (left < 10) left = 10;
+        if (top < 10) top = 10;
+        
+        pv.style.left = left + 'px';
+        pv.style.top = top + 'px';
+    }
+});
+
+document.addEventListener('mouseout', e => {
+    if (e.target.tagName === 'IMG' && e.target.classList.contains('zoom-on-hover')) {
+        const pv = document.getElementById('hover-photo-preview');
+        if (pv) pv.style.display = 'none';
     }
 });
