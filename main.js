@@ -1755,7 +1755,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                         
                         <div id="action-buttons" style="display:none;margin-top:1.5rem;">
                             <button id="analyze-btn" class="btn btn-primary" style="width:100%;">Iniciar Análisis</button>
-                            <button id="save-diagnosis-btn" class="btn btn-primary" style="width:100%;background:#10b981;display:none;margin-top:0.5rem;">💾 Guardar en Cliente</button>
+                            <button id="save-diagnosis-btn" class="btn" style="width:100%;background:#10b981;color:#fff;display:block;margin-top:0.5rem;">💾 Guardar en Cliente</button>
                             <button id="reset-btn" class="btn btn-secondary" style="margin-top:0.5rem;width:100%;">Cambiar Imagen</button>
                         </div>
                         
@@ -2193,7 +2193,12 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         const saveBtn = document.getElementById('save-diagnosis-btn');
         if (saveBtn) {
             saveBtn.addEventListener('click', async () => {
-                if (!currentDiagnosisResults || !currentDiagnosisImage) return;
+                console.log('DEBUG: Save button clicked', { clientId, hasResults: !!currentDiagnosisResults, hasImage: !!currentDiagnosisImage });
+                
+                if (!currentDiagnosisResults || !currentDiagnosisImage) {
+                    showToast('Faltan datos para guardar', 'error');
+                    return;
+                }
                 
                 const clientId = sessionStorage.getItem('nymara_diagnosis_client_id');
                 if (!clientId) {
@@ -2212,18 +2217,22 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     canvas.getContext('2d').drawImage(currentDiagnosisImage, 0, 0);
                     
                     canvas.toBlob(async blob => {
+                        console.log('DEBUG: Starting save process', { clientId, hasImage: !!blob });
+                        
                         const fileName = `${clientId}/diagnosis_${Date.now()}.jpg`;
                         const { data, error } = await supabase.storage
                             .from('client-photos')
                             .upload(fileName, blob);
                         
                         if (error) {
-                            console.error('Error uploading:', error);
-                            showToast('Error al guardar', 'error');
+                            console.error('ERROR uploading to storage:', error);
+                            showToast('Error al guardar: ' + error.message, 'error');
                             saveBtn.disabled = false;
                             saveBtn.textContent = '💾 Guardar en Cliente';
                             return;
                         }
+                        
+                        console.log('Upload success:', data);
                         
                         const { data: { publicUrl } } = supabase.storage
                             .from('client-photos')
@@ -2235,6 +2244,8 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                         });
                         
                         const r = currentDiagnosisResults;
+                        console.log('Inserting to client_photos:', { photoId, clientId, publicUrl, photo_type: 'diagnosis' });
+                        
                         await supabase.from('client_photos').insert({
                             id: photoId,
                             client_id: clientId,
@@ -2365,7 +2376,11 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             
             // Mostrar botón guardar
             const saveBtn = document.getElementById('save-diagnosis-btn');
-            if (saveBtn) saveBtn.style.display = 'block';
+            if (saveBtn) {
+                saveBtn.style.display = 'block';
+                saveBtn.disabled = false;
+                saveBtn.textContent = '💾 Guardar en Cliente';
+            }
             
             // Guardar resultados para usar al guardar
             currentDiagnosisResults = { density, thickness, hydration, sebumLevel, isColored };
