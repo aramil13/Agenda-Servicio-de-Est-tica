@@ -509,10 +509,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (authLoginForm) {
         authLoginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            authError.style.display = 'none';
+            console.log('Form submitted!');
             
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
+            
+            console.log('Email:', email, 'Password length:', password?.length);
             
             // UI Loading state
             authSubmitText.style.opacity = '0';
