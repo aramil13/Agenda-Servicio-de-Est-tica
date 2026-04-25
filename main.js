@@ -553,38 +553,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function uploadClientPhotos(files, clientId, photoDate = null, photoType = 'before', photoNotes = '') {
         const urls = [];
-        const newPhotos = [];
         const today = new Date();
         const defaultDate = photoDate || today.toISOString().split('T')[0];
         
+        // Verificar si la tabla existe
+        let tableExists = false;
+        try {
+            const { error: checkError } = await supabase.from('client_photos').select('id').limit(1);
+            tableExists = !checkError || (!checkError.message?.includes('does not exist') && checkError.code !== '42P01');
+        } catch (e) {
+            console.warn('No se pudo verificar tabla client_photos:', e);
+        }
+        
         for (const file of files) {
             const fileExt = file.name.split('.').pop();
-            const fileName = `${clientId}/${generateId()}.${fileExt}`;
+            const newPhotoId = generateId();
+            const fileName = `${clientId}/${newPhotoId}.${fileExt}`;
             
-            console.log('Intentando subir archivo:', fileName);
+            console.log('Subiendo archivo:', fileName);
             
             const { data, error } = await supabase.storage
                 .from('client-photos')
                 .upload(fileName, file);
 
             if (error) {
-                console.error('Error detallado de Supabase Storage:', error);
-                showToast('Error de almacenamiento: ' + error.message, 'error');
-                throw error;
+                console.error('Error de Storage:', error);
+                showToast('Error al subir foto: ' + error.message, 'error');
+                continue;
             }
 
             const { data: { publicUrl } } = supabase.storage
                 .from('client-photos')
                 .getPublicUrl(fileName);
             
-            try {
-                // Generar UUID correctamente
-                let newPhotoId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-                    return v.toString(16);
-                });
-                
-                await supabase.from('client_photos').insert({
+            // Crear objeto de foto
+            const newPhoto = {
+                id: newPhotoId,
+                client_id: clientId,
+                photo_url: publicUrl,
+                photo_date: defaultDate,
+                photo_type: photoType,
+                notes: photoNotes,
+                created_at: new Date().toISOString()
+            };
+            
+            // Insertar en BD solo si la tabla existe
+            if (tableExists) {
+                const { error: insertError } = await supabase.from('client_photos').insert({
                     id: newPhotoId,
                     client_id: clientId,
                     photo_url: publicUrl,
@@ -592,26 +607,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     photo_type: photoType,
                     notes: photoNotes
                 });
-                // Guardar también en cache local
-                const newPhoto = {
-                    id: newPhotoId,
-                    client_id: clientId,
-                    photo_url: publicUrl,
-                    photo_date: defaultDate,
-                    photo_type: photoType,
-                    notes: photoNotes,
-                    created_at: new Date().toISOString()
-                };
-                newPhotos.push(newPhoto);
-                State.diagnosisPhotosCache.push(newPhoto);
-                localStorage.setItem('nymara_diagnosis_photos_cache', JSON.stringify(State.diagnosisPhotosCache));
-            } catch (e) {
-                console.warn('client_photos not available yet');
+                if (insertError) {
+                    console.error('Error al insertar en BD:', insertError);
+                }
             }
             
+            // Siempre guardar en cache local
+            State.diagnosisPhotosCache.push(newPhoto);
             urls.push(publicUrl);
         }
-        // Guardar cache actualizado
+        
         localStorage.setItem('nymara_diagnosis_photos_cache', JSON.stringify(State.diagnosisPhotosCache));
         return urls;
     }
@@ -625,50 +630,60 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }
         
-        // Primero actualizar cache local
-        if (clientId && State.clientPhotos[clientId]) {
-            State.clientPhotos[clientId] = State.clientPhotos[clientId].filter(p => p.id !== photoId);
-        }
-        State.diagnosisPhotosCache = State.diagnosisPhotosCache.filter(p => p.id !== photoId);
-        localStorage.setItem('nymara_diagnosis_photos_cache', JSON.stringify(State.diagnosisPhotosCache));
-        
-        // Buscar la foto para eliminar el archivo de storage
+        // Guardar referencia a la foto antes de eliminar
         const photo = State.diagnosisPhotosCache.find(p => p.id === photoId) || 
                      (clientId && State.clientPhotos[clientId]?.find(p => p.id === photoId));
         
-        if (photo?.photo_url) {
+        let dbDeleted = false;
+        let storageDeleted = false;
+        
+        // 1. Eliminar de la base de datos PRIMERO
+        try {
+            const { data, error } = await supabase.from('client_photos').delete().eq('id', photoId);
+            if (error) {
+                console.error('DEBUG: Supabase delete error:', error);
+                if (error.message?.includes('does not exist') || error.code === '42P01') {
+                    console.warn('Tabla client_photos no existe');
+                    dbDeleted = true; // Tratar como éxito si la tabla no existe
+                } else {
+                    showToast('Error al eliminar foto de BD: ' + (error.message || 'Error'), 'error');
+                    return false;
+                }
+            } else {
+                console.log('DEBUG: Supabase delete response:', data);
+                dbDeleted = true;
+            }
+        } catch (e) {
+            console.error('DEBUG: deleteClientPhoto exception:', e);
+            showToast('Error de conexión al eliminar foto', 'error');
+            return false;
+        }
+        
+        // 2. Eliminar archivo de storage (solo si se eliminó de BD)
+        if (dbDeleted && photo?.photo_url) {
             try {
                 const filePath = photo.photo_url.split('/client-photos/')[1];
                 if (filePath) {
                     await supabase.storage.from('client-photos').remove([filePath]);
+                    storageDeleted = true;
                 }
             } catch (storageErr) {
                 console.warn('No se pudo eliminar archivo de storage:', storageErr);
             }
         }
         
-        try {
-            // Eliminar de la base de datos
-            const { data, error } = await supabase.from('client_photos').delete().eq('id', photoId);
-            if (error) {
-                console.error('DEBUG: Supabase delete error:', error);
-                // Verificar si es error de tabla inexistente
-                if (error.message?.includes('does not exist') || error.code === '42P01') {
-                    console.warn('Tabla client_photos no existe, solo se eliminó del cache local');
-                } else {
-                    showToast('Error al eliminar foto: ' + (error.message || 'Error'), 'error');
-                    return false;
-                }
-            }
-            console.log('DEBUG: Supabase delete response:', data);
-            showToast('Foto eliminada');
-            return true;
-        } catch (e) {
-            console.error('DEBUG: deleteClientPhoto exception:', e);
-            // Si hay excepción, asumimos que la foto se eliminó del cache y está bien
-            showToast('Foto eliminada (cache local)');
+        // 3. AHORA actualizar cache local (después de eliminar de BD)
+        if (clientId && State.clientPhotos[clientId]) {
+            State.clientPhotos[clientId] = State.clientPhotos[clientId].filter(p => p.id !== photoId);
+        }
+        State.diagnosisPhotosCache = State.diagnosisPhotosCache.filter(p => p.id !== photoId);
+        localStorage.setItem('nymara_diagnosis_photos_cache', JSON.stringify(State.diagnosisPhotosCache));
+        
+        if (dbDeleted) {
+            showToast('Foto eliminada correctamente');
             return true;
         }
+        return false;
     }
 
     async function updateClientPhoto(photoId, clientId, updates) {
@@ -709,26 +724,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadClientPhotos(clientId) {
         try {
-            // Primero verificar si existe la tabla
+            // Verificar si existe la tabla
             const { error: tableError } = await supabase.from('client_photos').select('id').limit(1);
             if (tableError && (tableError.message?.includes('does not exist') || tableError.code === '42P01')) {
                 console.warn('Tabla client_photos no existe, usando solo cache');
-                const cached = State.diagnosisPhotosCache.filter(p => String(p.client_id) === String(clientId));
-                return cached;
+                return State.diagnosisPhotosCache.filter(p => String(p.client_id) === String(clientId));
             }
             
-            const { data, error } = await supabase.from('client_photos').select('*').eq('client_id', clientId).order('created_at', { ascending: false });
+            // Obtener fotos de Supabase
+            const { data, error } = await supabase
+                .from('client_photos')
+                .select('*')
+                .eq('client_id', clientId)
+                .order('created_at', { ascending: false });
+            
             if (error) throw error;
             
-            // Combinar datos remotos con cache local
+            // Limpiar cache local de fotos del cliente (ya que ahora estão en BD)
+            const newCache = State.diagnosisPhotosCache.filter(p => String(p.client_id) !== String(clientId));
+            // Mantener solo fotos que no están en BD
             const remoteIds = new Set((data || []).map(p => p.id));
-            const cached = State.diagnosisPhotosCache.filter(p => String(p.client_id) === String(clientId) && !remoteIds.has(p.id));
+            const orphanedCache = State.diagnosisPhotosCache.filter(p => remoteIds.has(p.id) === false && String(p.client_id) !== String(clientId));
             
-            return [...(data || []), ...cached];
+            // Combinar: remoto + cache huérfano, sin duplicados por ID
+            const allPhotos = [...(data || []), ...orphanedCache];
+            const uniquePhotos = allPhotos.reduce((acc, photo) => {
+                if (!acc.find(p => p.id === photo.id)) {
+                    acc.push(photo);
+                }
+                return acc;
+            }, []);
+            
+            return uniquePhotos;
         } catch (e) {
             console.warn('client_photos error:', e);
-            const cached = State.diagnosisPhotosCache.filter(p => String(p.client_id) === String(clientId));
-            return cached;
+            return State.diagnosisPhotosCache.filter(p => String(p.client_id) === String(clientId));
         }
     }
 
