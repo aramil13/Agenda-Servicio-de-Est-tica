@@ -679,7 +679,15 @@ document.addEventListener('DOMContentLoaded', () => {
         State.diagnosisPhotosCache = State.diagnosisPhotosCache.filter(p => p.id !== photoId);
         localStorage.setItem('nymara_diagnosis_photos_cache', JSON.stringify(State.diagnosisPhotosCache));
         
+        // Verificar que realmente se eliminó de la BD (consulta de confirmación)
         if (dbDeleted) {
+            const { data: verifyData } = await supabase.from('client_photos').select('id').eq('id', photoId).limit(1);
+            if (verifyData && verifyData.length > 0) {
+                // Todavía existe en BD, revertir cambios
+                console.error('LA FOTO SIGUE EN LA BD DESPUÉS DE DELETE:', verifyData);
+                showToast('Error: Foto no se eliminó de la base de datos', 'error');
+                return false;
+            }
             showToast('Foto eliminada correctamente');
             return true;
         }
@@ -740,14 +748,16 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (error) throw error;
             
-            // Limpiar cache local de fotos del cliente (ya que ahora estão en BD)
-            const newCache = State.diagnosisPhotosCache.filter(p => String(p.client_id) !== String(clientId));
-            // Mantener solo fotos que no están en BD
+            // Obtener IDs de fotos en BD
             const remoteIds = new Set((data || []).map(p => p.id));
-            const orphanedCache = State.diagnosisPhotosCache.filter(p => remoteIds.has(p.id) === false && String(p.client_id) !== String(clientId));
             
-            // Combinar: remoto + cache huérfano, sin duplicados por ID
-            const allPhotos = [...(data || []), ...orphanedCache];
+            // Obtener fotos del cache local para este cliente que NO están en BD
+            const cachePhotos = State.diagnosisPhotosCache.filter(p => 
+                String(p.client_id) === String(clientId) && !remoteIds.has(p.id)
+            );
+            
+            // Combinar sin duplicados
+            const allPhotos = [...(data || []), ...cachePhotos];
             const uniquePhotos = allPhotos.reduce((acc, photo) => {
                 if (!acc.find(p => p.id === photo.id)) {
                     acc.push(photo);
@@ -2704,7 +2714,14 @@ window.addEventListener('message', async (event) => {
             let currentPhotos = [];
             
             if (isEdit && info?.id) {
-                currentPhotos = await loadClientPhotos(info.id);
+                const loadedPhotos = await loadClientPhotos(info.id);
+                // Eliminar duplicados al cargar
+                const seenIds = new Set();
+                currentPhotos = loadedPhotos.filter(p => {
+                    if (seenIds.has(p.id)) return false;
+                    seenIds.add(p.id);
+                    return true;
+                });
                 State.clientPhotos[info.id] = currentPhotos;
             }
 
@@ -2793,9 +2810,16 @@ window.addEventListener('message', async (event) => {
                         if (confirm('Eliminar esta foto permanentemente?')) {
                             const success = await deleteClientPhoto(photoId, currentClientId);
                             if (success) {
+                                // Filtrar TODAS las fotos con ese ID (no solo una)
                                 currentPhotos = currentPhotos.filter(p => p.id !== photoId);
+                                // Eliminar duplicados por si acaso
+                                const seenIds = new Set();
+                                currentPhotos = currentPhotos.filter(p => {
+                                    if (seenIds.has(p.id)) return false;
+                                    seenIds.add(p.id);
+                                    return true;
+                                });
                                 renderPhotos();
-                                showToast('Foto eliminada');
                             }
                         }
                         return;
