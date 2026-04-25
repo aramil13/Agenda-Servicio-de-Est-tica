@@ -2892,10 +2892,14 @@ window.addEventListener('message', async (event) => {
                 // Guardar fotos de la cita
                 if (pendingFiles.length > 0) {
                     data.appointmentPhotos = [];
+                    console.log('Saving photos for client:', data.clientId);
                     for (const pf of pendingFiles) {
+                        console.log('Uploading photo:', { date: pf.date, type: pf.type, notes: pf.notes });
                         const photoRecord = await uploadClientPhoto(pf.file, data.clientId, pf.date, pf.type, pf.notes);
                         if (photoRecord) {
                             data.appointmentPhotos.push(photoRecord);
+                        } else {
+                            console.log('Photo upload failed - no record returned');
                         }
                     }
                 }
