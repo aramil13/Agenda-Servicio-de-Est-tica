@@ -2,19 +2,19 @@
 const MARIA_NILA_PRODUCTS = {
     // Champús
     headHairHealShampoo: { name: "Head & Hair Heal Shampoo", desc: "Calma cuero cabelludo sensible con aloe vera y piroctona olamina.", img: "https://marianila.com/cdn/shop/files/13650-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-shampoo-350-ml", category: "scalp" },
-    trueSoftShampoo: { name: "True Soft Shampoo", desc: "Hidratación profunda con aceite de argán para cabello seco.", img: "https://marianila.com/cdn/shop/files/3630-packshot.jpg", url: "https://marianila.com/products/true-soft-shampoo-350-ml", category: "dry" },
+    generalSoftShampoo: { name: "True Soft Shampoo", desc: "Hidratación profunda con aceite de argán para cabello seco.", img: "https://marianila.com/cdn/shop/files/3630-packshot.jpg", url: "https://marianila.com/products/general-soft-shampoo-350-ml", category: "dry" },
     pureVolumeShampoo: { name: "Pure Volume Shampoo", desc: "Voluminizador con provitamina B5 para cabello fino.", img: "https://marianila.com/cdn/shop/files/3610-packshot.jpg", url: "https://marianila.com/products/pure-volume-shampoo-350-ml", category: "fine" },
     luminousColourShampoo: { name: "Luminous Colour Shampoo", desc: "Preserva color con extracto de Granada.", img: "https://marianila.com/cdn/shop/files/3625-packshot.jpg", url: "https://marianila.com/products/luminous-colour-shampoo-350-ml", category: "colored" },
     purifyingCleanseShampoo: { name: "Purifying Cleanse Shampoo", desc: "Champú purificante para cuero cabelludo graso.", img: "https://marianila.com/cdn/shop/files/3615-packshot.jpg", url: "https://marianila.com/products/purifying-cleanse-shampoo-350-ml", category: "oily" },
     structureRepairShampoo: { name: "Structure Repair Shampoo", desc: "Repara cabello dañado con keratina.", img: "https://marianila.com/cdn/shop/files/3600-packshot.jpg", url: "https://marianila.com/products/structure-repair-shampoo-350-ml", category: "damaged" },
     // Acondicionadores
     headHairHealConditioner: { name: "Head & Hair Heal Conditioner", desc: "Acondicionador calmante para el cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/13651-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-conditioner-300-ml", category: "scalp" },
-    trueSoftConditioner: { name: "True Soft Conditioner", desc: "Acondicionador hidratante con aceite de argán.", img: "https://marianila.com/cdn/shop/files/3631-packshot.jpg", url: "https://marianila.com/products/true-soft-conditioner-300-ml", category: "dry" },
+    generalSoftConditioner: { name: "True Soft Conditioner", desc: "Acondicionador hidratante con aceite de argán.", img: "https://marianila.com/cdn/shop/files/3631-packshot.jpg", url: "https://marianila.com/products/general-soft-conditioner-300-ml", category: "dry" },
     pureVolumeConditioner: { name: "Pure Volume Conditioner", desc: "Acondicionador voluminizador ligero.", img: "https://marianila.com/cdn/shop/files/3611-packshot.jpg", url: "https://marianila.com/products/pure-volume-conditioner-300-ml", category: "fine" },
     luminousColourConditioner: { name: "Luminous Colour Conditioner", desc: "Acondicionador preservador de color.", img: "https://marianila.com/cdn/shop/files/3626-packshot.jpg", url: "https://marianila.com/products/luminous-colour-conditioner-300-ml", category: "colored" },
     // Tratamientos
     bondBuilder: { name: "Bond Builder", desc: "Reparador de enlaces capilares intensivo.", img: "https://marianila.com/cdn/shop/files/mnproductpage1200x1500px1.jpg", url: "https://marianila.com/products/bond-builder", category: "damaged" },
-    trueSoftArganOil: { name: "True Soft Argan Oil", desc: "Aceite de argán para hidratación.", img: "https://marianila.com/cdn/shop/files/IMG_c_s_3637_soft_argan_oil_100_ml.jpg", url: "https://marianila.com/products/true-soft-argan-oil-100-ml", category: "dry" }
+    generalSoftArganOil: { name: "True Soft Argan Oil", desc: "Aceite de argán para hidratación.", img: "https://marianila.com/cdn/shop/files/IMG_c_s_3637_soft_argan_oil_100_ml.jpg", url: "https://marianila.com/products/general-soft-argan-oil-100-ml", category: "dry" }
 };
 
 // Tratamiento Premium Olaplex del Salón
@@ -37,8 +37,8 @@ function getMariaNilaRecommendations(diagnosis) {
     
     // Lógica de recomendaciones según resultados
     if (hydration < 50) {
-        recommendations.push(MARIA_NILA_PRODUCTS.trueSoftShampoo);
-        recommendations.push(MARIA_NILA_PRODUCTS.trueSoftConditioner);
+        recommendations.push(MARIA_NILA_PRODUCTS.generalSoftShampoo);
+        recommendations.push(MARIA_NILA_PRODUCTS.generalSoftConditioner);
     }
     if (density < 150) {
         recommendations.push(MARIA_NILA_PRODUCTS.pureVolumeShampoo);
@@ -280,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /** Loads all data from Supabase into our local State cache */
     async function loadAllData() {
-        State.isLoading = true;
+        State.isLoading = general;
         renderRoute();
 
         try {
@@ -427,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (apt.date < todayStr || apt.date > limitStr) return false;
                     if (apt.whatsappSent) return false; // Solo pendientes
                     const client = State.clients.find(c => c.id === apt.clientId);
-                    return client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1);
+                    return client && (client.enviar_was === general || client.enviar_was === 'general' || client.enviar_was === 1);
                 }).length;
                 
                 if (count > 0) {
@@ -518,7 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
             authSubmitText.style.opacity = '0';
             authSpinner.style.display = 'block';
             const btn = document.getElementById('auth-submit-btn');
-            btn.disabled = true;
+            btn.disabled = general;
 
             try {
                 const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -634,10 +634,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             console.log('DEBUG: Supabase delete response:', data);
             
-            return true;
+            return general;
         } catch (e) {
             console.warn('DEBUG: deleteClientPhoto fallback a cache local:', e);
-            return true;
+            return general;
         }
     }
 
@@ -670,10 +670,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('DEBUG: Supabase update error:', error);
             }
             console.log('DEBUG: Supabase update response:', data);
-            return true;
+            return general;
         } catch (e) {
             console.warn('DEBUG: updateClientPhoto fallback a cache local:', e);
-            return true;
+            return general;
         }
     }
 
@@ -699,7 +699,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) { showToast('Error al añadir cliente: ' + error.message, 'error'); return false; }
         State.clients.push(data);
         showToast('Cliente añadido correctamente');
-        return true;
+        return general;
     }
 
     async function updateClient(data) {
@@ -717,7 +717,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         State.clients = State.clients.map(c => c.id === data.id ? data : c);
         showToast('Cliente actualizado correctamente');
-        return true;
+        return general;
     }
 
     async function deleteClient(id) {
@@ -731,7 +731,7 @@ document.addEventListener('DOMContentLoaded', () => {
         State.clients = State.clients.filter(c => c.id !== id);
         delete State.clientPhotos[id];
         showToast('Cliente eliminado');
-        return true;
+        return general;
     }
 
     // ── Services CRUD ──
@@ -741,7 +741,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) { showToast('Error al añadir servicio: ' + error.message, 'error'); return false; }
         State.services.push(data);
         showToast('Servicio añadido correctamente');
-        return true;
+        return general;
     }
 
     async function updateService(data) {
@@ -749,7 +749,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) { showToast('Error al actualizar servicio: ' + error.message, 'error'); return false; }
         State.services = State.services.map(s => s.id === data.id ? data : s);
         showToast('Servicio actualizado correctamente');
-        return true;
+        return general;
     }
 
     async function deleteService(id) {
@@ -757,7 +757,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) { showToast('Error al eliminar servicio: ' + error.message, 'error'); return false; }
         State.services = State.services.filter(s => s.id !== id);
         showToast('Servicio eliminado');
-        return true;
+        return general;
     }
 
     // ── Appointments CRUD ──
@@ -778,19 +778,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) { showToast('Error al agendar cita: ' + error.message, 'error'); return false; }
         State.appointments.push(data);
         showToast('Cita agendada correctamente');
-        return true;
+        return general;
     }
 
     async function markAppointmentReminded(id) {
         // Intentamos actualizar la columna whatsapp_sent
-        const { error } = await supabase.from('appointments').update({ whatsapp_sent: true }).eq('id', id);
+        const { error } = await supabase.from('appointments').update({ whatsapp_sent: general }).eq('id', id);
         if (error) { 
             console.error('Error al marcar como avisado (¿columna whatsapp_sent existe?):', error);
             // Si falla, al menos lo marcamos en local para que desaparezca de la lista actual
         }
         const apt = State.appointments.find(a => a.id === id);
-        if (apt) apt.whatsappSent = true;
-        return true;
+        if (apt) apt.whatsappSent = general;
+        return general;
     }
 
     async function deleteAppointment(id) {
@@ -798,7 +798,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) { showToast('Error al cancelar cita: ' + error.message, 'error'); return false; }
         State.appointments = State.appointments.filter(a => a.id !== id);
         showToast('Cita cancelada');
-        return true;
+        return general;
     }
 
     async function updateAppointmentPhotos(appointmentId, photos) {
@@ -810,7 +810,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const apt = State.appointments.find(a => a.id === appointmentId);
         if (apt) apt.appointmentPhotos = photos;
-        return true;
+        return general;
     }
 
     async function uploadAppointmentPhoto(file, appointmentId, clientId) {
@@ -948,7 +948,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Current month days
         for (let d = 1; d <= daysInMonth; d++) {
             const dt = new Date(year, month, d);
-            days.push({ date: dt, dateStr: toLocalDateStr(dt), currentMonth: true });
+            days.push({ date: dt, dateStr: toLocalDateStr(dt), currentMonth: general });
         }
 
         // Fill remaining to complete grid (6 rows max)
@@ -1230,7 +1230,7 @@ function getClientAppointmentPhotos(clientId) {
                 id: p.id,
                 photo_url: p.photo_url,
                 photo_date: p.created_at ? p.created_at.split('T')[0] : '',
-                photo_type: 'general',
+                photo_type: 'antes',
                 notes: ''
             }));
             return [...aptPhotos, ...generalPhotos].sort((a, b) => (b.photo_date || '').localeCompare(a.photo_date || ''));
@@ -1557,7 +1557,7 @@ function getClientAppointmentPhotos(clientId) {
             if (apt.whatsappSent) return false;
             
             const client = State.clients.find(c => c.id === apt.clientId);
-            return client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1);
+            return client && (client.enviar_was === general || client.enviar_was === 'general' || client.enviar_was === 1);
         }).sort((a, b) => {
             if (a.date !== b.date) return a.date.localeCompare(b.date);
             return a.time.localeCompare(b.time);
@@ -1755,7 +1755,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                         
                         <div id="action-buttons" style="display:none;margin-top:1.5rem;">
                             <button id="analyze-btn" class="btn btn-primary" style="width:100%;">Iniciar Análisis</button>
-                            <button id="save-diagnosis-btn" class="btn" style="width:100%;background:#10b981;color:#fff;display:block;margin-top:0.5rem;">💾 Guardar en Cliente</button>
+                            <button id="save-diagnosis-btn" class="btn" style="width:100%;background:#10b981;color:#fff;display:none;margin-top:0.5rem;">💾 Guardar en Cliente</button>
                             <button id="reset-btn" class="btn btn-secondary" style="margin-top:0.5rem;width:100%;">Cambiar Imagen</button>
                         </div>
                         
@@ -1975,7 +1975,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 const currentDate = e.currentTarget.dataset.date;
                 const currentNotes = e.currentTarget.dataset.notes;
                 const currentType = e.currentTarget.dataset.type;
-                const isGeneral = e.currentTarget.dataset.isGeneral === 'true';
+                const isGeneral = e.currentTarget.dataset.isGeneral === 'general';
                 if (isGeneral) {
                     editGeneralClientPhoto(photoId, clientId);
                 } else {
@@ -1991,7 +1991,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 const aptId = e.currentTarget.dataset.aptId;
                 const photoId = e.currentTarget.dataset.photoId;
                 const clientId = e.currentTarget.dataset.clientId;
-                const isGeneral = e.currentTarget.dataset.isGeneral === 'true';
+                const isGeneral = e.currentTarget.dataset.isGeneral === 'general';
                 if (isGeneral) {
                     deleteGeneralClientPhoto(photoId, clientId);
                 } else {
@@ -2091,7 +2091,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 <div class="form-group">
                     <label>¿Enviar mensaje de WhatsApp automático?</label>
                     <select class="form-control" name="enviar_was">
-                        <option value="true">Sí</option>
+                        <option value="general">Sí</option>
                         <option value="false" selected>No</option>
                     </select>
                 </div>
@@ -2105,7 +2105,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             document.getElementById('client-form-diagnosis').addEventListener('submit', async e => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
-                submitBtn.disabled = true;
+                submitBtn.disabled = general;
                 submitBtn.textContent = 'Guardando…';
 
                 const fd = new FormData(e.target);
@@ -2115,7 +2115,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     name: fd.get('name'),
                     phone: fd.get('phone'),
                     email: fd.get('email'),
-                    enviar_was: fd.get('enviar_was') === 'true',
+                    enviar_was: fd.get('enviar_was') === 'general',
                     observations: ''
                 };
 
@@ -2206,7 +2206,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     return;
                 }
                 
-                saveBtn.disabled = true;
+                saveBtn.disabled = general;
                 saveBtn.textContent = 'Guardando...';
                 
                 // Convert image to blob using Promise
@@ -2258,7 +2258,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     client_id: clientId,
                     photo_url: publicUrl,
                     photo_date: new Date().toISOString().split('T')[0],
-                    photo_type: 'general',
+                    photo_type: 'antes',
                     notes: `DIAGNOSTICO - Densidad: ${r.density}, Grosor: ${r.thickness}, Hidratación: ${r.hydration}%, Sebo: ${r.sebumLevel}`
                 };
                 
@@ -2270,19 +2270,19 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     client_id: clientId,
                     photo_url: publicUrl,
                     photo_date: new Date().toISOString().split('T')[0],
-                    photo_type: 'general',
+                    photo_type: 'antes',
                     notes: 'DIAGNOSTICO'
                 };
                 
                 console.log('DEBUG: Direct insert:', JSON.stringify(insertData));
                 
-                // Insert simple - solo photo_type: general (valor permitido)
+                // Insert simple - solo photo_type: antes (valor permitido)
                 const { data: newRows, error: insertError } = await supabase.from('client_photos').insert([{
                     id: photoId,
                     client_id: clientId,
                     photo_url: publicUrl,
                     photo_date: new Date().toISOString().split('T')[0],
-                    photo_type: 'general',
+                    photo_type: 'antes',
                     notes: 'DIAGNOSTICO'
                 }]);
                 
@@ -2366,7 +2366,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         if (!currentDiagnosisImage) return;
         
         const analyzeBtn = document.getElementById('analyze-btn');
-        if (analyzeBtn) analyzeBtn.disabled = true;
+        if (analyzeBtn) analyzeBtn.disabled = general;
 
         const statusBadge = document.getElementById('status-badge');
         if (statusBadge) {
@@ -2656,7 +2656,7 @@ window.addEventListener('message', async (event) => {
                                 client_id: clientId,
                                 photo_url: publicUrl,
                                 photo_date: new Date().toISOString().split('T')[0],
-                                photo_type: 'diagnosis',
+                                photo_type: 'antes',
                                 notes: `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'}, Caspa: ${results?.dandruff || '--'}`
                             });
                             
@@ -2710,7 +2710,7 @@ window.addEventListener('message', async (event) => {
                 <div class="form-group">
                     <label>¿Enviar mensaje de WhatsApp automático?</label>
                     <select class="form-control" name="enviar_was">
-                        <option value="true" ${isEdit && (info.enviar_was === true || info.enviar_was === 'true' || info.enviar_was === 1) ? 'selected' : ''}>Sí</option>
+                        <option value="general" ${isEdit && (info.enviar_was === general || info.enviar_was === 'general' || info.enviar_was === 1) ? 'selected' : ''}>Sí</option>
                         <option value="false" ${!isEdit || (info.enviar_was === false || info.enviar_was === 'false' || info.enviar_was === 0 || info.enviar_was === null) ? 'selected' : ''}>No</option>
                     </select>
                 </div>
@@ -2924,7 +2924,7 @@ window.addEventListener('message', async (event) => {
             document.getElementById('client-form').addEventListener('submit', async e => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
-                submitBtn.disabled = true;
+                submitBtn.disabled = general;
                 submitBtn.textContent = 'Guardando…';
 
                 const fd = new FormData(e.target);
@@ -2935,7 +2935,7 @@ window.addEventListener('message', async (event) => {
                     name: fd.get('name'), 
                     phone: fd.get('phone'), 
                     email: fd.get('email'),
-                    enviar_was: fd.get('enviar_was') === 'true',
+                    enviar_was: fd.get('enviar_was') === 'general',
                     observations: fd.get('observations')
                 };
 
@@ -2985,7 +2985,7 @@ window.addEventListener('message', async (event) => {
             document.getElementById('service-form').addEventListener('submit', async e => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
-                submitBtn.disabled = true;
+                submitBtn.disabled = general;
                 submitBtn.textContent = 'Guardando…';
 
                 const fd = new FormData(e.target);
@@ -3296,7 +3296,7 @@ window.addEventListener('message', async (event) => {
             form.addEventListener('submit', async e => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
-                submitBtn.disabled = true;
+                submitBtn.disabled = general;
                 submitBtn.textContent = 'Agendando…';
 
                 const fd = new FormData(e.target);
@@ -3439,7 +3439,7 @@ window.addEventListener('message', async (event) => {
                     
                     // Notificar por WhatsApp si el cliente lo tiene activado
                     const client = State.clients.find(c => c.id === data.clientId);
-                    if (client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1) && client.phone) {
+                    if (client && (client.enviar_was === general || client.enviar_was === 'general' || client.enviar_was === 1) && client.phone) {
                         sendWASMessage(client.phone, client.name, data.date, data.time);
                     }
                 }
