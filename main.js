@@ -127,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clients: [],
         services: [],
         appointments: [],
+        clientPhotos: {},
         // Calendar state
         calYear: new Date().getFullYear(),
         calMonth: new Date().getMonth(),
@@ -452,6 +453,79 @@ document.addEventListener('DOMContentLoaded', () => {
         State.clients.push(data);
         showToast('Cliente añadido correctamente');
         return true;
+    }
+
+    async function uploadClientPhoto(file, clientId, photoDate, photoType, photoNotes) {
+        const fileExt = file.name.split('.').pop();
+        const photoId = generateId();
+        const fileName = `${clientId}/${photoId}.${fileExt}`;
+        
+        const { data, error } = await supabase.storage
+            .from('client-photos')
+            .upload(fileName, file);
+
+        if (error) {
+            showToast('Error al subir foto: ' + error.message, 'error');
+            return null;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('client-photos')
+            .getPublicUrl(fileName);
+        
+        const photoRecord = {
+            id: photoId,
+            client_id: clientId,
+            photo_url: publicUrl,
+            photo_date: photoDate,
+            photo_type: photoType,
+            notes: photoNotes,
+            created_at: new Date().toISOString()
+        };
+        
+        await supabase.from('client_photos').insert(photoRecord);
+        return photoRecord;
+    }
+
+    async function deleteClientPhoto(photoId, clientId) {
+        await supabase.from('client_photos').delete().eq('id', photoId);
+        
+        if (State.clientPhotos[clientId]) {
+            State.clientPhotos[clientId] = State.clientPhotos[clientId].filter(p => p.id !== photoId);
+        }
+        
+        showToast('Foto eliminada');
+        return true;
+    }
+
+    async function updateClientPhoto(photoId, clientId, updates) {
+        await supabase.from('client_photos').update(updates).eq('id', photoId);
+        
+        if (State.clientPhotos[clientId]) {
+            const idx = State.clientPhotos[clientId].findIndex(p => p.id === photoId);
+            if (idx >= 0) {
+                State.clientPhotos[clientId][idx] = { ...State.clientPhotos[clientId][idx], ...updates };
+            }
+        }
+        
+        showToast('Foto actualizada');
+        return true;
+    }
+
+    async function loadClientPhotos(clientId) {
+        try {
+            const { data, error } = await supabase
+                .from('client_photos')
+                .select('*')
+                .eq('client_id', clientId)
+                .order('created_at', { ascending: false });
+            
+            if (error) throw error;
+            return data || [];
+        } catch (e) {
+            console.warn('Error loading photos:', e);
+            return [];
+        }
     }
 
     async function updateClient(data) {
@@ -2177,6 +2251,19 @@ window.addEventListener('message', async (event) => {
                     <label>Observaciones</label>
                     <textarea class="form-control" name="observations" rows="3" placeholder="Notas sobre el cliente...">${isEdit ? (info.observations || '') : ''}</textarea>
                 </div>
+                ${isEdit ? `
+                <div class="form-group" id="client-photos-section">
+                    <label>Fotos del Cliente</label>
+                    <div id="client-photos-list" style="margin-bottom:10px"></div>
+                    <div style="display:flex;gap:8px;margin-bottom:10px">
+                        <button type="button" class="btn btn-sm btn-secondary" id="btn-add-client-photo">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                            Añadir Foto
+                        </button>
+                    </div>
+                    <input type="file" id="client-photo-input" accept="image/*" style="display:none">
+                </div>
+                ` : ''}
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
                     <button type="submit" class="btn btn-primary">${isEdit ? 'Guardar' : 'Añadir'}</button>
@@ -2185,6 +2272,134 @@ window.addEventListener('message', async (event) => {
 
         openModal(isEdit ? 'Editar Cliente' : 'Nuevo Cliente', html, async () => {
             let currentClientId = isEdit ? info.id : generateId();
+            let sessionPhotos = [];
+            let pendingFiles = [];
+            let uploadedHashes = [];
+
+            const renderPhotos = () => {
+                const container = document.getElementById('client-photos-list');
+                if (!container) return;
+                
+                let html = '';
+                sessionPhotos.forEach((p, idx) => {
+                    const badgeColor = p.photo_type === 'before' ? '#f59e0b' : '#10b981';
+                    const badgeText = p.photo_type === 'before' ? 'Antes' : 'Después';
+                    html += `
+                        <div class="client-photo-item" data-id="${p.id}" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px;background:var(--bg-secondary);border-radius:8px">
+                            <img src="${p.photo_url}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                            <div style="flex:1">
+                                <div style="display:flex;gap:8px;margin-bottom:4px">
+                                    <select class="form-control" data-id="${p.id}" data-field="photo_type" style="font-size:0.75rem;padding:4px">
+                                        <option value="before" ${p.photo_type === 'before' ? 'selected' : ''}>Antes</option>
+                                        <option value="after" ${p.photo_type === 'after' ? 'selected' : ''}>Después</option>
+                                    </select>
+                                    <input type="date" class="form-control" data-id="${p.id}" data-field="photo_date" value="${p.photo_date || ''}" style="font-size:0.75rem;padding:4px">
+                                </div>
+                                <input type="text" class="form-control" data-id="${p.id}" data-field="notes" value="${p.notes || ''}" placeholder="Notas..." style="font-size:0.75rem;padding:4px">
+                            </div>
+                            <button type="button" class="delete-btn" data-id="${p.id}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1.2rem">×</button>
+                        </div>`;
+                });
+                
+                pendingFiles.forEach((pf, idx) => {
+                    html += `
+                        <div class="client-photo-item pending" data-idx="${idx}" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px;background:var(--bg-secondary);border-radius:8px">
+                            <img src="${pf.preview}" style="width:50px;height:50px;object-fit:cover;border-radius:6px">
+                            <div style="flex:1">
+                                <div style="display:flex;gap:8px;margin-bottom:4px">
+                                    <select class="form-control pending-type" data-idx="${idx}" style="font-size:0.75rem;padding:4px">
+                                        <option value="before">Antes</option>
+                                        <option value="after">Después</option>
+                                    </select>
+                                    <input type="date" class="form-control pending-date" data-idx="${idx}" value="${toLocalDateStr(new Date())}" style="font-size:0.75rem;padding:4px">
+                                </div>
+                                <input type="text" class="form-control pending-notes" data-idx="${idx}" placeholder="Notas..." style="font-size:0.75rem;padding:4px">
+                            </div>
+                            <button type="button" class="delete-pending-btn" data-idx="${idx}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1.2rem">×</button>
+                        </div>`;
+                });
+                
+                container.innerHTML = html || '<p style="color:var(--text-secondary);font-size:0.85rem">No hay fotos</p>';
+            };
+
+            if (isEdit && info?.id) {
+                sessionPhotos = await loadClientPhotos(info.id) || [];
+                renderPhotos();
+            }
+
+            const btnAddPhoto = document.getElementById('btn-add-client-photo');
+            const photoInput = document.getElementById('client-photo-input');
+            
+            if (btnAddPhoto && photoInput) {
+                btnAddPhoto.addEventListener('click', () => photoInput.click());
+                
+                photoInput.addEventListener('change', async e => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    const buffer = await file.arrayBuffer();
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+                    const hash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+                    
+                    const isDuplicate = sessionPhotos.some(p => p.photo_hash === hash) || uploadedHashes.includes(hash);
+                    if (isDuplicate) {
+                        showToast('Esta foto ya existe', 'error');
+                        photoInput.value = '';
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = ev => {
+                        pendingFiles.push({ file, hash, preview: ev.target.result });
+                        uploadedHashes.push(hash);
+                        renderPhotos();
+                    };
+                    reader.readAsDataURL(file);
+                    photoInput.value = '';
+                });
+            }
+
+            const photosList = document.getElementById('client-photos-list');
+            if (photosList) {
+                photosList.addEventListener('click', async e => {
+                    const delBtn = e.target.closest('.delete-btn');
+                    if (delBtn) {
+                        const photoId = delBtn.dataset.id;
+                        if (confirm('¿Eliminar foto?')) {
+                            await deleteClientPhoto(photoId, currentClientId);
+                            sessionPhotos = sessionPhotos.filter(p => p.id !== photoId);
+                            renderPhotos();
+                        }
+                        return;
+                    }
+                    
+                    const delPending = e.target.closest('.delete-pending-btn');
+                    if (delPending) {
+                        const idx = parseInt(delPending.dataset.idx);
+                        uploadedHashes.splice(idx, 1);
+                        pendingFiles.splice(idx, 1);
+                        renderPhotos();
+                        return;
+                    }
+                });
+                
+                photosList.addEventListener('change', async e => {
+                    const select = e.target;
+                    if (select.tagName === 'SELECT' && select.dataset.id) {
+                        const photoId = select.dataset.id;
+                        const field = select.dataset.field;
+                        const value = select.value;
+                        await updateClientPhoto(photoId, currentClientId, { [field]: value });
+                    }
+                    const input = e.target;
+                    if (input.tagName === 'INPUT' && input.dataset.id && input.type !== 'file') {
+                        const photoId = input.dataset.id;
+                        const field = input.dataset.field;
+                        const value = input.value;
+                        await updateClientPhoto(photoId, currentClientId, { [field]: value });
+                    }
+                });
+            }
 
             document.getElementById('client-form').addEventListener('submit', async e => {
                 e.preventDefault();
@@ -2205,6 +2420,22 @@ window.addEventListener('message', async (event) => {
                 let success;
                 if (isEdit) success = await updateClient(data);
                 else success = await addClient(data);
+
+                if (success && pendingFiles.length > 0) {
+                    for (const pf of pendingFiles) {
+                        const typeSelect = document.querySelector(`.pending-type[data-idx="${pendingFiles.indexOf(pf)}"]`);
+                        const dateInput = document.querySelector(`.pending-date[data-idx="${pendingFiles.indexOf(pf)}"]`);
+                        const notesInput = document.querySelector(`.pending-notes[data-idx="${pendingFiles.indexOf(pf)}"]`);
+                        await uploadClientPhoto(
+                            pf.file, 
+                            currentClientId, 
+                            dateInput?.value || toLocalDateStr(new Date()),
+                            typeSelect?.value || 'before',
+                            notesInput?.value || ''
+                        );
+                    }
+                    showToast('Fotos guardadas');
+                }
 
                 if (success) { closeModal(); renderRoute(); }
                 else { submitBtn.disabled = false; submitBtn.textContent = isEdit ? 'Guardar' : 'Añadir'; }
