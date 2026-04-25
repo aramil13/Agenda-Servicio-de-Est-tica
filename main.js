@@ -3513,7 +3513,7 @@ window.addEventListener('message', async (event) => {
                 ${beforePhotos.length === 0 ? '<p class="no-photos">No hay fotos "antes"</p>' : ''}
                 ${beforePhotos.map(p => `
                     <div class="apt-photo-item" data-photo-id="${p.id}">
-                        <img src="${p.url}" onclick="window.open('${p.url}', '_blank')">
+                        <img src="${p.url}" onclick="openModal('Foto', '<div style=\'text-align:center\'><img src=\'${p.url}\' style=\'max-width:100%;max-height:70vh;border-radius:8px\'></div>')">
                         <div class="apt-photo-overlay">
                             <button type="button" class="apt-photo-edit-btn" onclick="window.editAptPhoto('${p.id}', '${p.type}', '${p.date || ''}', \`${p.notes || ''}\`)">
                                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
@@ -3534,7 +3534,7 @@ window.addEventListener('message', async (event) => {
                 ${afterPhotos.length === 0 ? '<p class="no-photos">No hay fotos "después"</p>' : ''}
                 ${afterPhotos.map(p => `
                     <div class="apt-photo-item" data-photo-id="${p.id}">
-                        <img src="${p.url}" onclick="window.open('${p.url}', '_blank')">
+                        <img src="${p.url}" onclick="openModal('Foto', '<div style=\'text-align:center\'><img src=\'${p.url}\' style=\'max-width:100%;max-height:70vh;border-radius:8px\'></div>')">
                         <div class="apt-photo-overlay">
                             <button type="button" class="apt-photo-edit-btn" onclick="window.editAptPhoto('${p.id}', '${p.type}', '${p.date || ''}', \`${p.notes || ''}\`)">
                                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
