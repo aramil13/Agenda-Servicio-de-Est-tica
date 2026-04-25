@@ -1755,6 +1755,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                         
                         <div id="action-buttons" style="display:none;margin-top:1.5rem;">
                             <button id="analyze-btn" class="btn btn-primary" style="width:100%;">Iniciar Análisis</button>
+                            <button id="save-diagnosis-btn" class="btn btn-primary" style="width:100%;background:#10b981;display:none;margin-top:0.5rem;">💾 Guardar en Cliente</button>
                             <button id="reset-btn" class="btn btn-secondary" style="margin-top:0.5rem;width:100%;">Cambiar Imagen</button>
                         </div>
                         
@@ -2182,8 +2183,76 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 document.getElementById('action-buttons').style.display = 'none';
                 document.getElementById('drop-zone').style.display = 'block';
                 document.getElementById('colored-hair-toggle').style.display = 'none';
+                document.getElementById('save-diagnosis-btn').style.display = 'none';
                 currentDiagnosisImage = null;
+                currentDiagnosisResults = null;
                 diagnosisImage = null;
+            });
+        }
+        
+        const saveBtn = document.getElementById('save-diagnosis-btn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', async () => {
+                if (!currentDiagnosisResults || !currentDiagnosisImage) return;
+                
+                const clientId = sessionStorage.getItem('nymara_diagnosis_client_id');
+                if (!clientId) {
+                    showToast('No hay cliente seleccionado', 'error');
+                    return;
+                }
+                
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Guardando...';
+                
+                try {
+                    // Convertir imagen a blob
+                    const canvas = document.createElement('canvas');
+                    canvas.width = currentDiagnosisImage.width;
+                    canvas.height = currentDiagnosisImage.height;
+                    canvas.getContext('2d').drawImage(currentDiagnosisImage, 0, 0);
+                    
+                    canvas.toBlob(async blob => {
+                        const fileName = `${clientId}/diagnosis_${Date.now()}.jpg`;
+                        const { data, error } = await supabase.storage
+                            .from('client-photos')
+                            .upload(fileName, blob);
+                        
+                        if (error) {
+                            console.error('Error uploading:', error);
+                            showToast('Error al guardar', 'error');
+                            saveBtn.disabled = false;
+                            saveBtn.textContent = '💾 Guardar en Cliente';
+                            return;
+                        }
+                        
+                        const { data: { publicUrl } } = supabase.storage
+                            .from('client-photos')
+                            .getPublicUrl(fileName);
+                        
+                        const photoId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                            const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                            return v.toString(16);
+                        });
+                        
+                        const r = currentDiagnosisResults;
+                        await supabase.from('client_photos').insert({
+                            id: photoId,
+                            client_id: clientId,
+                            photo_url: publicUrl,
+                            photo_date: new Date().toISOString().split('T')[0],
+                            photo_type: 'diagnosis',
+                            notes: `Densidad: ${r.density}, Grosor: ${r.thickness}, Hidratación: ${r.hydration}%, Sebo: ${r.sebumLevel}`
+                        });
+                        
+                        saveBtn.textContent = '✓ Guardado';
+                        showToast('Foto de diagnóstico guardada');
+                    }, 'image/jpeg', 0.9);
+                } catch (e) {
+                    console.error('Error:', e);
+                    showToast('Error al guardar', 'error');
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = '💾 Guardar en Cliente';
+                }
             });
         }
         
@@ -2293,6 +2362,13 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 statusBadge.textContent = '✓ Análisis completado';
                 statusBadge.style.background = '#10b981';
             }
+            
+            // Mostrar botón guardar
+            const saveBtn = document.getElementById('save-diagnosis-btn');
+            if (saveBtn) saveBtn.style.display = 'block';
+            
+            // Guardar resultados para usar al guardar
+            currentDiagnosisResults = { density, thickness, hydration, sebumLevel, isColored };
         } catch (err) {
             console.warn('Análisis completado con advertencias');
             if (statusBadge) {

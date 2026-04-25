@@ -271,7 +271,8 @@
             actionButtons: document.getElementById('action-buttons'),
             analyzeBtn: document.getElementById('analyze-btn'),
             statusBadge: document.getElementById('status-badge'),
-            coloredHair: document.getElementById('colored-hair-checkbox')
+            coloredHair: document.getElementById('colored-hair-checkbox'),
+            saveBtn: document.getElementById('save-diagnosis-btn')
         };
 
         elements.fileInput.onchange = e => {
@@ -353,8 +354,7 @@
                 elements.analyzeBtn.disabled = false;
                 
                 // Mostrar botón guardar
-                const saveBtn = document.getElementById('save-diagnosis-btn');
-                if (saveBtn) saveBtn.style.display = 'inline-flex';
+                document.getElementById('save-diagnosis-btn').style.display = 'inline-flex';
 
                 if (window.parent !== window) {
                     try {
