@@ -2259,10 +2259,10 @@ window.addEventListener('message', async (event) => {
                     <textarea class="form-control" name="observations" rows="3" placeholder="Notas sobre el cliente...">${isEdit ? (info.observations || '') : ''}</textarea>
                 </div>
                 ${isEdit ? `
-                <div class="form-group" id="client-photos-section">
+                <div class="form-group" id="client-photos-section" style="display:none">
                     <label>Fotos del Cliente</label>
-                    <div id="client-photos-list" style="margin-bottom:10px"></div>
-                    <div style="display:flex;gap:8px;margin-bottom:10px">
+                    <div id="client-photos-list"></div>
+                    <div style="display:flex;gap:8px;margin-top:10px">
                         <button type="button" class="btn btn-sm btn-secondary" id="btn-add-client-photo">
                             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                             Añadir Foto
@@ -2285,9 +2285,18 @@ window.addEventListener('message', async (event) => {
 
             const renderPhotos = () => {
                 const container = document.getElementById('client-photos-list');
+                const section = document.getElementById('client-photos-section');
                 if (!container) return;
                 
                 let html = '';
+                if (sessionPhotos.length === 0 && pendingFiles.length === 0) {
+                    container.innerHTML = '';
+                    if (section) section.style.display = 'none';
+                    return;
+                }
+                
+                if (section) section.style.display = 'block';
+                
                 sessionPhotos.forEach((p, idx) => {
                     const badgeColor = p.photo_type === 'before' ? '#f59e0b' : '#10b981';
                     const badgeText = p.photo_type === 'before' ? 'Antes' : 'Después';
@@ -2326,7 +2335,7 @@ window.addEventListener('message', async (event) => {
                         </div>`;
                 });
                 
-                container.innerHTML = html || '<p style="color:var(--text-secondary);font-size:0.85rem">No hay fotos</p>';
+                container.innerHTML = html;
             };
 
             if (isEdit && info?.id) {
@@ -2608,10 +2617,10 @@ window.addEventListener('message', async (event) => {
                     <textarea class="form-control" name="notes" rows="2" placeholder="Información adicional..."></textarea>
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group" id="apt-photos-section" style="display:none">
                     <label>Fotos de la Cita</label>
-                    <div id="apt-photos-list" style="margin-bottom:10px"></div>
-                    <div style="display:flex;gap:8px;margin-bottom:10px">
+                    <div id="apt-photos-list"></div>
+                    <div style="display:flex;gap:8px;margin-top:10px">
                         <button type="button" class="btn btn-sm btn-secondary" id="btn-add-apt-photo">
                             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                             Añadir Foto
@@ -2637,9 +2646,18 @@ window.addEventListener('message', async (event) => {
 
             const renderAptPhotos = () => {
                 const container = document.getElementById('apt-photos-list');
+                const section = document.getElementById('apt-photos-section');
                 if (!container) return;
                 
                 let html = '';
+                if (pendingFiles.length === 0) {
+                    container.innerHTML = '';
+                    if (section) section.style.display = 'none';
+                    return;
+                }
+                
+                if (section) section.style.display = 'block';
+                
                 pendingFiles.forEach((pf, idx) => {
                     const badgeColor = pf.type === 'before' ? '#f59e0b' : '#10b981';
                     const badgeText = pf.type === 'before' ? 'Antes' : 'Después';
@@ -2660,7 +2678,7 @@ window.addEventListener('message', async (event) => {
                         </div>`;
                 });
                 
-                container.innerHTML = html || '<p style="color:var(--text-secondary);font-size:0.85rem">No hay fotos</p>';
+                container.innerHTML = html;
             };
 
             const btnAddPhoto = document.getElementById('btn-add-apt-photo');
