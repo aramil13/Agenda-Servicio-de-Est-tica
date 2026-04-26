@@ -951,7 +951,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                         const photoDate = p.photo_date || '';
                         photosHtml += `
                             <div class="apt-mini-photo" data-apt-id="${apt.id}" data-photo-id="${p.id}" style="position:relative;text-align:center">
-                                <img src="${p.photo_url}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                                <img src="${p.photo_url}" class="zoom-on-hover" style="width:50px;height:50px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                                 <div style="font-size:0.65rem;color:var(--text-secondary)">${photoType}</div>
                                 <div style="font-size:0.6rem;color:var(--text-secondary)">${photoDate}</div>
                                 <div style="position:absolute;top:0;left:0;right:0;display:flex;justify-content:center;gap:2px">
@@ -974,6 +974,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             </div>
                         </div>
                         <div class="day-detail-actions">
+                            <button class="edit-btn" data-id="${apt.id}" data-type="appointment" title="Editar cita">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            </button>
                             <button class="delete-btn" data-id="${apt.id}" title="Eliminar cita">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
@@ -1142,7 +1145,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                                     ${State.clientPhotos[c.id].slice(0, 4).map(p => {
                                         const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
                                         return `<div style="position:relative;text-align:center">
-                                            <img src="${p.photo_url}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                                            <img src="${p.photo_url}" class="zoom-on-hover" style="width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                                             <div style="font-size:0.5rem;color:var(--text-secondary)">${photoType}</div>
                                             <div style="font-size:0.45rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
                                         </div>`;
@@ -1855,6 +1858,8 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 const type = e.currentTarget.dataset.type;
                 if (type === 'client') showClientForm(State.clients.find(c => c.id === id));
                 else if (type === 'service') showServiceForm(State.services.find(s => s.id === id));
+                else if (type === 'appointment') showAppointmentForm(State.appointments.find(a => a.id === id));
+                else showAppointmentForm(State.appointments.find(a => a.id === id));
             });
         });
 
@@ -2497,7 +2502,7 @@ window.addEventListener('message', async (event) => {
                     const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
                     html += `
                         <div class="client-mini-photo" data-photo-id="${p.id}" style="position:relative;text-align:center">
-                            <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                            <img src="${p.photo_url}" class="zoom-on-hover" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                             <div style="font-size:0.65rem;color:var(--text-secondary)">${photoType}</div>
                             <div style="font-size:0.6rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
                             <div style="display:flex;gap:2px;justify-content:center">
@@ -2847,7 +2852,7 @@ window.addEventListener('message', async (event) => {
                 pendingFiles.forEach((pf, idx) => {
                     html += `
                         <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-                            <img src="${pf.preview}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${pf.preview} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                            <img src="${pf.preview}" class="zoom-on-hover" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${pf.preview} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                             <span style="font-size:0.7rem;color:var(--text-secondary)">${pf.date || toLocalDateStr(new Date())}</span>
                             <button type="button" class="delete-apt-pending-btn" data-idx="${idx}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">🗑️</button>
                         </div>`;
@@ -3025,3 +3030,74 @@ window.addEventListener('message', async (event) => {
 passwordInput.addEventListener('focus', () => passwordInput.readOnly = false);
     }
 });
+
+// Floating photo preview on hover � draggable & pinnable
+(function() {
+    var pv = null, pi = null, pinned = false, isDragging = false, dragOffX = 0, dragOffY = 0;
+    
+    function ensurePreview() {
+        if (pv) return;
+        pv = document.createElement('div');
+        pv.id = 'hover-photo-preview';
+        pv.style.cssText = 'display:none; position:fixed; z-index:999999; border-radius:14px; box-shadow:0 24px 60px rgba(0,0,0,0.7); background:#1e1e2e; padding:6px; border:1px solid #333; cursor:grab; user-select:none;';
+        pi = document.createElement('img');
+        pi.id = 'hover-photo-img';
+        pi.style.cssText = 'max-width:480px; max-height:75vh; border-radius:8px; display:block; object-fit:contain; pointer-events:none;';
+        pv.appendChild(pi);
+        document.body.appendChild(pv);
+        
+        pv.addEventListener('mousedown', function(e) {
+            if (e.target === pv || e.target === pi) {
+                isDragging = true;
+                pinned = true;
+                dragOffX = e.clientX - pv.getBoundingClientRect().left;
+                dragOffY = e.clientY - pv.getBoundingClientRect().top;
+                pv.style.cursor = 'grabbing';
+                pv.style.boxShadow = '0 32px 80px rgba(0,0,0,0.9)';
+                e.preventDefault();
+            }
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            var newLeft = e.clientX - dragOffX;
+            var newTop = e.clientY - dragOffY;
+            newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - pv.offsetWidth));
+            newTop = Math.max(0, Math.min(newTop, window.innerHeight - pv.offsetHeight));
+            pv.style.left = newLeft + 'px';
+            pv.style.top = newTop + 'px';
+        });
+        
+        document.addEventListener('mouseup', function() {
+            if (isDragging) {
+                isDragging = false;
+                pv.style.cursor = 'grab';
+                pv.style.boxShadow = '0 24px 60px rgba(0,0,0,0.7)';
+            }
+        });
+        
+        pv.addEventListener('dblclick', function() { pinned = false; pv.style.display = 'none'; });
+    }
+    
+    document.addEventListener('mouseover', function(e) {
+        if (e.target.tagName === 'IMG' && e.target.classList.contains('zoom-on-hover')) {
+            ensurePreview();
+            pi.src = e.target.src;
+            pv.style.display = 'block';
+            if (pinned) return;
+            var rect = e.target.getBoundingClientRect();
+            var left = rect.right + 15, top = rect.top - 50;
+            if (left + 500 > window.innerWidth) left = rect.left - 520;
+            if (left < 10) left = 10;
+            if (top < 10) top = 10;
+            pv.style.left = left + 'px';
+            pv.style.top = top + 'px';
+        }
+    });
+    
+    document.addEventListener('mouseout', function(e) {
+        if (e.target.tagName === 'IMG' && e.target.classList.contains('zoom-on-hover')) {
+            if (!pinned && pv) pv.style.display = 'none';
+        }
+    });
+})();
