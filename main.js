@@ -2386,6 +2386,19 @@ window.addEventListener('message', async (event) => {
                         for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
                         const blob = new Blob([bytes], { type: 'image/jpeg' });
                         
+                        const photoHashBuffer = await crypto.subtle.digest('SHA-256', bytes);
+                        const photoHash = Array.from(new Uint8Array(photoHashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+                        
+                        const { data: existingPhotos } = await supabase
+                            .from('client_photos')
+                            .select('id, photo_hash')
+                            .eq('client_id', clientId);
+                        
+                        if (existingPhotos && existingPhotos.some(p => p.photo_hash === photoHash)) {
+                            showToast('Esta foto ya existe para este cliente', 'error');
+                            return;
+                        }
+                        
                         const fileName = `${clientId}/diagnosis_${Date.now()}.jpg`;
                         const { data, error } = await supabase.storage
                             .from('client-photos')
@@ -2407,6 +2420,7 @@ window.addEventListener('message', async (event) => {
                                 id: photoId,
                                 client_id: clientId,
                                 photo_url: publicUrl,
+                                photo_hash: photoHash,
                                 photo_date: new Date().toISOString().split('T')[0],
                                 photo_type: 'antes',
                                 notes: `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'}, Caspa: ${results?.dandruff || '--'}`
