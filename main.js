@@ -2128,6 +2128,10 @@ if (analyzeBtn) {
         reader.onload = e => {
             const img = new Image();
             img.onload = () => {
+                if (!validateDiagnosisImage(img)) {
+                    showToast('⚠️ Imagen rechazada. Debe ser una foto MICROSCÓPICA real del cuero cabelludo.', 'error');
+                    return;
+                }
                 currentDiagnosisImage = img;
                 const preview = document.getElementById('diag-preview-img');
                 if (preview) {
@@ -2159,17 +2163,7 @@ if (analyzeBtn) {
         try {
             console.log('Starting diagnosis analysis...');
             
-            // Validar imagen primero
-            if (!validateDiagnosisImage(currentDiagnosisImage)) {
-                console.log('Image validation failed');
-                if (statusBadge) {
-                    statusBadge.textContent = 'Imagen no válida';
-                    statusBadge.style.background = '#ef4444';
-                }
-                alert('⚠️ Imagen no válida.\n\nLa foto debe ser una toma microscópica del cuero cabelludo.');
-                if (analyzeBtn) analyzeBtn.disabled = false;
-                return;
-            }
+            // La imagen ya fue validada al subirla
             
             console.log('Running detection functions...');
             // Análisis real de la imagen
@@ -2240,51 +2234,60 @@ if (analyzeBtn) {
         }
     }
 
-    function validateDiagnosisImage(img) {
+        function validateDiagnosisImage(img) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        canvas.width = 60; canvas.height = 60;
-        ctx.drawImage(img, 0, 0, 60, 60);
-        const data = ctx.getImageData(0, 0, 60, 60).data;
+        const size = 150; 
+        canvas.width = size; canvas.height = size;
+        ctx.drawImage(img, 0, 0, size, size);
+        const data = ctx.getImageData(0, 0, size, size).data;
         
-        let rSum = 0, gSum = 0, bSum = 0;
-        let rSqSum = 0, gSqSum = 0, bSqSum = 0;
-        let edges = 0;
         const n = data.length / 4;
+        const grays = new Float32Array(n);
+        let rSum = 0, gSum = 0, bSum = 0;
         
-        for (let i = 0; i < data.length; i += 4) {
-            const r = data[i], g = data[i+1], b = data[i+2];
+        for (let i = 0; i < n; i++) {
+            const r = data[i*4], g = data[i*4+1], b = data[i*4+2];
             rSum += r; gSum += g; bSum += b;
-            rSqSum += r*r; gSqSum += g*g; bSqSum += b*b;
-            
-            if (i < data.length - 4) {
-                const r2 = data[i+4], g2 = data[i+5], b2 = data[i+6];
-                const diff = Math.abs(r-r2) + Math.abs(g-g2) + Math.abs(b-b2);
-                if (diff > 25) edges++;
+            grays[i] = 0.299 * r + 0.587 * g + 0.114 * b;
+        }
+        
+        const avgGray = grays.reduce((a, b) => a + b, 0) / n;
+        let variance = 0;
+        for (let i = 0; i < n; i++) {
+            variance += (grays[i] - avgGray) * (grays[i] - avgGray);
+        }
+        variance /= n;
+        
+        let weakEdges = 0;
+        let strongEdges = 0;
+        
+        for (let y = 0; y < size - 1; y++) {
+            for (let x = 0; x < size - 1; x++) {
+                const idx = y * size + x;
+                const diffX = Math.abs(grays[idx] - grays[idx + 1]);
+                const diffY = Math.abs(grays[idx] - grays[idx + size]);
+                const maxDiff = Math.max(diffX, diffY);
+                if (maxDiff > 15) weakEdges++;
+                if (maxDiff > 40) strongEdges++;
             }
         }
         
-        const edgeDensity = edges / n;
+        const weakEdgeDensity = weakEdges / (size * size);
+        const strongEdgeDensity = strongEdges / (size * size);
         const rAvg = rSum / n, gAvg = gSum / n, bAvg = bSum / n;
-        const variance = ((rSqSum/n - (rAvg*rAvg)) + (gSqSum/n - (gAvg*gAvg)) + (bSqSum/n - (bAvg*bAvg))) / 3;
         
-        const r = rAvg/255, g = gAvg/255, b = bAvg/255;
-        const max = Math.max(r, g, b), min = Math.min(r, g, b);
-        const d = max - min;
-        let h = 0, s = 0, l = (max + min) / 2;
-        if (max !== min) {
-            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-            if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
-            else if (max === g) h = (b - r) / d + 2;
-            else h = (r - g) / d + 4;
-            h /= 6;
-        }
-        const hueDeg = h * 360;
-        const isBiological = (hueDeg < 50 || hueDeg > 340) && s < 0.6;
-        const isMicroscopic = edgeDensity > 0.08;
-        const hasTexture = variance > 250;
+        const isPerfectlyBlackOrWhite = (rAvg < 10 && gAvg < 10 && bAvg < 10) || (rAvg > 245 && gAvg > 245 && bAvg > 245);
+        const isUniform = variance < 100; 
+        const hasNoTexture = weakEdgeDensity < 0.03; 
         
-        return isBiological && isMicroscopic && hasTexture;
+        // Criterios específicos para fotos microscópicas:
+        // 1. Debe haber bordes fuertes (los cabellos crean alto contraste bajo el microscopio)
+        // 2. No debe haber demasiados bordes débiles (las fotos macroscópicas detalladas tienen demasiada densidad de bordes en todas partes)
+        const lacksStrongEdges = strongEdgeDensity < 0.01;
+        const tooManyEdges = weakEdgeDensity > 0.45;
+
+        return !isUniform && !hasNoTexture && !isPerfectlyBlackOrWhite && !lacksStrongEdges && !tooManyEdges;
     }
 
     function detectHairDensity(img) {
@@ -2899,6 +2902,8 @@ window.addEventListener('message', async (event) => {
             const timeInput = form.querySelector('[name="time"]');
             const serviceSelect = form.querySelector('[name="serviceId"]');
             
+            // Pre-cargar fotos existentes si estamos editando una cita
+            let existingPhotos = (info && Array.isArray(info.appointmentPhotos)) ? [...info.appointmentPhotos] : [];
             let pendingFiles = [];
             let uploadedHashes = [];
 
@@ -2907,17 +2912,32 @@ window.addEventListener('message', async (event) => {
                 if (!container) return;
                 
                 let html = '';
+
+                // Fotos ya guardadas en la cita
+                existingPhotos.forEach((ep, idx) => {
+                    const src = ep.photo_url || ep.preview || '';
+                    html += `
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                            <img src="${src}" class="zoom-on-hover" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer">
+                            <span style="font-size:0.7rem;color:var(--text-secondary)">${ep.photo_date || ep.date || ''}</span>
+                            <button type="button" class="delete-existing-apt-photo-btn" data-idx="${idx}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">🗑️</button>
+                        </div>`;
+                });
+
+                // Fotos nuevas pendientes de subir
                 pendingFiles.forEach((pf, idx) => {
                     html += `
                         <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-                            <img src="${pf.preview}" class="zoom-on-hover" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${pf.preview} style=max-width:90vw;max-height:90vh;border-radius:8px>')">
-                            <span style="font-size:0.7rem;color:var(--text-secondary)">${pf.date || toLocalDateStr(new Date())}</span>
+                            <img src="${pf.preview}" class="zoom-on-hover" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid #a78bfa">
+                            <span style="font-size:0.7rem;color:#a78bfa">Nueva</span>
                             <button type="button" class="delete-apt-pending-btn" data-idx="${idx}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">🗑️</button>
                         </div>`;
                 });
                 
                 container.innerHTML = html;
             };
+
+            renderAptPhotos(); // Mostrar fotos existentes al abrir el modal
 
             const btnAddPhoto = document.getElementById('btn-add-apt-photo');
             const photoInput = document.getElementById('apt-photo-input');
@@ -2934,8 +2954,9 @@ window.addEventListener('message', async (event) => {
                     const hash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
                     
                     const isDuplicateInSession = uploadedHashes.includes(hash);
-                    const isDuplicateInDB = State.clientPhotos && State.clientPhotos[document.querySelector('#appointment-form [name="clientId"]')?.value] && 
-                        State.clientPhotos[document.querySelector('#appointment-form [name="clientId"]')?.value].some(p => p.photo_hash === hash);
+                    const clientIdVal = document.querySelector('#appointment-form [name="clientId"]')?.value;
+                    const isDuplicateInDB = clientIdVal && State.clientPhotos && State.clientPhotos[clientIdVal] &&
+                        State.clientPhotos[clientIdVal].some(p => p.photo_hash === hash);
                     
                     if (isDuplicateInSession || isDuplicateInDB) {
                         showToast('Esta foto ya existe', 'error');
@@ -2945,7 +2966,7 @@ window.addEventListener('message', async (event) => {
                     
                     const reader = new FileReader();
                     reader.onload = ev => {
-                        pendingFiles.push({ file, hash, preview: ev.target.result, type: 'before', date: toLocalDateStr(new Date()), notes: '' });
+                        pendingFiles.push({ file, hash, preview: ev.target.result, type: 'after', date: toLocalDateStr(new Date()), notes: '' });
                         uploadedHashes.push(hash);
                         renderAptPhotos();
                     };
@@ -2962,6 +2983,13 @@ window.addEventListener('message', async (event) => {
                         const idx = parseInt(delPending.dataset.idx);
                         uploadedHashes.splice(idx, 1);
                         pendingFiles.splice(idx, 1);
+                        renderAptPhotos();
+                        return;
+                    }
+                    const delExisting = e.target.closest('.delete-existing-apt-photo-btn');
+                    if (delExisting) {
+                        const idx = parseInt(delExisting.dataset.idx);
+                        existingPhotos.splice(idx, 1);
                         renderAptPhotos();
                     }
                 });
@@ -3000,24 +3028,16 @@ window.addEventListener('message', async (event) => {
                     userEmail: State.currentUserEmail || ''
                 };
 
-                const todayStr = toLocalDateStr(new Date());
-                
-                // Guardar fotos de la cita
-                if (pendingFiles.length > 0) {
-                    data.appointmentPhotos = [];
-                    console.log('Saving photos for client:', data.clientId);
-                    for (const pf of pendingFiles) {
-                        console.log('Uploading photo:', { date: pf.date, type: pf.type, notes: pf.notes });
-                        const photoRecord = await uploadClientPhoto(pf.file, data.clientId, pf.date, pf.type, pf.notes);
-                        if (photoRecord) {
-                            data.appointmentPhotos.push(photoRecord);
-                        } else {
-                            console.log('Photo upload failed - no record returned');
-                        }
-                    }
+                // Subir fotos nuevas y combinar con las existentes
+                const newPhotoRecords = [];
+                for (const pf of pendingFiles) {
+                    const photoRecord = await uploadClientPhoto(pf.file, data.clientId, pf.date, pf.type, pf.notes);
+                    if (photoRecord) newPhotoRecords.push(photoRecord);
                 }
+                // Fusionar fotos existentes (no eliminadas) + nuevas subidas
+                data.appointmentPhotos = [...existingPhotos, ...newPhotoRecords];
 
-                // Validar que no se solape con otra cita existente en el mismo día
+                // Validar horario de trabajo
                 const [targetHour, targetMin] = data.time.split(':').map(Number);
                 const targetStartMinutes = targetHour * 60 + targetMin;
                 const targetService = State.services.find(s => s.id === data.serviceId);
@@ -3031,7 +3051,7 @@ window.addEventListener('message', async (event) => {
                 if (targetStartMinutes < workingStartMins || targetEndMinutes > workingEndMins) {
                     showToast(`El horario seleccionado se sale de tus horas de apertura (${State.settings.startTime} - ${State.settings.endTime}).`, 'error');
                     submitBtn.disabled = false;
-                    submitBtn.textContent = 'Agendar Cita';
+                    submitBtn.textContent = info ? 'Guardar' : 'Agendar Cita';
                     return;
                 }
 
@@ -3041,19 +3061,21 @@ window.addEventListener('message', async (event) => {
                     const aptStartMinutes = aptHour * 60 + aptMin;
                     const aptService = State.services.find(s => s.id === apt.serviceId);
                     const aptEndMinutes = aptStartMinutes + (aptService ? parseInt(aptService.duration) : 0);
-                    
-                    // Hay superposición si InicioN < FinE y FinN > InicioE
                     return targetStartMinutes < aptEndMinutes && targetEndMinutes > aptStartMinutes;
                 });
 
                 if (hasCollision) {
                     showToast('El horario elegido choca con una cita ya existente.', 'error');
                     submitBtn.disabled = false;
-                    submitBtn.textContent = 'Agendar Cita';
+                    submitBtn.textContent = info ? 'Guardar' : 'Agendar Cita';
                     return;
                 }
 
                 if (info) {
+                    // Persistir fotos en la cita editada
+                    await supabase.from('appointments').update({ appointment_photos: data.appointmentPhotos }).eq('id', data.id);
+                    const aptIdx = State.appointments.findIndex(a => a.id === data.id);
+                    if (aptIdx !== -1) State.appointments[aptIdx].appointmentPhotos = data.appointmentPhotos;
                     if (await updateAppointment(data)) {
                         closeModal();
                         renderRoute();
@@ -3062,83 +3084,238 @@ window.addEventListener('message', async (event) => {
                         submitBtn.textContent = 'Guardar';
                     }
                 } else {
-                    if (await addAppointment(data)) { 
-                        closeModal(); 
-                        renderRoute(); 
-                        
+                    if (await addAppointment(data)) {
+                        closeModal();
+                        renderRoute();
                         // Notificar por WhatsApp si el cliente lo tiene activado
                         const client = State.clients.find(c => c.id === data.clientId);
                         if (client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1) && client.phone) {
                             sendWASMessage(client.phone, client.name, data.date, data.time);
                         }
+                    } else {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Agendar Cita';
                     }
-                    else { submitBtn.disabled = false; submitBtn.textContent = 'Agendar Cita'; }
                 }
             });
         });
     }
 
-    /* ═══════════════════════════════════════
-       INIT — Check session to start
-       ═══════════════════════════════════════ */
-    checkSession();
+    function showSettingsForm() {
+        const html = `
+            <form id="settings-form">
+                <div class="form-group">
+                    <label>Hora de Apertura</label>
+                    <input type="time" class="form-control" name="startTime" required value="${State.settings.startTime}">
+                </div>
+                <div class="form-group">
+                    <label>Hora de Cierre</label>
+                    <input type="time" class="form-control" name="endTime" required value="${State.settings.endTime}">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Horario</button>
+                </div>
+            </form>`;
 
-    // Combat aggressive browser autofill
-    const emailInput = document.getElementById('auth-email');
-    const passwordInput = document.getElementById('auth-password');
-    
-    if (emailInput && passwordInput) {
-        // Clear again after a delay in case browser injected values late
-        setTimeout(() => {
-            emailInput.value = '';
-            passwordInput.value = '';
-            emailInput.readOnly = false;
-            passwordInput.readOnly = false;
-        }, 600);
+        openModal('Configurar Horario', html, () => {
+            document.getElementById('settings-form').addEventListener('submit', e => {
+                e.preventDefault();
+                const fd = new FormData(e.target);
+                const start = fd.get('startTime');
+                const end = fd.get('endTime');
 
-        // Also remove readonly on focus as a fallback
-        emailInput.addEventListener('focus', () => emailInput.readOnly = false);
-passwordInput.addEventListener('focus', () => passwordInput.readOnly = false);
+                if (start >= end) {
+                    showToast('La hora de cierre debe ser posterior a la de apertura.', 'error');
+                    return;
+                }
+
+                State.settings.startTime = start;
+                State.settings.endTime = end;
+                localStorage.setItem('nymara_start_time', start);
+                localStorage.setItem('nymara_end_time', end);
+                
+                showToast('Horario actualizado correctamente.');
+                closeModal();
+            });
+        });
     }
-});
 
+    function findNextAvailableTime(dateStr, durationMinutes) {
+        const [startH, startM] = State.settings.startTime.split(':').map(Number);
+        const [endH, endM] = State.settings.endTime.split(':').map(Number);
+        
+        let startMins = startH * 60 + startM;
+        const endMins = endH * 60 + endM;
 
+        const dayApts = State.appointments
+            .filter(a => a.date === dateStr)
+            .sort((a, b) => a.time.localeCompare(b.time));
 
+        for (const apt of dayApts) {
+            const [h, m] = apt.time.split(':').map(Number);
+            const aptStart = h * 60 + m;
+            const aptServ = State.services.find(s => s.id === apt.serviceId);
+            const aptDur = aptServ ? parseInt(aptServ.duration) : 0;
+            const aptEnd = aptStart + aptDur;
 
-
-
-// Floating photo preview on hover
-document.addEventListener('mouseover', e => {
-    if (e.target.tagName === 'IMG' && e.target.classList.contains('zoom-on-hover')) {
-        let pv = document.getElementById('hover-photo-preview');
-        let pi = document.getElementById('hover-photo-img');
-        if (!pv) {
-            pv = document.createElement('div');
-            pv.id = 'hover-photo-preview';
-            pv.style.cssText = 'display:none; position:fixed; z-index:999999; border-radius:12px; box-shadow:0 20px 40px rgba(0,0,0,0.6); pointer-events:none; background:var(--bg-card, white); padding:6px; border:1px solid var(--border-color, #eee);';
-            pv.innerHTML = '<img id="hover-photo-img" style="max-width:500px; max-height:80vh; border-radius:8px; display:block; object-fit:contain;">';
-            document.body.appendChild(pv);
-            pi = document.getElementById('hover-photo-img');
+            if (startMins + durationMinutes <= aptStart) {
+                break;
+            }
+            if (startMins < aptEnd) {
+                startMins = aptEnd;
+            }
         }
-        pi.src = e.target.src;
-        pv.style.display = 'block';
-        
-        const rect = e.target.getBoundingClientRect();
-        let left = rect.right + 15;
-        let top = rect.top - 50;
-        
-        if (left + 500 > window.innerWidth) left = rect.left - 520;
-        if (left < 10) left = 10;
-        if (top < 10) top = 10;
-        
-        pv.style.left = left + 'px';
-        pv.style.top = top + 'px';
-    }
-});
 
-document.addEventListener('mouseout', e => {
-    if (e.target.tagName === 'IMG' && e.target.classList.contains('zoom-on-hover')) {
-        const pv = document.getElementById('hover-photo-preview');
+        if (startMins + durationMinutes > endMins) return State.settings.startTime; // fallback if no time
+        const hStr = Math.floor(startMins / 60).toString().padStart(2, '0');
+        const mStr = (startMins % 60).toString().padStart(2, '0');
+        return `${hStr}:${mStr}`;
+    }
+
+
+// ═══════════════════════════════════════════
+// FLOATING PHOTO PREVIEW — draggable & pinnable
+// ═══════════════════════════════════════════
+(function () {
+    let pv = null;           // the overlay div
+    let pi = null;           // the <img> inside
+    let pinned = false;      // stays on screen when true
+    let isDragging = false;
+    let dragOffX = 0, dragOffY = 0;
+
+    function ensurePreview() {
+        if (pv) return;
+
+        pv = document.createElement('div');
+        pv.id = 'hover-photo-preview';
+        pv.style.cssText = [
+            'display:none',
+            'position:fixed',
+            'z-index:999999',
+            'border-radius:14px',
+            'box-shadow:0 24px 60px rgba(0,0,0,0.7)',
+            'background:var(--bg-card,#1e1e2e)',
+            'padding:6px',
+            'border:1px solid var(--border-color,#333)',
+            'cursor:grab',
+            'user-select:none',
+            'transition:box-shadow 0.15s',
+        ].join(';');
+
+        // Close button
+        const closeBtn = document.createElement('div');
+        closeBtn.title = 'Cerrar (doble clic también cierra)';
+        closeBtn.style.cssText = [
+            'position:absolute',
+            'top:-10px',
+            'right:-10px',
+            'width:24px',
+            'height:24px',
+            'border-radius:50%',
+            'background:#ef4444',
+            'color:#fff',
+            'font-size:14px',
+            'line-height:24px',
+            'text-align:center',
+            'cursor:pointer',
+            'box-shadow:0 2px 8px rgba(0,0,0,0.5)',
+            'z-index:1',
+        ].join(';');
+        closeBtn.textContent = '✕';
+        closeBtn.addEventListener('mousedown', (e) => { e.stopPropagation(); });
+        closeBtn.addEventListener('click', (e) => { e.stopPropagation(); hidePreview(); });
+        pv.appendChild(closeBtn);
+
+        // Drag hint label
+        const hint = document.createElement('div');
+        hint.style.cssText = 'font-size:10px;color:#888;text-align:center;margin-bottom:4px;pointer-events:none;';
+        hint.textContent = '✥ Arrastra para mover · Doble clic para cerrar';
+        pv.appendChild(hint);
+
+        pi = document.createElement('img');
+        pi.id = 'hover-photo-img';
+        pi.style.cssText = 'max-width:480px;max-height:75vh;border-radius:8px;display:block;object-fit:contain;pointer-events:none;';
+        pv.appendChild(pi);
+
+        document.body.appendChild(pv);
+
+        // ── Drag logic ──
+        pv.addEventListener('mousedown', (e) => {
+            if (e.target === pv || e.target === pi || e.target === hint) {
+                isDragging = true;
+                pinned = true;
+                dragOffX = e.clientX - pv.getBoundingClientRect().left;
+                dragOffY = e.clientY - pv.getBoundingClientRect().top;
+                pv.style.cursor = 'grabbing';
+                pv.style.boxShadow = '0 32px 80px rgba(0,0,0,0.9)';
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            let newLeft = e.clientX - dragOffX;
+            let newTop  = e.clientY - dragOffY;
+            // Clamp within viewport
+            newLeft = Math.max(0, Math.min(newLeft, window.innerWidth  - pv.offsetWidth));
+            newTop  = Math.max(0, Math.min(newTop,  window.innerHeight - pv.offsetHeight));
+            pv.style.left = newLeft + 'px';
+            pv.style.top  = newTop  + 'px';
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                pv.style.cursor = 'grab';
+                pv.style.boxShadow = '0 24px 60px rgba(0,0,0,0.7)';
+            }
+        });
+
+        // Double-click closes
+        pv.addEventListener('dblclick', () => hidePreview());
+    }
+
+    function hidePreview() {
+        pinned = false;
         if (pv) pv.style.display = 'none';
     }
-});
+
+    function showAt(src, left, top) {
+        ensurePreview();
+        pi.src = src;
+        pv.style.display = 'block';
+
+        // Clamp into viewport (do after display so offsetWidth is real)
+        requestAnimationFrame(() => {
+            left = Math.max(10, Math.min(left, window.innerWidth  - pv.offsetWidth  - 10));
+            top  = Math.max(10, Math.min(top,  window.innerHeight - pv.offsetHeight - 10));
+            pv.style.left = left + 'px';
+            pv.style.top  = top  + 'px';
+        });
+    }
+
+    document.addEventListener('mouseover', (e) => {
+        if (e.target.tagName === 'IMG' && e.target.classList.contains('zoom-on-hover')) {
+            ensurePreview();
+            // If the preview is pinned (user placed it somewhere), don't move it — just update the image
+            if (pinned) {
+                pi.src = e.target.src;
+                pv.style.display = 'block';
+                return;
+            }
+            const rect = e.target.getBoundingClientRect();
+            let left = rect.right + 15;
+            let top  = rect.top - 50;
+            if (left + 510 > window.innerWidth) left = rect.left - 520;
+            showAt(e.target.src, left, top);
+        }
+    });
+
+    document.addEventListener('mouseout', (e) => {
+        if (e.target.tagName === 'IMG' && e.target.classList.contains('zoom-on-hover')) {
+            // Only auto-hide if not pinned by the user
+            if (!pinned && pv) pv.style.display = 'none';
+        }
+    });
+})();
