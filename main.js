@@ -2428,6 +2428,21 @@ window.addEventListener('message', async (event) => {
                             
                             console.log('Diagnosis photo saved:', publicUrl);
                             showToast('✓ Foto de diagnóstico guardada');
+                            
+                            const newPhoto = {
+                                id: photoId,
+                                client_id: clientId,
+                                photo_url: publicUrl,
+                                photo_hash: photoHash,
+                                photo_date: new Date().toISOString().split('T')[0],
+                                photo_type: 'antes',
+                                created_at: new Date().toISOString(),
+                                notes: `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'}, Caspa: ${results?.dandruff || '--'}`
+                            };
+                            if (!State.clientPhotos[clientId]) State.clientPhotos[clientId] = [];
+                            State.clientPhotos[clientId].unshift(newPhoto);
+                            
+                            navigate('clients');
                         }
                     } catch (e) {
                         console.error('Error saving diagnosis photo:', e);
