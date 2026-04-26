@@ -461,27 +461,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function uploadClientPhoto(file, clientId, photoDate, photoType, photoNotes) {
         console.log('uploadClientPhoto called:', { clientId, photoDate, photoType });
+        const fileExt = file.name.split('.').pop();
+        const photoId = generateId();
+        const fileName = `${clientId}/${photoId}.${fileExt}`;
         
         // Calcular hash para evitar duplicados
         const buffer = await file.arrayBuffer();
         const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
         const photoHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-        
-        // Verificar si ya existe una foto con este hash para este cliente
-        const { data: existingPhotos } = await supabase
-            .from('client_photos')
-            .select('id, photo_hash')
-            .eq('client_id', clientId);
-        
-        if (existingPhotos && existingPhotos.some(p => p.photo_hash === photoHash)) {
-            console.log('Duplicate photo detected:', photoHash);
-            showToast('Esta foto ya existe para este cliente', 'error');
-            return null;
-        }
-        
-        const fileExt = file.name.split('.').pop();
-        const photoId = generateId();
-        const fileName = `${clientId}/${photoId}.${fileExt}`;
         
         const { data, error } = await supabase.storage
             .from('client-photos')
@@ -658,25 +645,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) { showToast('Error al agendar cita: ' + error.message, 'error'); return false; }
         State.appointments.push(data);
         showToast('Cita agendada correctamente');
-        return true;
-    }
-
-    async function updateAppointment(data) {
-        const dbRow = {
-            client_id: data.clientId,
-            service_id: data.serviceId,
-            date: data.date,
-            time: data.time,
-            notes: data.notes
-        };
-        const { error } = await supabase.from('appointments').update(dbRow).eq('id', data.id);
-        if (error) { showToast('Error al editar cita: ' + error.message, 'error'); return false; }
-        
-        const idx = State.appointments.findIndex(a => a.id === data.id);
-        if (idx !== -1) {
-            State.appointments[idx] = { ...State.appointments[idx], ...data };
-        }
-        showToast('Cita actualizada correctamente');
         return true;
     }
 
@@ -974,9 +942,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 const userInitial = apt.userEmail ? apt.userEmail.charAt(0).toUpperCase() : '?';
                 const userDisplay = apt.userEmail ? apt.userEmail.split('@')[0] : 'Sistema';
                 
-                const appointmentPhotos = apt.appointmentPhotos && apt.appointmentPhotos.length > 0 
-                    ? apt.appointmentPhotos 
-                    : (State.clientPhotos && State.clientPhotos[apt.clientId] ? State.clientPhotos[apt.clientId] : []);
+                const appointmentPhotos = apt.appointmentPhotos || [];
                 let photosHtml = '';
                 if (appointmentPhotos.length > 0) {
                     photosHtml = '<div class="day-detail-photos" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px">';
@@ -985,7 +951,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                         const photoDate = p.photo_date || '';
                         photosHtml += `
                             <div class="apt-mini-photo" data-apt-id="${apt.id}" data-photo-id="${p.id}" style="position:relative;text-align:center">
-                                <img src="${p.photo_url}" class="zoom-on-hover" style="width:50px;height:50px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                                <img src="${p.photo_url}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                                 <div style="font-size:0.65rem;color:var(--text-secondary)">${photoType}</div>
                                 <div style="font-size:0.6rem;color:var(--text-secondary)">${photoDate}</div>
                                 <div style="position:absolute;top:0;left:0;right:0;display:flex;justify-content:center;gap:2px">
@@ -1008,7 +974,6 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             </div>
                         </div>
                         <div class="day-detail-actions">
-                            <button class="edit-btn" data-id="${apt.id}" title="Editar cita"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
                             <button class="delete-btn" data-id="${apt.id}" title="Eliminar cita">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
@@ -1177,7 +1142,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                                     ${State.clientPhotos[c.id].slice(0, 4).map(p => {
                                         const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
                                         return `<div style="position:relative;text-align:center">
-                                            <img src="${p.photo_url}" class="zoom-on-hover" style="width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                                            <img src="${p.photo_url}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                                             <div style="font-size:0.5rem;color:var(--text-secondary)">${photoType}</div>
                                             <div style="font-size:0.45rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
                                         </div>`;
@@ -1890,7 +1855,6 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 const type = e.currentTarget.dataset.type;
                 if (type === 'client') showClientForm(State.clients.find(c => c.id === id));
                 else if (type === 'service') showServiceForm(State.services.find(s => s.id === id));
-                else if (!type || type === 'appointment') showAppointmentForm(State.appointments.find(a => a.id === id));
             });
         });
 
@@ -2128,10 +2092,6 @@ if (analyzeBtn) {
         reader.onload = e => {
             const img = new Image();
             img.onload = () => {
-                if (!validateDiagnosisImage(img)) {
-                    showToast('⚠️ Imagen rechazada. Debe ser una foto MICROSCÓPICA real del cuero cabelludo.', 'error');
-                    return;
-                }
                 currentDiagnosisImage = img;
                 const preview = document.getElementById('diag-preview-img');
                 if (preview) {
@@ -2163,7 +2123,17 @@ if (analyzeBtn) {
         try {
             console.log('Starting diagnosis analysis...');
             
-            // La imagen ya fue validada al subirla
+            // Validar imagen primero
+            if (!validateDiagnosisImage(currentDiagnosisImage)) {
+                console.log('Image validation failed');
+                if (statusBadge) {
+                    statusBadge.textContent = 'Imagen no válida';
+                    statusBadge.style.background = '#ef4444';
+                }
+                alert('⚠️ Imagen no válida.\n\nLa foto debe ser una toma microscópica del cuero cabelludo.');
+                if (analyzeBtn) analyzeBtn.disabled = false;
+                return;
+            }
             
             console.log('Running detection functions...');
             // Análisis real de la imagen
@@ -2188,33 +2158,6 @@ if (analyzeBtn) {
             displayDiagnosisProducts(getMariaNilaRecommendations(diagnosis));
             displayDiagnosisTreatments(getOlaplexRecommendations(diagnosis));
             
-            // Guardar foto del diagnóstico en la base de datos del cliente
-            if (diagnosisClientId && currentDiagnosisImage) {
-                try {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = currentDiagnosisImage.width;
-                    canvas.height = currentDiagnosisImage.height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(currentDiagnosisImage, 0, 0);
-                    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.8));
-                    const file = new File([blob], 'diagnosis.jpg', { type: 'image/jpeg' });
-                    
-                    const notes = `Diagnóstico: Densidad ${density}, Grosor ${thickness}, Hidratación ${hydration}%, Sebo ${sebumLevel}%, Caspa ${dandruff}`;
-                    const photoRecord = await uploadClientPhoto(file, diagnosisClientId, toLocalDateStr(new Date()), 'before', notes);
-                    
-                    // Añadir la foto directamente a State.clientPhotos sin recargar la vista
-                    if (photoRecord) {
-                        if (!State.clientPhotos[diagnosisClientId]) {
-                            State.clientPhotos[diagnosisClientId] = [];
-                        }
-                        State.clientPhotos[diagnosisClientId].unshift(photoRecord);
-                    }
-                    showToast('Foto de diagnóstico guardada');
-                } catch (err) {
-                    console.error('Error saving diagnosis photo:', err);
-                }
-            }
-            
             if (statusBadge) {
                 statusBadge.textContent = '✓ Análisis completado';
                 statusBadge.style.background = '#10b981';
@@ -2234,60 +2177,51 @@ if (analyzeBtn) {
         }
     }
 
-        function validateDiagnosisImage(img) {
+    function validateDiagnosisImage(img) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        const size = 150; 
-        canvas.width = size; canvas.height = size;
-        ctx.drawImage(img, 0, 0, size, size);
-        const data = ctx.getImageData(0, 0, size, size).data;
+        canvas.width = 60; canvas.height = 60;
+        ctx.drawImage(img, 0, 0, 60, 60);
+        const data = ctx.getImageData(0, 0, 60, 60).data;
         
-        const n = data.length / 4;
-        const grays = new Float32Array(n);
         let rSum = 0, gSum = 0, bSum = 0;
+        let rSqSum = 0, gSqSum = 0, bSqSum = 0;
+        let edges = 0;
+        const n = data.length / 4;
         
-        for (let i = 0; i < n; i++) {
-            const r = data[i*4], g = data[i*4+1], b = data[i*4+2];
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i+1], b = data[i+2];
             rSum += r; gSum += g; bSum += b;
-            grays[i] = 0.299 * r + 0.587 * g + 0.114 * b;
-        }
-        
-        const avgGray = grays.reduce((a, b) => a + b, 0) / n;
-        let variance = 0;
-        for (let i = 0; i < n; i++) {
-            variance += (grays[i] - avgGray) * (grays[i] - avgGray);
-        }
-        variance /= n;
-        
-        let weakEdges = 0;
-        let strongEdges = 0;
-        
-        for (let y = 0; y < size - 1; y++) {
-            for (let x = 0; x < size - 1; x++) {
-                const idx = y * size + x;
-                const diffX = Math.abs(grays[idx] - grays[idx + 1]);
-                const diffY = Math.abs(grays[idx] - grays[idx + size]);
-                const maxDiff = Math.max(diffX, diffY);
-                if (maxDiff > 15) weakEdges++;
-                if (maxDiff > 40) strongEdges++;
+            rSqSum += r*r; gSqSum += g*g; bSqSum += b*b;
+            
+            if (i < data.length - 4) {
+                const r2 = data[i+4], g2 = data[i+5], b2 = data[i+6];
+                const diff = Math.abs(r-r2) + Math.abs(g-g2) + Math.abs(b-b2);
+                if (diff > 25) edges++;
             }
         }
         
-        const weakEdgeDensity = weakEdges / (size * size);
-        const strongEdgeDensity = strongEdges / (size * size);
+        const edgeDensity = edges / n;
         const rAvg = rSum / n, gAvg = gSum / n, bAvg = bSum / n;
+        const variance = ((rSqSum/n - (rAvg*rAvg)) + (gSqSum/n - (gAvg*gAvg)) + (bSqSum/n - (bAvg*bAvg))) / 3;
         
-        const isPerfectlyBlackOrWhite = (rAvg < 10 && gAvg < 10 && bAvg < 10) || (rAvg > 245 && gAvg > 245 && bAvg > 245);
-        const isUniform = variance < 100; 
-        const hasNoTexture = weakEdgeDensity < 0.03; 
+        const r = rAvg/255, g = gAvg/255, b = bAvg/255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        const d = max - min;
+        let h = 0, s = 0, l = (max + min) / 2;
+        if (max !== min) {
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+            else if (max === g) h = (b - r) / d + 2;
+            else h = (r - g) / d + 4;
+            h /= 6;
+        }
+        const hueDeg = h * 360;
+        const isBiological = (hueDeg < 50 || hueDeg > 340) && s < 0.6;
+        const isMicroscopic = edgeDensity > 0.08;
+        const hasTexture = variance > 250;
         
-        // Criterios específicos para fotos microscópicas:
-        // 1. Debe haber bordes fuertes (los cabellos crean alto contraste bajo el microscopio)
-        // 2. No debe haber demasiados bordes débiles (las fotos macroscópicas detalladas tienen demasiada densidad de bordes en todas partes)
-        const lacksStrongEdges = strongEdgeDensity < 0.01;
-        const tooManyEdges = weakEdgeDensity > 0.45;
-
-        return !isUniform && !hasNoTexture && !isPerfectlyBlackOrWhite && !lacksStrongEdges && !tooManyEdges;
+        return isBiological && isMicroscopic && hasTexture;
     }
 
     function detectHairDensity(img) {
@@ -2563,7 +2497,7 @@ window.addEventListener('message', async (event) => {
                     const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
                     html += `
                         <div class="client-mini-photo" data-photo-id="${p.id}" style="position:relative;text-align:center">
-                            <img src="${p.photo_url}" class="zoom-on-hover" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                            <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                             <div style="font-size:0.65rem;color:var(--text-secondary)">${photoType}</div>
                             <div style="font-size:0.6rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
                             <div style="display:flex;gap:2px;justify-content:center">
@@ -2576,7 +2510,7 @@ window.addEventListener('message', async (event) => {
                 pendingFiles.forEach((pf, idx) => {
                     html += `
                         <div style="position:relative;text-align:center">
-                            <img src="${pf.preview}" class="zoom-on-hover" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${pf.preview} style=max-width:90vw;max-height:90vh;border-radius:8px>')">
+                            <img src="${pf.preview}" style="width:60px;height:60px;object-fit:cover;border-radius:8px">
                             <div style="font-size:0.65rem;color:var(--text-secondary)">Antes</div>
                             <div style="font-size:0.6rem;color:var(--text-secondary)">${toLocalDateStr(new Date())}</div>
                             <div style="display:flex;gap:2px;justify-content:center">
@@ -2836,15 +2770,15 @@ window.addEventListener('message', async (event) => {
         return `${hStr}:${mStr}`;
     }
 
-    function showAppointmentForm(info = null) {
+    function showAppointmentForm() {
         if (State.clients.length === 0 || State.services.length === 0) {
             showToast('Debes tener al menos un cliente y un servicio antes de agendar una cita.', 'error');
             return;
         }
 
-        const defaultDate = info ? info.date : (State.selectedDate || toLocalDateStr(new Date()));
+        const defaultDate = State.selectedDate || toLocalDateStr(new Date());
         const defaultDuration = State.services.length > 0 ? parseInt(State.services[0].duration) : 30;
-        const suggestedTime = info ? info.time : findNextAvailableTime(defaultDate, defaultDuration);
+        const suggestedTime = findNextAvailableTime(defaultDate, defaultDuration);
 
         const userColor = State.currentUserColor || '#6366f1';
         const html = `
@@ -2856,13 +2790,13 @@ window.addEventListener('message', async (event) => {
                 <div class="form-group">
                     <label>Cliente</label>
                     <select class="form-control" name="clientId" required>
-                        ${State.clients.map(c => `<option value="${c.id}" ${info && info.clientId === c.id ? "selected" : ""}>${c.name}</option>`).join('')}
+                        ${State.clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Servicio</label>
                     <select class="form-control" name="serviceId" required>
-                        ${State.services.map(s => `<option value="${s.id}" ${info && info.serviceId === s.id ? "selected" : ""}>${s.name} (${s.duration} min · ${parseFloat(s.price).toFixed(2)}€)</option>`).join('')}
+                        ${State.services.map(s => `<option value="${s.id}">${s.name} (${s.duration} min · ${parseFloat(s.price).toFixed(2)}€)</option>`).join('')}
                     </select>
                 </div>
                 <div style="display:flex;gap:1rem">
@@ -2877,7 +2811,7 @@ window.addEventListener('message', async (event) => {
                 </div>
                 <div class="form-group">
                     <label>Notas (opcional)</label>
-                    <textarea class="form-control" name="notes" rows="2" placeholder="Información adicional...">${info ? (info.notes || "") : ""}</textarea>
+                    <textarea class="form-control" name="notes" rows="2" placeholder="Información adicional..."></textarea>
                 </div>
                 
                 <div class="form-group">
@@ -2892,18 +2826,16 @@ window.addEventListener('message', async (event) => {
                 
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">${info ? "Guardar" : "Agendar Cita"}</button>
+                    <button type="submit" class="btn btn-primary">Agendar Cita</button>
                 </div>
             </form>`;
 
-        openModal(info ? 'Editar Cita' : 'Nueva Cita', html, () => {
+        openModal('Nueva Cita', html, () => {
             const form = document.getElementById('appointment-form');
             const dateInput = form.querySelector('[name="date"]');
             const timeInput = form.querySelector('[name="time"]');
             const serviceSelect = form.querySelector('[name="serviceId"]');
             
-            // Pre-cargar fotos existentes si estamos editando una cita
-            let existingPhotos = (info && Array.isArray(info.appointmentPhotos)) ? [...info.appointmentPhotos] : [];
             let pendingFiles = [];
             let uploadedHashes = [];
 
@@ -2912,32 +2844,17 @@ window.addEventListener('message', async (event) => {
                 if (!container) return;
                 
                 let html = '';
-
-                // Fotos ya guardadas en la cita
-                existingPhotos.forEach((ep, idx) => {
-                    const src = ep.photo_url || ep.preview || '';
-                    html += `
-                        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-                            <img src="${src}" class="zoom-on-hover" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer">
-                            <span style="font-size:0.7rem;color:var(--text-secondary)">${ep.photo_date || ep.date || ''}</span>
-                            <button type="button" class="delete-existing-apt-photo-btn" data-idx="${idx}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">🗑️</button>
-                        </div>`;
-                });
-
-                // Fotos nuevas pendientes de subir
                 pendingFiles.forEach((pf, idx) => {
                     html += `
                         <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-                            <img src="${pf.preview}" class="zoom-on-hover" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid #a78bfa">
-                            <span style="font-size:0.7rem;color:#a78bfa">Nueva</span>
+                            <img src="${pf.preview}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${pf.preview} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                            <span style="font-size:0.7rem;color:var(--text-secondary)">${pf.date || toLocalDateStr(new Date())}</span>
                             <button type="button" class="delete-apt-pending-btn" data-idx="${idx}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">🗑️</button>
                         </div>`;
                 });
                 
                 container.innerHTML = html;
             };
-
-            renderAptPhotos(); // Mostrar fotos existentes al abrir el modal
 
             const btnAddPhoto = document.getElementById('btn-add-apt-photo');
             const photoInput = document.getElementById('apt-photo-input');
@@ -2953,12 +2870,8 @@ window.addEventListener('message', async (event) => {
                     const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
                     const hash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
                     
-                    const isDuplicateInSession = uploadedHashes.includes(hash);
-                    const clientIdVal = document.querySelector('#appointment-form [name="clientId"]')?.value;
-                    const isDuplicateInDB = clientIdVal && State.clientPhotos && State.clientPhotos[clientIdVal] &&
-                        State.clientPhotos[clientIdVal].some(p => p.photo_hash === hash);
-                    
-                    if (isDuplicateInSession || isDuplicateInDB) {
+                    const isDuplicate = uploadedHashes.includes(hash);
+                    if (isDuplicate) {
                         showToast('Esta foto ya existe', 'error');
                         photoInput.value = '';
                         return;
@@ -2966,7 +2879,7 @@ window.addEventListener('message', async (event) => {
                     
                     const reader = new FileReader();
                     reader.onload = ev => {
-                        pendingFiles.push({ file, hash, preview: ev.target.result, type: 'after', date: toLocalDateStr(new Date()), notes: '' });
+                        pendingFiles.push({ file, hash, preview: ev.target.result, type: 'before', date: toLocalDateStr(new Date()), notes: '' });
                         uploadedHashes.push(hash);
                         renderAptPhotos();
                     };
@@ -2983,13 +2896,6 @@ window.addEventListener('message', async (event) => {
                         const idx = parseInt(delPending.dataset.idx);
                         uploadedHashes.splice(idx, 1);
                         pendingFiles.splice(idx, 1);
-                        renderAptPhotos();
-                        return;
-                    }
-                    const delExisting = e.target.closest('.delete-existing-apt-photo-btn');
-                    if (delExisting) {
-                        const idx = parseInt(delExisting.dataset.idx);
-                        existingPhotos.splice(idx, 1);
                         renderAptPhotos();
                     }
                 });
@@ -3014,10 +2920,10 @@ window.addEventListener('message', async (event) => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
                 submitBtn.disabled = true;
-                submitBtn.textContent = info ? 'Guardando…' : 'Agendando…';
+                submitBtn.textContent = 'Agendando…';
 
                 const fd = new FormData(e.target);
-                const appointmentId = info ? info.id : generateId();
+                const appointmentId = generateId();
                 const data = {
                     id: appointmentId,
                     clientId: fd.get('clientId'),
@@ -3028,16 +2934,24 @@ window.addEventListener('message', async (event) => {
                     userEmail: State.currentUserEmail || ''
                 };
 
-                // Subir fotos nuevas y combinar con las existentes
-                const newPhotoRecords = [];
-                for (const pf of pendingFiles) {
-                    const photoRecord = await uploadClientPhoto(pf.file, data.clientId, pf.date, pf.type, pf.notes);
-                    if (photoRecord) newPhotoRecords.push(photoRecord);
+                const todayStr = toLocalDateStr(new Date());
+                
+                // Guardar fotos de la cita
+                if (pendingFiles.length > 0) {
+                    data.appointmentPhotos = [];
+                    console.log('Saving photos for client:', data.clientId);
+                    for (const pf of pendingFiles) {
+                        console.log('Uploading photo:', { date: pf.date, type: pf.type, notes: pf.notes });
+                        const photoRecord = await uploadClientPhoto(pf.file, data.clientId, pf.date, pf.type, pf.notes);
+                        if (photoRecord) {
+                            data.appointmentPhotos.push(photoRecord);
+                        } else {
+                            console.log('Photo upload failed - no record returned');
+                        }
+                    }
                 }
-                // Fusionar fotos existentes (no eliminadas) + nuevas subidas
-                data.appointmentPhotos = [...existingPhotos, ...newPhotoRecords];
 
-                // Validar horario de trabajo
+                // Validar que no se solape con otra cita existente en el mismo día
                 const [targetHour, targetMin] = data.time.split(':').map(Number);
                 const targetStartMinutes = targetHour * 60 + targetMin;
                 const targetService = State.services.find(s => s.id === data.serviceId);
@@ -3051,273 +2965,63 @@ window.addEventListener('message', async (event) => {
                 if (targetStartMinutes < workingStartMins || targetEndMinutes > workingEndMins) {
                     showToast(`El horario seleccionado se sale de tus horas de apertura (${State.settings.startTime} - ${State.settings.endTime}).`, 'error');
                     submitBtn.disabled = false;
-                    submitBtn.textContent = info ? 'Guardar' : 'Agendar Cita';
+                    submitBtn.textContent = 'Agendar Cita';
                     return;
                 }
 
                 const hasCollision = State.appointments.some(apt => {
-                    if (apt.date !== data.date || (info && apt.id === info.id)) return false;
+                    if (apt.date !== data.date) return false;
                     const [aptHour, aptMin] = apt.time.split(':').map(Number);
                     const aptStartMinutes = aptHour * 60 + aptMin;
                     const aptService = State.services.find(s => s.id === apt.serviceId);
                     const aptEndMinutes = aptStartMinutes + (aptService ? parseInt(aptService.duration) : 0);
+                    
+                    // Hay superposición si InicioN < FinE y FinN > InicioE
                     return targetStartMinutes < aptEndMinutes && targetEndMinutes > aptStartMinutes;
                 });
 
                 if (hasCollision) {
                     showToast('El horario elegido choca con una cita ya existente.', 'error');
                     submitBtn.disabled = false;
-                    submitBtn.textContent = info ? 'Guardar' : 'Agendar Cita';
+                    submitBtn.textContent = 'Agendar Cita';
                     return;
                 }
 
-                if (info) {
-                    // Persistir fotos en la cita editada
-                    await supabase.from('appointments').update({ appointment_photos: data.appointmentPhotos }).eq('id', data.id);
-                    const aptIdx = State.appointments.findIndex(a => a.id === data.id);
-                    if (aptIdx !== -1) State.appointments[aptIdx].appointmentPhotos = data.appointmentPhotos;
-                    if (await updateAppointment(data)) {
-                        closeModal();
-                        renderRoute();
-                    } else {
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = 'Guardar';
-                    }
-                } else {
-                    if (await addAppointment(data)) {
-                        closeModal();
-                        renderRoute();
-                        // Notificar por WhatsApp si el cliente lo tiene activado
-                        const client = State.clients.find(c => c.id === data.clientId);
-                        if (client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1) && client.phone) {
-                            sendWASMessage(client.phone, client.name, data.date, data.time);
-                        }
-                    } else {
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = 'Agendar Cita';
+                if (await addAppointment(data)) { 
+                    closeModal(); 
+                    renderRoute(); 
+                    
+                    // Notificar por WhatsApp si el cliente lo tiene activado
+                    const client = State.clients.find(c => c.id === data.clientId);
+                    if (client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1) && client.phone) {
+                        sendWASMessage(client.phone, client.name, data.date, data.time);
                     }
                 }
+                else { submitBtn.disabled = false; submitBtn.textContent = 'Agendar Cita'; }
             });
         });
     }
 
-    function showSettingsForm() {
-        const html = `
-            <form id="settings-form">
-                <div class="form-group">
-                    <label>Hora de Apertura</label>
-                    <input type="time" class="form-control" name="startTime" required value="${State.settings.startTime}">
-                </div>
-                <div class="form-group">
-                    <label>Hora de Cierre</label>
-                    <input type="time" class="form-control" name="endTime" required value="${State.settings.endTime}">
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar Horario</button>
-                </div>
-            </form>`;
-
-        openModal('Configurar Horario', html, () => {
-            document.getElementById('settings-form').addEventListener('submit', e => {
-                e.preventDefault();
-                const fd = new FormData(e.target);
-                const start = fd.get('startTime');
-                const end = fd.get('endTime');
-
-                if (start >= end) {
-                    showToast('La hora de cierre debe ser posterior a la de apertura.', 'error');
-                    return;
-                }
-
-                State.settings.startTime = start;
-                State.settings.endTime = end;
-                localStorage.setItem('nymara_start_time', start);
-                localStorage.setItem('nymara_end_time', end);
-                
-                showToast('Horario actualizado correctamente.');
-                closeModal();
-            });
-        });
-    }
-
-    function findNextAvailableTime(dateStr, durationMinutes) {
-        const [startH, startM] = State.settings.startTime.split(':').map(Number);
-        const [endH, endM] = State.settings.endTime.split(':').map(Number);
-        
-        let startMins = startH * 60 + startM;
-        const endMins = endH * 60 + endM;
-
-        const dayApts = State.appointments
-            .filter(a => a.date === dateStr)
-            .sort((a, b) => a.time.localeCompare(b.time));
-
-        for (const apt of dayApts) {
-            const [h, m] = apt.time.split(':').map(Number);
-            const aptStart = h * 60 + m;
-            const aptServ = State.services.find(s => s.id === apt.serviceId);
-            const aptDur = aptServ ? parseInt(aptServ.duration) : 0;
-            const aptEnd = aptStart + aptDur;
-
-            if (startMins + durationMinutes <= aptStart) {
-                break;
-            }
-            if (startMins < aptEnd) {
-                startMins = aptEnd;
-            }
-        }
-
-        if (startMins + durationMinutes > endMins) return State.settings.startTime; // fallback if no time
-        const hStr = Math.floor(startMins / 60).toString().padStart(2, '0');
-        const mStr = (startMins % 60).toString().padStart(2, '0');
-        return `${hStr}:${mStr}`;
-    }
-
-
-// ═══════════════════════════════════════════
-// FLOATING PHOTO PREVIEW — draggable & pinnable
-// ═══════════════════════════════════════════
-(function () {
-    let pv = null;           // the overlay div
-    let pi = null;           // the <img> inside
-    let pinned = false;      // stays on screen when true
-    let isDragging = false;
-    let dragOffX = 0, dragOffY = 0;
-
-    function ensurePreview() {
-        if (pv) return;
-
-        pv = document.createElement('div');
-        pv.id = 'hover-photo-preview';
-        pv.style.cssText = [
-            'display:none',
-            'position:fixed',
-            'z-index:999999',
-            'border-radius:14px',
-            'box-shadow:0 24px 60px rgba(0,0,0,0.7)',
-            'background:var(--bg-card,#1e1e2e)',
-            'padding:6px',
-            'border:1px solid var(--border-color,#333)',
-            'cursor:grab',
-            'user-select:none',
-            'transition:box-shadow 0.15s',
-        ].join(';');
-
-        // Close button
-        const closeBtn = document.createElement('div');
-        closeBtn.title = 'Cerrar (doble clic también cierra)';
-        closeBtn.style.cssText = [
-            'position:absolute',
-            'top:-10px',
-            'right:-10px',
-            'width:24px',
-            'height:24px',
-            'border-radius:50%',
-            'background:#ef4444',
-            'color:#fff',
-            'font-size:14px',
-            'line-height:24px',
-            'text-align:center',
-            'cursor:pointer',
-            'box-shadow:0 2px 8px rgba(0,0,0,0.5)',
-            'z-index:1',
-        ].join(';');
-        closeBtn.textContent = '✕';
-        closeBtn.addEventListener('mousedown', (e) => { e.stopPropagation(); });
-        closeBtn.addEventListener('click', (e) => { e.stopPropagation(); hidePreview(); });
-        pv.appendChild(closeBtn);
-
-        // Drag hint label
-        const hint = document.createElement('div');
-        hint.style.cssText = 'font-size:10px;color:#888;text-align:center;margin-bottom:4px;pointer-events:none;';
-        hint.textContent = '✥ Arrastra para mover · Doble clic para cerrar';
-        pv.appendChild(hint);
-
-        pi = document.createElement('img');
-        pi.id = 'hover-photo-img';
-        pi.style.cssText = 'max-width:480px;max-height:75vh;border-radius:8px;display:block;object-fit:contain;pointer-events:none;';
-        pv.appendChild(pi);
-
-        document.body.appendChild(pv);
-
-        // ── Drag logic ──
-        pv.addEventListener('mousedown', (e) => {
-            if (e.target === pv || e.target === pi || e.target === hint) {
-                isDragging = true;
-                pinned = true;
-                dragOffX = e.clientX - pv.getBoundingClientRect().left;
-                dragOffY = e.clientY - pv.getBoundingClientRect().top;
-                pv.style.cursor = 'grabbing';
-                pv.style.boxShadow = '0 32px 80px rgba(0,0,0,0.9)';
-                e.preventDefault();
-            }
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            let newLeft = e.clientX - dragOffX;
-            let newTop  = e.clientY - dragOffY;
-            // Clamp within viewport
-            newLeft = Math.max(0, Math.min(newLeft, window.innerWidth  - pv.offsetWidth));
-            newTop  = Math.max(0, Math.min(newTop,  window.innerHeight - pv.offsetHeight));
-            pv.style.left = newLeft + 'px';
-            pv.style.top  = newTop  + 'px';
-        });
-
-        document.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                pv.style.cursor = 'grab';
-                pv.style.boxShadow = '0 24px 60px rgba(0,0,0,0.7)';
-            }
-        });
-
-        // Double-click closes
-        pv.addEventListener('dblclick', () => hidePreview());
-    }
-
-    function hidePreview() {
-        pinned = false;
-        if (pv) pv.style.display = 'none';
-    }
-
-    function showAt(src, left, top) {
-        ensurePreview();
-        pi.src = src;
-        pv.style.display = 'block';
-
-        // Clamp into viewport (do after display so offsetWidth is real)
-        requestAnimationFrame(() => {
-            left = Math.max(10, Math.min(left, window.innerWidth  - pv.offsetWidth  - 10));
-            top  = Math.max(10, Math.min(top,  window.innerHeight - pv.offsetHeight - 10));
-            pv.style.left = left + 'px';
-            pv.style.top  = top  + 'px';
-        });
-    }
-
-    document.addEventListener('mouseover', (e) => {
-        if (e.target.tagName === 'IMG' && e.target.classList.contains('zoom-on-hover')) {
-            ensurePreview();
-            // If the preview is pinned (user placed it somewhere), don't move it — just update the image
-            if (pinned) {
-                pi.src = e.target.src;
-                pv.style.display = 'block';
-                return;
-            }
-            const rect = e.target.getBoundingClientRect();
-            let left = rect.right + 15;
-            let top  = rect.top - 50;
-            if (left + 510 > window.innerWidth) left = rect.left - 520;
-            showAt(e.target.src, left, top);
-        }
-    });
-
-document.addEventListener('mouseout', (e) => {
-        if (e.target.tagName === 'IMG' && e.target.classList.contains('zoom-on-hover')) {
-            // Only auto-hide if not pinned by the user
-            if (!pinned && pv) pv.style.display = 'none';
-        }
-    });
-
+    /* ═══════════════════════════════════════
+       INIT — Check session to start
+       ═══════════════════════════════════════ */
     checkSession();
-})();
+
+    // Combat aggressive browser autofill
+    const emailInput = document.getElementById('auth-email');
+    const passwordInput = document.getElementById('auth-password');
+    
+    if (emailInput && passwordInput) {
+        // Clear again after a delay in case browser injected values late
+        setTimeout(() => {
+            emailInput.value = '';
+            passwordInput.value = '';
+            emailInput.readOnly = false;
+            passwordInput.readOnly = false;
+        }, 600);
+
+        // Also remove readonly on focus as a fallback
+        emailInput.addEventListener('focus', () => emailInput.readOnly = false);
+passwordInput.addEventListener('focus', () => passwordInput.readOnly = false);
+    }
+});
