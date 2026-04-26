@@ -3312,10 +3312,12 @@ window.addEventListener('message', async (event) => {
         }
     });
 
-    document.addEventListener('mouseout', (e) => {
+document.addEventListener('mouseout', (e) => {
         if (e.target.tagName === 'IMG' && e.target.classList.contains('zoom-on-hover')) {
             // Only auto-hide if not pinned by the user
             if (!pinned && pv) pv.style.display = 'none';
         }
     });
+
+    checkSession();
 })();
