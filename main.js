@@ -648,6 +648,23 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
+    async function updateAppointment(id, data) {
+        const dbRow = {
+            client_id: data.clientId,
+            service_id: data.serviceId,
+            date: data.date,
+            time: data.time,
+            notes: data.notes,
+            appointment_photos: data.appointmentPhotos || [],
+        };
+        const { error } = await supabase.from('appointments').update(dbRow).eq('id', id);
+        if (error) { showToast('Error al actualizar cita: ' + error.message, 'error'); return false; }
+        const idx = State.appointments.findIndex(a => a.id === id);
+        if (idx !== -1) State.appointments[idx] = { ...State.appointments[idx], ...data };
+        showToast('Cita actualizada correctamente');
+        return true;
+    }
+
     window.editClientPhoto = async function(photoId, clientId, currentDate, currentNotes, currentType) {
         openModal('Editar Foto', `
             <form id="edit-client-photo-form">
@@ -814,7 +831,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (currentRoute === 'agenda') content = getAgendaView();
-        else if (currentRoute === 'clients') content = getClientsView();
+        else if (currentRoute === 'clients') {
+            // Recargar fotos de clientes al entrar a la pestaña
+            loadAllClientPhotos().then(() => {
+                const clientsContent = getClientsView();
+                const fadeInDiv = appContent.querySelector('.fade-in');
+                if (fadeInDiv) fadeInDiv.innerHTML = clientsContent;
+                attachEvents();
+            });
+            content = getClientsView();
+        }
         else if (currentRoute === 'services') content = getServicesView();
         else if (currentRoute === 'monthly') content = getMonthlyView();
         else if (currentRoute === 'whatsapp') content = getWhatsAppView();
@@ -979,6 +1005,12 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             </div>
                         </div>
                         <div class="day-detail-actions">
+<<<<<<< HEAD
+=======
+                            <button class="edit-apt-btn" data-id="${apt.id}" title="Editar cita">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </button>
+>>>>>>> 061b32ce484b436a005e72c0ff1abdc54210f46f
                             <button class="delete-btn" data-id="${apt.id}" title="Eliminar cita">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
@@ -1142,6 +1174,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                                 <span class="${c.enviar_was ? 'status-success' : 'status-danger'}" style="font-size:0.75rem">WA: ${c.enviar_was ? 'Sí' : 'No'}</span>
                             </div>
                             ${c.observations ? `<p style="font-size:0.8rem;color:var(--text-secondary);margin:4px 0 0;font-style:italic">"${c.observations}"</p>` : ''}
+<<<<<<< HEAD
                             ${State.clientPhotos && State.clientPhotos[c.id] && State.clientPhotos[c.id].length > 0 ? `
                                 <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
                                     ${State.clientPhotos[c.id].slice(0, 4).map(p => {
@@ -1155,6 +1188,21 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                                     ${State.clientPhotos[c.id].length > 4 ? `<div style="font-size:0.7rem;color:var(--text-secondary);align-self:center">+${State.clientPhotos[c.id].length - 4}</div>` : ''}
                                 </div>
                             ` : ''}
+=======
+${State.clientPhotos && State.clientPhotos[c.id] && State.clientPhotos[c.id].length > 0 ? `
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+        ${State.clientPhotos[c.id].slice(0, 4).map(p => {
+            const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
+            return `<div style="position:relative;text-align:center">
+                <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid var(--border-color)" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                <div style="font-size:0.6rem;color:var(--text-secondary);margin-top:2px">${photoType}</div>
+                <div style="font-size:0.55rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
+            </div>`;
+        }).join('')}
+        ${State.clientPhotos[c.id].length > 4 ? `<button style="font-size:0.75rem;color:var(--primary-color);align-self:center;cursor:pointer;background:none;border:none;padding:0" onclick="showClientForm(State.clients.find(c => c.id === ${c.id}))">+${State.clientPhotos[c.id].length - 4} más</button>` : ''}
+    </div>
+` : ''}
+>>>>>>> 061b32ce484b436a005e72c0ff1abdc54210f46f
                         </div>
                         <div class="client-actions">
                             <button class="edit-btn" data-id="${c.id}" data-type="client" title="Editar">
@@ -1549,10 +1597,13 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
     let currentDiagnosisImage = null;
 
     function getDiagnosisView() {
+<<<<<<< HEAD
         const hasClient = sessionStorage.getItem('nymara_diagnosis_client_id');
         const clientName = sessionStorage.getItem('nymara_diagnosis_client_name') || '';
         const clientPhone = sessionStorage.getItem('nymara_diagnosis_client_phone') || '';
         
+=======
+>>>>>>> 061b32ce484b436a005e72c0ff1abdc54210f46f
         return `
             <div class="section-header">
                 <div>
@@ -1561,6 +1612,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 </div>
             </div>
             
+<<<<<<< HEAD
             <div id="diagnosis-client-selection" style="display: ${hasClient ? 'none' : 'block'};">
                 <div style="max-width:700px;margin:60px auto;padding:40px;background:var(--bg-card);border:2px solid var(--accent-color);border-radius:16px;box-shadow:0 0 30px rgba(167,139,250,0.3);">
                     <h2 style="margin-top:0;color:#fff;font-size:28px;text-align:center;margin-bottom:10px;">SELECCIONAR CLIENTE</h2>
@@ -1614,6 +1666,13 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             selectClientForDiagnosis(client);
         }
     };
+=======
+            <iframe src="diagnosis/index.html" class="diagnosis-iframe" style="width:100%;height:calc(100vh - 200px);border:none;border-radius:12px;background:var(--bg-card);"></iframe>
+        `;
+    }    /* ═══════════════════════════════════════
+       EVENT BINDING
+       ═══════════════════════════════════════ */
+>>>>>>> 061b32ce484b436a005e72c0ff1abdc54210f46f
     function attachEvents() {
         // Add buttons
         const btnAddAppt = document.getElementById('btn-add-appointment');
@@ -1678,6 +1737,14 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             dayEl.addEventListener('click', () => {
                 State.selectedDate = dayEl.dataset.date;
                 renderRoute();
+            });
+        });
+
+        // Edit appointment buttons
+        document.querySelectorAll('.edit-apt-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                const id = e.currentTarget.dataset.id;
+                if (id) editAppointment(id);
             });
         });
 
@@ -2048,19 +2115,21 @@ if (analyzeBtn) {
             console.log('Density:', density);
             const thickness = detectHairThickness(currentDiagnosisImage);
             console.log('Thickness:', thickness);
-            const { hydration, sebumLevel } = detectHydrationAndSebum(currentDiagnosisImage);
-            console.log('Hydration:', hydration, 'Sebum:', sebumLevel);
-            const dandruff = detectDandruffLevel(currentDiagnosisImage);
-            console.log('Dandruff:', dandruff);
+            const { hydration, sebumLevel, sebumLabel } = detectHydrationAndSebum(currentDiagnosisImage);
+            console.log('Hydration:', hydration, 'Sebum:', sebumLevel, sebumLabel);
+            const dandruffResult = detectDandruffLevel(currentDiagnosisImage);
+            const dandruffValue = dandruffResult.value;
+            const dandruffLabel = dandruffResult.label;
+            console.log('Dandruff:', dandruffValue, dandruffLabel);
             
             document.getElementById('val-density').textContent = density;
             document.getElementById('val-thickness').textContent = thickness;
-            document.getElementById('val-hydration').textContent = hydration;
-            document.getElementById('val-sebum').textContent = sebumLevel;
-            document.getElementById('val-dandruff').textContent = dandruff;
+            document.getElementById('val-hydration').textContent = hydration + '%';
+            document.getElementById('val-sebum').textContent = sebumLevel + ' (' + sebumLabel + ')';
+            document.getElementById('val-dandruff').textContent = dandruffValue + ' (' + dandruffLabel + ')';
             
             const isColored = document.getElementById('colored-hair-checkbox')?.checked || false;
-            const diagnosis = { density, thickness, hydration: parseInt(hydration), sebum: parseInt(sebumLevel) || 50, isColored };
+            const diagnosis = { density, thickness, hydration: parseInt(hydration), sebum: parseInt(sebumLevel) || 5, isColored };
             
             displayDiagnosisProducts(getMariaNilaRecommendations(diagnosis));
             displayDiagnosisTreatments(getOlaplexRecommendations(diagnosis));
@@ -2070,7 +2139,7 @@ if (analyzeBtn) {
                 statusBadge.style.background = '#10b981';
             }
             // Guardar resultados para usar al guardar
-            currentDiagnosisResults = { density, thickness, hydration, sebumLevel, isColored };
+            currentDiagnosisResults = { density, thickness, hydration, sebumLevel, sebumLabel, dandruffValue, dandruffLabel, isColored };
         } catch (err) {
             console.error('ERROR in diagnosis:', err);
             console.warn('Análisis completado con advertencias');
@@ -2125,8 +2194,8 @@ if (analyzeBtn) {
         }
         const hueDeg = h * 360;
         const isBiological = (hueDeg < 50 || hueDeg > 340) && s < 0.6;
-        const isMicroscopic = edgeDensity > 0.08;
-        const hasTexture = variance > 250;
+        const isMicroscopic = edgeDensity > 0.05;
+        const hasTexture = variance > 150;
         
         return isBiological && isMicroscopic && hasTexture;
     }
@@ -2207,7 +2276,7 @@ if (analyzeBtn) {
             const brightness = (r + g + b) / 3;
             const saturation = Math.max(r, g, b) === 0 ? 0 : (Math.max(r, g, b) - Math.min(r, g, b)) / Math.max(r, g, b);
             
-            // Piel brillante = excesso de sebo
+            // Piel brillante = exceso de sebo
             if (brightness > 180 && saturation < 0.2 && r > 150 && g > 150 && b > 150) {
                 shinyPixels++;
             }
@@ -2220,21 +2289,30 @@ if (analyzeBtn) {
         const shinyRatio = shinyPixels / totalPixels;
         const dryRatio = dryPixels / totalPixels;
         
-        let hydration = 60;
-        let sebumLevel = 'Normal';
-        
+        // Calcular nivel de sebo de 0 a 10
+        let sebumValue = 5; // Normal base
         if (shinyRatio > 0.15) {
-            sebumLevel = 'Alto';
-            hydration = Math.floor(40 + Math.random() * 20);
+            sebumValue = 8 + Math.floor(shinyRatio * 10); // 8-10 Alto
         } else if (dryRatio > 0.2) {
-            sebumLevel = 'Bajo';
-            hydration = Math.floor(30 + Math.random() * 25);
+            sebumValue = 2 + Math.floor(dryRatio * 10); // 0-3 Normal bajo
         } else {
-            sebumLevel = 'Normal';
-            hydration = Math.floor(50 + Math.random() * 20);
+            sebumValue = 4 + Math.floor(Math.random() * 3); // 4-6 Normal medio
         }
+        sebumValue = Math.min(10, Math.max(0, sebumValue));
         
-        return { hydration, sebumLevel };
+        // Determinar etiqueta según rango
+        let sebumLabel;
+        if (sebumValue < 3) sebumLabel = 'Normal';
+        else if (sebumValue < 7) sebumLabel = 'Medio';
+        else sebumLabel = 'Alto';
+        
+        // Hidratación basada en sebo
+        let hydration;
+        if (sebumValue >= 7) hydration = Math.floor(40 + Math.random() * 20);
+        else if (sebumValue < 3) hydration = Math.floor(30 + Math.random() * 25);
+        else hydration = Math.floor(50 + Math.random() * 20);
+        
+        return { hydration, sebumLevel: sebumValue, sebumLabel };
     }
 
     function detectDandruffLevel(img) {
@@ -2265,7 +2343,16 @@ if (analyzeBtn) {
         }
         
         const dandruffRatio = (dandruffPixels / totalPixels) * 100;
-return Math.round(dandruffRatio * 10);
+        let dandruffValue = Math.round(dandruffRatio * 10);
+        dandruffValue = Math.min(10, Math.max(0, dandruffValue));
+        
+        // Determinar etiqueta según rango
+        let dandruffLabel;
+        if (dandruffValue < 3) dandruffLabel = 'Normal';
+        else if (dandruffValue < 7) dandruffLabel = 'Medio';
+        else dandruffLabel = 'Alto';
+        
+        return { value: dandruffValue, label: dandruffLabel };
     }
 
 window.addEventListener('message', async (event) => {
@@ -2305,6 +2392,7 @@ window.addEventListener('message', async (event) => {
                                 return v.toString(16);
                             });
                             
+<<<<<<< HEAD
                             await supabase.from('client_photos').insert({
                                 id: photoId,
                                 client_id: clientId,
@@ -2317,6 +2405,28 @@ window.addEventListener('message', async (event) => {
                             console.log('Diagnosis photo saved:', publicUrl);
                             showToast('✓ Foto de diagnóstico guardada');
                         }
+=======
+                             await supabase.from('client_photos').insert({
+                                 id: photoId,
+                                 client_id: clientId,
+                                 photo_url: publicUrl,
+                                 photo_date: new Date().toISOString().split('T')[0],
+                                 photo_type: 'antes',
+                                 notes: `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'} (${results?.sebumLabel || ''}), Caspa: ${results?.dandruff || '--'} (${results?.dandruffLabel || ''})`
+                             });
+                            
+                            console.log('Diagnosis photo saved:', publicUrl);
+                             showToast('✓ Foto de diagnóstico guardada');
+                             
+                             // Notify diagnosis iframe that photo was saved
+                             const diagnosisFrame = document.querySelector('iframe[src*="diagnosis"]');
+                             if (diagnosisFrame) {
+                                 diagnosisFrame.contentWindow.postMessage({
+                                     type: 'diagnosis_photo_saved'
+                                 }, '*');
+                             }
+                         }
+>>>>>>> 061b32ce484b436a005e72c0ff1abdc54210f46f
                     } catch (e) {
                         console.error('Error saving diagnosis photo:', e);
                     }
@@ -2328,7 +2438,7 @@ window.addEventListener('message', async (event) => {
                         density: results.density || 150,
                         thickness: results.thickness || 65,
                         hydration: parseInt(results.hydration) || 55,
-                        sebum: results.sebum === 'Alto' ? 80 : results.sebum === 'Normal' ? 55 : 35,
+                        sebum: parseInt(results.sebum) || 5,
                         isColored: results.isColored || false
                     };
                     const products = getMariaNilaRecommendations(diagnosis);
@@ -2677,33 +2787,33 @@ window.addEventListener('message', async (event) => {
         return `${hStr}:${mStr}`;
     }
 
-    function showAppointmentForm() {
+    function showAppointmentForm(apt = null) {
         if (State.clients.length === 0 || State.services.length === 0) {
             showToast('Debes tener al menos un cliente y un servicio antes de agendar una cita.', 'error');
             return;
         }
 
-        const defaultDate = State.selectedDate || toLocalDateStr(new Date());
-        const defaultDuration = State.services.length > 0 ? parseInt(State.services[0].duration) : 30;
-        const suggestedTime = findNextAvailableTime(defaultDate, defaultDuration);
+        const isEdit = apt !== null;
+        const defaultDate = isEdit ? apt.date : (State.selectedDate || toLocalDateStr(new Date()));
+        const defaultTime = isEdit ? apt.time : findNextAvailableTime(defaultDate, State.services.length > 0 ? parseInt(State.services[0].duration) : 30);
 
         const userColor = State.currentUserColor || '#6366f1';
         const html = `
             <form id="appointment-form">
                 <div class="form-user-badge" style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;padding:0.5rem;background:rgba(0,0,0,0.03);border-radius:8px;">
                     <div style="width:12px;height:12px;border-radius:50%;background:${userColor};flex-shrink:0;"></div>
-                    <span style="font-size:0.8rem;color:var(--text-secondary);">Creando cita como <strong>${State.currentUserEmail || 'usuario'}</strong></span>
+                    <span style="font-size:0.8rem;color:var(--text-secondary);">${isEdit ? 'Editando cita' : 'Creando cita'} como <strong>${State.currentUserEmail || 'usuario'}</strong></span>
                 </div>
                 <div class="form-group">
                     <label>Cliente</label>
                     <select class="form-control" name="clientId" required>
-                        ${State.clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+                        ${State.clients.map(c => `<option value="${c.id}" ${isEdit && c.id === apt.clientId ? 'selected' : ''}>${c.name}</option>`).join('')}
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Servicio</label>
                     <select class="form-control" name="serviceId" required>
-                        ${State.services.map(s => `<option value="${s.id}">${s.name} (${s.duration} min · ${parseFloat(s.price).toFixed(2)}€)</option>`).join('')}
+                        ${State.services.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.serviceId ? 'selected' : ''}>${s.name} (${s.duration} min · ${parseFloat(s.price).toFixed(2)}€)</option>`).join('')}
                     </select>
                 </div>
                 <div style="display:flex;gap:1rem">
@@ -2713,12 +2823,12 @@ window.addEventListener('message', async (event) => {
                     </div>
                     <div class="form-group" style="flex:1">
                         <label>Hora</label>
-                        <input type="time" class="form-control" name="time" required value="${suggestedTime}">
+                        <input type="time" class="form-control" name="time" required value="${defaultTime}">
                     </div>
                 </div>
                 <div class="form-group">
                     <label>Notas (opcional)</label>
-                    <textarea class="form-control" name="notes" rows="2" placeholder="Información adicional..."></textarea>
+                    <textarea class="form-control" name="notes" rows="2" placeholder="Información adicional...">${isEdit ? apt.notes || '' : ''}</textarea>
                 </div>
                 
                 <div class="form-group">
@@ -2733,11 +2843,11 @@ window.addEventListener('message', async (event) => {
                 
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Agendar Cita</button>
+                    <button type="submit" class="btn btn-primary">${isEdit ? 'Guardar Cambios' : 'Agendar Cita'}</button>
                 </div>
             </form>`;
 
-        openModal('Nueva Cita', html, () => {
+        openModal(isEdit ? 'Editar Cita' : 'Nueva Cita', html, () => {
             const form = document.getElementById('appointment-form');
             const dateInput = form.querySelector('[name="date"]');
             const timeInput = form.querySelector('[name="time"]');
@@ -2827,12 +2937,10 @@ window.addEventListener('message', async (event) => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Agendando…';
+                submitBtn.textContent = isEdit ? 'Guardando…' : 'Agendando…';
 
                 const fd = new FormData(e.target);
-                const appointmentId = generateId();
                 const data = {
-                    id: appointmentId,
                     clientId: fd.get('clientId'),
                     serviceId: fd.get('serviceId'),
                     date: fd.get('date'),
@@ -2841,19 +2949,13 @@ window.addEventListener('message', async (event) => {
                     userEmail: State.currentUserEmail || ''
                 };
 
-                const todayStr = toLocalDateStr(new Date());
-                
                 // Guardar fotos de la cita
                 if (pendingFiles.length > 0) {
                     data.appointmentPhotos = [];
-                    console.log('Saving photos for client:', data.clientId);
                     for (const pf of pendingFiles) {
-                        console.log('Uploading photo:', { date: pf.date, type: pf.type, notes: pf.notes });
                         const photoRecord = await uploadClientPhoto(pf.file, data.clientId, pf.date, pf.type, pf.notes);
                         if (photoRecord) {
                             data.appointmentPhotos.push(photoRecord);
-                        } else {
-                            console.log('Photo upload failed - no record returned');
                         }
                     }
                 }
@@ -2872,42 +2974,55 @@ window.addEventListener('message', async (event) => {
                 if (targetStartMinutes < workingStartMins || targetEndMinutes > workingEndMins) {
                     showToast(`El horario seleccionado se sale de tus horas de apertura (${State.settings.startTime} - ${State.settings.endTime}).`, 'error');
                     submitBtn.disabled = false;
-                    submitBtn.textContent = 'Agendar Cita';
+                    submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Agendar Cita';
                     return;
                 }
 
-                const hasCollision = State.appointments.some(apt => {
-                    if (apt.date !== data.date) return false;
-                    const [aptHour, aptMin] = apt.time.split(':').map(Number);
+                const hasCollision = State.appointments.some(a => {
+                    if (isEdit && a.id === apt.id) return false; // Skip self when editing
+                    if (a.date !== data.date) return false;
+                    const [aptHour, aptMin] = a.time.split(':').map(Number);
                     const aptStartMinutes = aptHour * 60 + aptMin;
-                    const aptService = State.services.find(s => s.id === apt.serviceId);
+                    const aptService = State.services.find(s => s.id === a.serviceId);
                     const aptEndMinutes = aptStartMinutes + (aptService ? parseInt(aptService.duration) : 0);
-                    
-                    // Hay superposición si InicioN < FinE y FinN > InicioE
                     return targetStartMinutes < aptEndMinutes && targetEndMinutes > aptStartMinutes;
                 });
 
                 if (hasCollision) {
                     showToast('El horario elegido choca con una cita ya existente.', 'error');
                     submitBtn.disabled = false;
-                    submitBtn.textContent = 'Agendar Cita';
+                    submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Agendar Cita';
                     return;
                 }
 
-                if (await addAppointment(data)) { 
-                    closeModal(); 
-                    renderRoute(); 
-                    
-                    // Notificar por WhatsApp si el cliente lo tiene activado
-                    const client = State.clients.find(c => c.id === data.clientId);
-                    if (client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1) && client.phone) {
-                        sendWASMessage(client.phone, client.name, data.date, data.time);
+                if (isEdit) {
+                    if (await updateAppointment(apt.id, data)) { 
+                        closeModal(); 
+                        renderRoute(); 
+                    }
+                } else {
+                    data.id = generateId();
+                    if (await addAppointment(data)) { 
+                        closeModal(); 
+                        renderRoute(); 
+                        
+                        // Notificar por WhatsApp si el cliente lo tiene activado
+                        const client = State.clients.find(c => c.id === data.clientId);
+                        if (client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1) && client.phone) {
+                            sendWASMessage(client.phone, client.name, data.date, data.time);
+                        }
                     }
                 }
-                else { submitBtn.disabled = false; submitBtn.textContent = 'Agendar Cita'; }
+                submitBtn.disabled = false;
+                submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Agendar Cita';
             });
         });
     }
+
+    window.editAppointment = function(id) {
+        const apt = State.appointments.find(a => a.id === id);
+        if (apt) showAppointmentForm(apt);
+    };
 
     /* ═══════════════════════════════════════
        INIT — Check session to start
