@@ -324,69 +324,9 @@
         function showPreview(data) {
             const img = new Image();
             img.onload = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
-                const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const pixels = imgData.data;
-                
-                // Validaciones básicas
-                if (canvas.width < 200 || canvas.height < 200) {
-                    alert('La foto es muy pequeña. Sube una foto de mayor resolución (mínimo 200x200 pixeles).');
-                    return;
-                }
-                
-                let brightness = 0, colorfulness = 0, edgeCount = 0;
-                const step = Math.max(1, Math.floor(pixels.length / 10000));
-                
-                // Analizar muestra de píxeles
-                for (let i = 0; i < pixels.length; i += 4 * step) {
-                    const r = pixels[i] / 255, g = pixels[i+1] / 255, b = pixels[i+2] / 255;
-                    brightness += (r + g + b) / 3;
-                    colorfulness += Math.max(r, g, b) - Math.min(r, g, b);
-                    
-                    // Detectar bordes (cambios bruscos = textura real)
-                    if (i > 4 * step) {
-                        const prevR = pixels[i - 4*step] / 255;
-                        const diff = Math.abs(r - prevR);
-                        if (diff > 0.15) edgeCount++;
-                    }
-                }
-                
-                const sampleCount = pixels.length / (4 * step);
-                brightness /= sampleCount;
-                colorfulness /= sampleCount;
-                const edgeRatio = edgeCount / sampleCount;
-                
-                // Rechazar si es demasiado brillante (foto blanca/flash)
-                if (brightness > 0.85) {
-                    alert('La foto es demasiado clara. Asegúrate de que sea una foto microscópica del cuero cabelludo con iluminación adecuada.');
-                    return;
-                }
-                
-                // Rechazar si es demasiado oscura
-                if (brightness < 0.12) {
-                    alert('La foto es demasiado oscura. Asegúrate de que sea una foto microscópica del cuero cabelludo bien iluminada.');
-                    return;
-                }
-                
-                // Rechazar si no tiene color (B/N o muy desaturada)
-                if (colorfulness < 0.08) {
-                    alert('La foto parece ser en blanco y negro o muy desaturada. Sube una foto microscópica a color del cuero cabelludo.');
-                    return;
-                }
-                
-                // Rechazar si no tiene textura (muy uniforme = imagen artificial)
-                if (edgeRatio < 0.05) {
-                    alert('La imagen no muestra la textura característica de un cuero cabelludo. Sube una foto microscópica real del cuero cabelludo o cabello.');
-                    return;
-                }
-                
-                // Rechazar si tiene patrones muy artificiales (colores muy uniformes = IA generada)
-                if (colorfulness > 0.08 && colorfulness < 0.15 && edgeRatio < 0.1) {
-                    alert('La imagen parece ser artificial o generada por IA. Sube una foto microscópica real del cuero cabelludo.');
+                // Validación básica: tamaño mínimo
+                if (img.width < 100 || img.height < 100) {
+                    alert('La imagen es muy pequeña. Sube una foto de mayor resolución (mínimo 100x100 pixeles).');
                     return;
                 }
                 
