@@ -2021,19 +2021,21 @@ if (analyzeBtn) {
             console.log('Density:', density);
             const thickness = detectHairThickness(currentDiagnosisImage);
             console.log('Thickness:', thickness);
-            const { hydration, sebumLevel } = detectHydrationAndSebum(currentDiagnosisImage);
-            console.log('Hydration:', hydration, 'Sebum:', sebumLevel);
-            const dandruff = detectDandruffLevel(currentDiagnosisImage);
-            console.log('Dandruff:', dandruff);
+            const { hydration, sebumLevel, sebumLabel } = detectHydrationAndSebum(currentDiagnosisImage);
+            console.log('Hydration:', hydration, 'Sebum:', sebumLevel, sebumLabel);
+            const dandruffResult = detectDandruffLevel(currentDiagnosisImage);
+            const dandruffValue = dandruffResult.value;
+            const dandruffLabel = dandruffResult.label;
+            console.log('Dandruff:', dandruffValue, dandruffLabel);
             
             document.getElementById('val-density').textContent = density;
             document.getElementById('val-thickness').textContent = thickness;
-            document.getElementById('val-hydration').textContent = hydration;
-            document.getElementById('val-sebum').textContent = sebumLevel;
-            document.getElementById('val-dandruff').textContent = dandruff;
+            document.getElementById('val-hydration').textContent = hydration + '%';
+            document.getElementById('val-sebum').textContent = sebumLevel + ' (' + sebumLabel + ')';
+            document.getElementById('val-dandruff').textContent = dandruffValue + ' (' + dandruffLabel + ')';
             
             const isColored = document.getElementById('colored-hair-checkbox')?.checked || false;
-            const diagnosis = { density, thickness, hydration: parseInt(hydration), sebum: parseInt(sebumLevel) || 50, isColored };
+            const diagnosis = { density, thickness, hydration: parseInt(hydration), sebum: parseInt(sebumLevel) || 5, isColored };
             
             displayDiagnosisProducts(getMariaNilaRecommendations(diagnosis));
             displayDiagnosisTreatments(getOlaplexRecommendations(diagnosis));
@@ -2043,7 +2045,7 @@ if (analyzeBtn) {
                 statusBadge.style.background = '#10b981';
             }
             // Guardar resultados para usar al guardar
-            currentDiagnosisResults = { density, thickness, hydration, sebumLevel, isColored };
+            currentDiagnosisResults = { density, thickness, hydration, sebumLevel, sebumLabel, dandruffValue, dandruffLabel, isColored };
         } catch (err) {
             console.error('ERROR in diagnosis:', err);
             console.warn('Análisis completado con advertencias');
@@ -2180,7 +2182,7 @@ if (analyzeBtn) {
             const brightness = (r + g + b) / 3;
             const saturation = Math.max(r, g, b) === 0 ? 0 : (Math.max(r, g, b) - Math.min(r, g, b)) / Math.max(r, g, b);
             
-            // Piel brillante = excesso de sebo
+            // Piel brillante = exceso de sebo
             if (brightness > 180 && saturation < 0.2 && r > 150 && g > 150 && b > 150) {
                 shinyPixels++;
             }
@@ -2193,21 +2195,30 @@ if (analyzeBtn) {
         const shinyRatio = shinyPixels / totalPixels;
         const dryRatio = dryPixels / totalPixels;
         
-        let hydration = 60;
-        let sebumLevel = 'Normal';
-        
+        // Calcular nivel de sebo de 0 a 10
+        let sebumValue = 5; // Normal base
         if (shinyRatio > 0.15) {
-            sebumLevel = 'Alto';
-            hydration = Math.floor(40 + Math.random() * 20);
+            sebumValue = 8 + Math.floor(shinyRatio * 10); // 8-10 Alto
         } else if (dryRatio > 0.2) {
-            sebumLevel = 'Bajo';
-            hydration = Math.floor(30 + Math.random() * 25);
+            sebumValue = 2 + Math.floor(dryRatio * 10); // 0-3 Normal bajo
         } else {
-            sebumLevel = 'Normal';
-            hydration = Math.floor(50 + Math.random() * 20);
+            sebumValue = 4 + Math.floor(Math.random() * 3); // 4-6 Normal medio
         }
+        sebumValue = Math.min(10, Math.max(0, sebumValue));
         
-        return { hydration, sebumLevel };
+        // Determinar etiqueta según rango
+        let sebumLabel;
+        if (sebumValue < 3) sebumLabel = 'Normal';
+        else if (sebumValue < 7) sebumLabel = 'Medio';
+        else sebumLabel = 'Alto';
+        
+        // Hidratación basada en sebo
+        let hydration;
+        if (sebumValue >= 7) hydration = Math.floor(40 + Math.random() * 20);
+        else if (sebumValue < 3) hydration = Math.floor(30 + Math.random() * 25);
+        else hydration = Math.floor(50 + Math.random() * 20);
+        
+        return { hydration, sebumLevel: sebumValue, sebumLabel };
     }
 
     function detectDandruffLevel(img) {
@@ -2238,7 +2249,16 @@ if (analyzeBtn) {
         }
         
         const dandruffRatio = (dandruffPixels / totalPixels) * 100;
-return Math.round(dandruffRatio * 10);
+        let dandruffValue = Math.round(dandruffRatio * 10);
+        dandruffValue = Math.min(10, Math.max(0, dandruffValue));
+        
+        // Determinar etiqueta según rango
+        let dandruffLabel;
+        if (dandruffValue < 3) dandruffLabel = 'Normal';
+        else if (dandruffValue < 7) dandruffLabel = 'Medio';
+        else dandruffLabel = 'Alto';
+        
+        return { value: dandruffValue, label: dandruffLabel };
     }
 
 window.addEventListener('message', async (event) => {
@@ -2278,14 +2298,14 @@ window.addEventListener('message', async (event) => {
                                 return v.toString(16);
                             });
                             
-                            await supabase.from('client_photos').insert({
-                                id: photoId,
-                                client_id: clientId,
-                                photo_url: publicUrl,
-                                photo_date: new Date().toISOString().split('T')[0],
-                                photo_type: 'antes',
-                                notes: `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'}, Caspa: ${results?.dandruff || '--'}`
-                            });
+                             await supabase.from('client_photos').insert({
+                                 id: photoId,
+                                 client_id: clientId,
+                                 photo_url: publicUrl,
+                                 photo_date: new Date().toISOString().split('T')[0],
+                                 photo_type: 'antes',
+                                 notes: `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'} (${results?.sebumLabel || ''}), Caspa: ${results?.dandruff || '--'} (${results?.dandruffLabel || ''})`
+                             });
                             
                             console.log('Diagnosis photo saved:', publicUrl);
                             showToast('✓ Foto de diagnóstico guardada');
@@ -2301,7 +2321,7 @@ window.addEventListener('message', async (event) => {
                         density: results.density || 150,
                         thickness: results.thickness || 65,
                         hydration: parseInt(results.hydration) || 55,
-                        sebum: results.sebum === 'Alto' ? 80 : results.sebum === 'Normal' ? 55 : 35,
+                        sebum: parseInt(results.sebum) || 5,
                         isColored: results.isColored || false
                     };
                     const products = getMariaNilaRecommendations(diagnosis);

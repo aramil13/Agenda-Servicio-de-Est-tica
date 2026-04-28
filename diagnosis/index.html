@@ -343,8 +343,8 @@
                 document.getElementById('val-density').textContent = results.density;
                 document.getElementById('val-thickness').textContent = results.thickness;
                 document.getElementById('val-hydration').textContent = results.hydration + '%';
-                document.getElementById('val-sebum').textContent = results.sebum;
-                document.getElementById('val-dandruff').textContent = results.dandruff;
+                document.getElementById('val-sebum').textContent = results.sebum + ' (' + results.sebumLabel + ')';
+                document.getElementById('val-dandruff').textContent = results.dandruff + ' (' + results.dandruffLabel + ')';
 
                 renderRecommendations(results);
                 currentDiagnosisResults = results;
