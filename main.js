@@ -2100,8 +2100,8 @@ if (analyzeBtn) {
         }
         const hueDeg = h * 360;
         const isBiological = (hueDeg < 50 || hueDeg > 340) && s < 0.6;
-        const isMicroscopic = edgeDensity > 0.08;
-        const hasTexture = variance > 250;
+        const isMicroscopic = edgeDensity > 0.05;
+        const hasTexture = variance > 150;
         
         return isBiological && isMicroscopic && hasTexture;
     }
