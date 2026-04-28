@@ -1005,12 +1005,6 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             </div>
                         </div>
                         <div class="day-detail-actions">
-<<<<<<< HEAD
-=======
-                            <button class="edit-apt-btn" data-id="${apt.id}" title="Editar cita">
-                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                            </button>
->>>>>>> 061b32ce484b436a005e72c0ff1abdc54210f46f
                             <button class="delete-btn" data-id="${apt.id}" title="Eliminar cita">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
@@ -1173,37 +1167,21 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                                 ${c.email ? `<span>✉️ ${c.email}</span>` : ''}
                                 <span class="${c.enviar_was ? 'status-success' : 'status-danger'}" style="font-size:0.75rem">WA: ${c.enviar_was ? 'Sí' : 'No'}</span>
                             </div>
-                            ${c.observations ? `<p style="font-size:0.8rem;color:var(--text-secondary);margin:4px 0 0;font-style:italic">"${c.observations}"</p>` : ''}
-<<<<<<< HEAD
-                            ${State.clientPhotos && State.clientPhotos[c.id] && State.clientPhotos[c.id].length > 0 ? `
-                                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
-                                    ${State.clientPhotos[c.id].slice(0, 4).map(p => {
-                                        const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
-                                        return `<div style="position:relative;text-align:center">
-                                            <img src="${p.photo_url}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
-                                            <div style="font-size:0.5rem;color:var(--text-secondary)">${photoType}</div>
-                                            <div style="font-size:0.45rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
-                                        </div>`;
-                                    }).join('')}
-                                    ${State.clientPhotos[c.id].length > 4 ? `<div style="font-size:0.7rem;color:var(--text-secondary);align-self:center">+${State.clientPhotos[c.id].length - 4}</div>` : ''}
-                                </div>
-                            ` : ''}
-=======
-${State.clientPhotos && State.clientPhotos[c.id] && State.clientPhotos[c.id].length > 0 ? `
-    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
-        ${State.clientPhotos[c.id].slice(0, 4).map(p => {
-            const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
-            return `<div style="position:relative;text-align:center">
-                <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid var(--border-color)" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
-                <div style="font-size:0.6rem;color:var(--text-secondary);margin-top:2px">${photoType}</div>
-                <div style="font-size:0.55rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
-            </div>`;
-        }).join('')}
-        ${State.clientPhotos[c.id].length > 4 ? `<button style="font-size:0.75rem;color:var(--primary-color);align-self:center;cursor:pointer;background:none;border:none;padding:0" onclick="showClientForm(State.clients.find(c => c.id === ${c.id}))">+${State.clientPhotos[c.id].length - 4} más</button>` : ''}
-    </div>
-` : ''}
->>>>>>> 061b32ce484b436a005e72c0ff1abdc54210f46f
-                        </div>
+                             ${c.observations ? `<p style="font-size:0.8rem;color:var(--text-secondary);margin:4px 0 0;font-style:italic">"${c.observations}"</p>` : ''}
+                             ${State.clientPhotos && State.clientPhotos[c.id] && State.clientPhotos[c.id].length > 0 ? `
+                                 <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+                                     ${State.clientPhotos[c.id].slice(0, 4).map(p => {
+                                         const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
+                                         return `<div style="position:relative;text-align:center">
+                                             <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid var(--border-color)" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                                             <div style="font-size:0.6rem;color:var(--text-secondary);margin-top:2px">${photoType}</div>
+                                             <div style="font-size:0.55rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
+                                         </div>`;
+                                     }).join('')}
+                                     ${State.clientPhotos[c.id].length > 4 ? `<button style="font-size:0.75rem;color:var(--primary-color);align-self:center;cursor:pointer;background:none;border:none;padding:0" onclick="showClientForm(State.clients.find(c => c.id === '${c.id}'))">+${State.clientPhotos[c.id].length - 4} más</button>` : ''}
+                                 </div>
+                             ` : ''}
+                         </div>
                         <div class="client-actions">
                             <button class="edit-btn" data-id="${c.id}" data-type="client" title="Editar">
                                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
@@ -1597,22 +1575,18 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
     let currentDiagnosisImage = null;
 
     function getDiagnosisView() {
-<<<<<<< HEAD
         const hasClient = sessionStorage.getItem('nymara_diagnosis_client_id');
         const clientName = sessionStorage.getItem('nymara_diagnosis_client_name') || '';
         const clientPhone = sessionStorage.getItem('nymara_diagnosis_client_phone') || '';
         
-=======
->>>>>>> 061b32ce484b436a005e72c0ff1abdc54210f46f
         return `
             <div class="section-header">
                 <div>
                     <h1 class="section-title">Diagnóstico Capilar</h1>
                     <p style="color:var(--text-secondary)">Análisis avanzado del cuero cabelludo · <span class="supabase-badge">⚡ IA Vision</span></p>
                 </div>
-            </div>
-            
-<<<<<<< HEAD
+             </div>
+             
             <div id="diagnosis-client-selection" style="display: ${hasClient ? 'none' : 'block'};">
                 <div style="max-width:700px;margin:60px auto;padding:40px;background:var(--bg-card);border:2px solid var(--accent-color);border-radius:16px;box-shadow:0 0 30px rgba(167,139,250,0.3);">
                     <h2 style="margin-top:0;color:#fff;font-size:28px;text-align:center;margin-bottom:10px;">SELECCIONAR CLIENTE</h2>
@@ -1647,7 +1621,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         }
 
         list.innerHTML = State.clients.map(client => `
-            <div class="diagnosis-client-card" onclick="window.selectClient('${client.id}')" style="display:flex;justify-content:space-between;align-items:center;padding:16px;margin-bottom:12px;background:var(--bg-dark);border:1px solid var(--border-color);border-radius:12px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent-color)'" onmouseout="this.style.borderColor='var(--border-color)'">
+            <div class="diagnosis-client-card" data-client-id="${client.id}" style="display:flex;justify-content:space-between;align-items:center;padding:16px;margin-bottom:12px;background:var(--bg-dark);border:1px solid var(--border-color);border-radius:12px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent-color)'" onmouseout="this.style.borderColor='var(--border-color)'">
                 <div style="display:flex;align-items:center;gap:12px;">
                     <div style="width:40px;height:40px;background:var(--accent-color);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#000;font-weight:bold;font-size:16px;">${client.name.charAt(0).toUpperCase()}</div>
                     <div>
@@ -1658,21 +1632,26 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 <span style="padding:8px 16px;background:var(--accent-color);color:#000;border-radius:8px;font-weight:600;">Seleccionar</span>
             </div>
         `).join('');
+
+        // Limpiar evento anterior y agregar delegación
+        list.onclick = null;
+        list.onclick = (e) => {
+            const card = e.target.closest('.diagnosis-client-card');
+            if (!card) return;
+            
+            const clientId = card.dataset.clientId;
+            if (!clientId) return;
+            
+            const client = State.clients.find(c => c.id === clientId);
+            if (client) {
+                selectClientForDiagnosis(client);
+            }
+        };
     }
 
-    window.selectClient = function(clientId) {
-        const client = State.clients.find(c => c.id === clientId);
-        if (client) {
-            selectClientForDiagnosis(client);
-        }
-    };
-=======
-            <iframe src="diagnosis/index.html" class="diagnosis-iframe" style="width:100%;height:calc(100vh - 200px);border:none;border-radius:12px;background:var(--bg-card);"></iframe>
-        `;
-    }    /* ═══════════════════════════════════════
+    /* ═════════════════════════════════════
        EVENT BINDING
-       ═══════════════════════════════════════ */
->>>>>>> 061b32ce484b436a005e72c0ff1abdc54210f46f
+       ═════════════════════════════════════ */
     function attachEvents() {
         // Add buttons
         const btnAddAppt = document.getElementById('btn-add-appointment');
@@ -2392,41 +2371,26 @@ window.addEventListener('message', async (event) => {
                                 return v.toString(16);
                             });
                             
-<<<<<<< HEAD
                             await supabase.from('client_photos').insert({
                                 id: photoId,
                                 client_id: clientId,
                                 photo_url: publicUrl,
                                 photo_date: new Date().toISOString().split('T')[0],
                                 photo_type: 'antes',
-                                notes: `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'}, Caspa: ${results?.dandruff || '--'}`
+                                notes: `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'}, Caspa: ${results?.dandruff || '--'}, Grasa: ${results?.grease || '--'}`
                             });
                             
                             console.log('Diagnosis photo saved:', publicUrl);
                             showToast('✓ Foto de diagnóstico guardada');
+                              
+                            // Notify diagnosis iframe that photo was saved
+                            const diagnosisFrame = document.querySelector('iframe[src*="diagnosis"]');
+                            if (diagnosisFrame) {
+                                diagnosisFrame.contentWindow.postMessage({
+                                    type: 'diagnosis_photo_saved'
+                                }, '*');
+                            }
                         }
-=======
-                             await supabase.from('client_photos').insert({
-                                 id: photoId,
-                                 client_id: clientId,
-                                 photo_url: publicUrl,
-                                 photo_date: new Date().toISOString().split('T')[0],
-                                 photo_type: 'antes',
-                                 notes: `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'} (${results?.sebumLabel || ''}), Caspa: ${results?.dandruff || '--'} (${results?.dandruffLabel || ''})`
-                             });
-                            
-                            console.log('Diagnosis photo saved:', publicUrl);
-                             showToast('✓ Foto de diagnóstico guardada');
-                             
-                             // Notify diagnosis iframe that photo was saved
-                             const diagnosisFrame = document.querySelector('iframe[src*="diagnosis"]');
-                             if (diagnosisFrame) {
-                                 diagnosisFrame.contentWindow.postMessage({
-                                     type: 'diagnosis_photo_saved'
-                                 }, '*');
-                             }
-                         }
->>>>>>> 061b32ce484b436a005e72c0ff1abdc54210f46f
                     } catch (e) {
                         console.error('Error saving diagnosis photo:', e);
                     }
