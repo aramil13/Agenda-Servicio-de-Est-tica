@@ -132,8 +132,6 @@
             margin-bottom: 10px;
         }
 
-
-
         #camera-container {
             position: relative;
             margin-top: 20px;
@@ -199,10 +197,6 @@
                         </label>
                     </div>
                     <button id="analyze-btn" class="primary-btn">Iniciar Análisis AI</button>
-<<<<<<< HEAD
-=======
-                    <button id="save-diagnosis-btn" class="secondary-btn" style="display: none; background: #10b981; font-weight: bold; font-size: 16px; padding: 12px 24px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);">Guardar en Cliente</button>
->>>>>>> 061b32ce484b436a005e72c0ff1abdc54210f46f
                     <button id="reset-btn" class="secondary-btn">Cambiar Imagen</button>
                 </div>
             </section>
@@ -214,27 +208,27 @@
                 <div class="metrics-grid">
                     <div class="metric-card">
                         <div class="metric-value" id="val-density">--</div>
-                        <div class="metric-label">Densidad (80-280)</div>
+                        <div class="metric-label">Densidad (160-190)</div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-value" id="val-thickness">--</div>
-                        <div class="metric-label">Grosor (μm) (40-120)</div>
+                        <div class="metric-label">Grosor (μm) (65-80)</div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-value" id="val-hydration">--</div>
-                        <div class="metric-label">Hidratación (0-100)</div>
+                        <div class="metric-label">Hidratación (55-75%)</div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-value" id="val-sebum">--</div>
-                        <div class="metric-label">Nivel Sebo (Bajo/Normal/Alto)</div>
+                        <div class="metric-label">Nivel Sebo (1-10)</div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-value" id="val-dandruff">--</div>
-                        <div class="metric-label">Nivel Caspa (Bajo/Normal/Alto)</div>
+                        <div class="metric-label">Nivel Caspa (1-10)</div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-value" id="val-grease">--</div>
-                        <div class="metric-label">Nivel Grasa</div>
+                        <div class="metric-label">Nivel Grasa (1-10)</div>
                     </div>
                 </div>
 
@@ -324,13 +318,11 @@
         function showPreview(data) {
             const img = new Image();
             img.onload = () => {
-                // Validación básica: tamaño mínimo
                 if (img.width < 100 || img.height < 100) {
                     alert('La imagen es muy pequeña. Sube una foto de mayor resolución (mínimo 100x100 pixeles).');
                     return;
                 }
                 
-                // Aprobar foto
                 currentImgData = data;
                 elements.previewImg.src = data;
                 elements.previewImg.style.display = 'block';
@@ -381,20 +373,12 @@
                     isColored: elements.coloredHair.checked
                 };
 
-<<<<<<< HEAD
                 document.getElementById('val-density').textContent = density + ' (160-190)';
                 document.getElementById('val-thickness').textContent = thickness + ' μm (65-80)';
                 document.getElementById('val-hydration').textContent = hydration + '% (55-75%)';
                 document.getElementById('val-sebum').textContent = sebumLevel + ' (' + sebumRaw + '/10)';
                 document.getElementById('val-dandruff').textContent = dandruffLevel + ' (' + dandruffRaw + '/10)';
                 document.getElementById('val-grease').textContent = greaseLevel + ' (' + greaseRaw + '/10)';
-=======
-                document.getElementById('val-density').textContent = results.density;
-                document.getElementById('val-thickness').textContent = results.thickness;
-                document.getElementById('val-hydration').textContent = results.hydration + '%';
-                document.getElementById('val-sebum').textContent = results.sebum + ' (' + results.sebumLabel + ')';
-                document.getElementById('val-dandruff').textContent = results.dandruff + ' (' + results.dandruffLabel + ')';
->>>>>>> 061b32ce484b436a005e72c0ff1abdc54210f46f
 
                 renderRecommendations(results);
                 currentDiagnosisResults = results;
@@ -420,108 +404,6 @@
         document.getElementById('reset-btn').onclick = () => location.reload();
 
         let currentDiagnosisResults = null;
-<<<<<<< HEAD
-        
-=======
-         
-         document.getElementById('save-diagnosis-btn').onclick = () => {
-             if (!currentDiagnosisResults || !currentImgData) return;
-             
-             const saveBtn = document.getElementById('save-diagnosis-btn');
-             saveBtn.disabled = true;
-             saveBtn.textContent = 'Verificando...';
-             
-             if (window.parent !== window) {
-                 try {
-                     const img = new Image();
-                     img.src = currentImgData;
-                     img.onload = () => {
-                         const canvas = document.createElement('canvas');
-                         canvas.width = img.width;
-                         canvas.height = img.height;
-                         const ctx = canvas.getContext('2d');
-                         ctx.drawImage(img, 0, 0);
-                         const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                         const pixels = data.data;
-                         
-                         let brightness = 0, colorfulness = 0, edgePixels = 0;
-                         const sample = Math.floor(pixels.length / 100);
-                         
-                         for (let i = 0; i < pixels.length; i += 4) {
-                             brightness += (pixels[i] + pixels[i+1] + pixels[i+2]) / 3;
-                             const r = pixels[i] / 255, g = pixels[i+1] / 255, b = pixels[i+2] / 255;
-                             colorfulness += Math.max(r, g, b) - Math.min(r, g, b);
-                         }
-                         brightness /= (pixels.length / 4);
-                         colorfulness /= (pixels.length / 4);
-                         
-                         const isTooBright = brightness > 220;
-                         const isTooDark = brightness < 30;
-                         const isLowColor = colorfulness < 0.05;
-                         const isSmall = canvas.width < 200 || canvas.height < 200;
-                         
-                         if (isTooBright) {
-                             alert('La foto es demasiado clara. Asegúrate de que sea una foto microscópica del cuero cabelludo.');
-                             saveBtn.disabled = false;
-                             saveBtn.textContent = 'Guardar en Cliente';
-                             return;
-                         }
-                         if (isTooDark) {
-                             alert('La foto es demasiado oscura. Asegúrate de que sea una foto microscópica del cuero cabelludo.');
-                             saveBtn.disabled = false;
-                             saveBtn.textContent = 'Guardar en Cliente';
-                             return;
-                         }
-                         if (isLowColor) {
-                             alert('La foto parece ser en blanco y negro o muy desaturada. Sube una foto microscópica a color del cuero cabelludo.');
-                             saveBtn.disabled = false;
-                             saveBtn.textContent = 'Guardar en Cliente';
-                             return;
-                         }
-                         if (isSmall) {
-                             alert('La foto es muy pequeña. Sube una foto de mayor resolución (mínimo 200x200 pixeles).');
-                             saveBtn.disabled = false;
-                             saveBtn.textContent = 'Guardar en Cliente';
-                             return;
-                         }
-                         
-                         saveBtn.textContent = 'Guardando...';
-                         
-                         // Listen for response from parent
-                         const saveListener = (event) => {
-                             if (event.data && event.data.type === 'diagnosis_photo_saved') {
-                                 window.removeEventListener('message', saveListener);
-                                 saveBtn.textContent = '✓ Guardado';
-                                 saveBtn.style.background = '#059669';
-                                 showToast('Foto guardada en el cliente');
-                                 setTimeout(() => {
-                                     saveBtn.disabled = false;
-                                     saveBtn.textContent = 'Guardar en Cliente';
-                                     saveBtn.style.background = '#10b981';
-                                 }, 2000);
-                             }
-                         };
-                         window.addEventListener('message', saveListener);
-                         
-                         window.parent.postMessage({
-                             type: 'diagnosis_photo',
-                             photoData: currentImgData,
-                             results: currentDiagnosisResults
-                         }, '*');
-                     };
-                     img.onerror = () => {
-                         alert('No se pudo procesar la imagen. Sube una foto válida del microscopio.');
-                         saveBtn.disabled = false;
-                         saveBtn.textContent = 'Guardar en Cliente';
-                     };
-                 } catch (e) {
-                     console.warn('Error en validación:', e);
-                     saveBtn.disabled = false;
-                     saveBtn.textContent = 'Guardar en Cliente';
-                 }
-             }
-         };
->>>>>>> 061b32ce484b436a005e72c0ff1abdc54210f46f
         
         function showToast(msg) {
             const toast = document.createElement('div');
@@ -535,18 +417,15 @@
             const products = [], treatments = [];
             const { density, thickness, hydration, isColored } = diagnosis;
             
-            // Maria Nila
             if (hydration < 50) products.push(MARIA_NILA_PRODUCTS.trueSoftShampoo);
             if (density < 150) products.push(MARIA_NILA_PRODUCTS.pureVolumeShampoo);
             if (diagnosis.sebum === 'Alto' || diagnosis.grease === 'Alto') products.push(MARIA_NILA_PRODUCTS.purifyingCleanseShampoo);
             if (isColored) products.push(MARIA_NILA_PRODUCTS.luminousColourShampoo);
             if (products.length === 0) products.push(MARIA_NILA_PRODUCTS.headHairHealShampoo);
             
-            // Olaplex
             if (density < 130 || thickness < 60 || hydration < 45) treatments.push(OLAPLEX_TREATMENTS.treatmentPremium);
             if (treatments.length < 2) treatments.push(OLAPLEX_TREATMENTS.treatmentExpress);
             
-            // Mostrar
             document.getElementById('recommendations-section').style.display = 'block';
             document.getElementById('treatments-section').style.display = 'block';
             
@@ -556,39 +435,6 @@
             
             document.getElementById('treatments-grid').innerHTML = treatments.map(t => 
                 '<div class="product-card" style="border-left:3px solid #10b981"><div style="font-size:24px">💊</div><div class="product-info"><strong>' + t.name + '</strong><p>' + t.desc + '</p><a href="' + t.url + '" target="_blank">Más info →</a></div></div>'
-            ).join('');
-        }
-
-        function getMariaNilaRecommendations(diagnosis) {
-            const recs = [];
-            if (diagnosis.hydration < 50) recs.push(MARIA_NILA_PRODUCTS.trueSoftShampoo);
-            if (diagnosis.density < 150) recs.push(MARIA_NILA_PRODUCTS.pureVolumeShampoo);
-            if (diagnosis.sebum === 'Alto') recs.push(MARIA_NILA_PRODUCTS.purifyingCleanseShampoo);
-            if (diagnosis.isColored) recs.push(MARIA_NILA_PRODUCTS.luminousColourShampoo);
-            if (recs.length === 0) recs.push(MARIA_NILA_PRODUCTS.headHairHealShampoo);
-            return recs.slice(0, 3);
-        }
-
-        function getOlaplexRecommendations(diagnosis) {
-            const recs = [];
-            if (diagnosis.density < 130 || diagnosis.thickness < 60 || diagnosis.hydration < 45) recs.push(OLAPLEX_TREATMENTS.treatmentPremium);
-            if (recs.length < 2) recs.push(OLAPLEX_TREATMENTS.treatmentExpress);
-            return recs.slice(0, 2);
-        }
-
-        function displayDiagnosisProducts(products) {
-            const container = document.getElementById('products-grid');
-            if (!container) return;
-            container.innerHTML = products.map(p => 
-                '<div class="product-card"><img src="' + p.img + '" class="product-img"><div class="product-info"><strong>' + p.name + '</strong><p>' + p.desc + '</p><a href="' + p.url + '" target="_blank">Ver →</a></div></div>'
-            ).join('');
-        }
-
-        function displayDiagnosisTreatments(treatments) {
-            const container = document.getElementById('treatments-grid');
-            if (!container) return;
-            container.innerHTML = treatments.map(t => 
-                '<div class="product-card" style="border-left:3px solid #10b981"><div style="font-size:24px">💊</div><div class="product-info"><strong>' + t.name + '</strong><p>' + (t.desc || '') + '</p></div></div>'
             ).join('');
         }
     </script>
