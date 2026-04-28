@@ -1,4 +1,4 @@
-// Base de datos de productos Maria Nila
+﻿// Base de datos de productos Maria Nila
 const MARIA_NILA_PRODUCTS = {
     // Champús
     headHairHealShampoo: { name: "Head & Hair Heal Shampoo", desc: "Calma cuero cabelludo sensible con aloe vera y piroctona olamina.", img: "https://marianila.com/cdn/shop/files/13650-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-shampoo-350-ml", category: "scalp" },
@@ -648,6 +648,23 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
+    async function updateAppointment(id, data) {
+        const dbRow = {
+            client_id: data.clientId,
+            service_id: data.serviceId,
+            date: data.date,
+            time: data.time,
+            notes: data.notes,
+            appointment_photos: data.appointmentPhotos || [],
+        };
+        const { error } = await supabase.from('appointments').update(dbRow).eq('id', id);
+        if (error) { showToast('Error al actualizar cita: ' + error.message, 'error'); return false; }
+        const idx = State.appointments.findIndex(a => a.id === id);
+        if (idx !== -1) State.appointments[idx] = { ...State.appointments[idx], ...data };
+        showToast('Cita actualizada correctamente');
+        return true;
+    }
+
     window.editClientPhoto = async function(photoId, clientId, currentDate, currentNotes, currentType) {
         openModal('Editar Foto', `
             <form id="edit-client-photo-form">
@@ -814,7 +831,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (currentRoute === 'agenda') content = getAgendaView();
-        else if (currentRoute === 'clients') content = getClientsView();
+        else if (currentRoute === 'clients') {
+            // Recargar fotos de clientes al entrar a la pestaña
+            loadAllClientPhotos().then(() => {
+                const clientsContent = getClientsView();
+                const fadeInDiv = appContent.querySelector('.fade-in');
+                if (fadeInDiv) fadeInDiv.innerHTML = clientsContent;
+                attachEvents();
+            });
+            content = getClientsView();
+        }
         else if (currentRoute === 'services') content = getServicesView();
         else if (currentRoute === 'monthly') content = getMonthlyView();
         else if (currentRoute === 'whatsapp') content = getWhatsAppView();
@@ -974,6 +1000,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             </div>
                         </div>
                         <div class="day-detail-actions">
+                            <button class="edit-apt-btn" data-id="${apt.id}" title="Editar cita">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </button>
                             <button class="delete-btn" data-id="${apt.id}" title="Eliminar cita">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
@@ -1137,19 +1166,19 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                                 <span class="${c.enviar_was ? 'status-success' : 'status-danger'}" style="font-size:0.75rem">WA: ${c.enviar_was ? 'Sí' : 'No'}</span>
                             </div>
                             ${c.observations ? `<p style="font-size:0.8rem;color:var(--text-secondary);margin:4px 0 0;font-style:italic">"${c.observations}"</p>` : ''}
-                            ${State.clientPhotos && State.clientPhotos[c.id] && State.clientPhotos[c.id].length > 0 ? `
-                                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
-                                    ${State.clientPhotos[c.id].slice(0, 4).map(p => {
-                                        const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
-                                        return `<div style="position:relative;text-align:center">
-                                            <img src="${p.photo_url}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
-                                            <div style="font-size:0.5rem;color:var(--text-secondary)">${photoType}</div>
-                                            <div style="font-size:0.45rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
-                                        </div>`;
-                                    }).join('')}
-                                    ${State.clientPhotos[c.id].length > 4 ? `<div style="font-size:0.7rem;color:var(--text-secondary);align-self:center">+${State.clientPhotos[c.id].length - 4}</div>` : ''}
-                                </div>
-                            ` : ''}
+${State.clientPhotos && State.clientPhotos[c.id] && State.clientPhotos[c.id].length > 0 ? `
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+        ${State.clientPhotos[c.id].slice(0, 4).map(p => {
+            const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
+            return `<div style="position:relative;text-align:center">
+                <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid var(--border-color)" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                <div style="font-size:0.6rem;color:var(--text-secondary);margin-top:2px">${photoType}</div>
+                <div style="font-size:0.55rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
+            </div>`;
+        }).join('')}
+        ${State.clientPhotos[c.id].length > 4 ? `<button style="font-size:0.75rem;color:var(--primary-color);align-self:center;cursor:pointer;background:none;border:none;padding:0" onclick="showClientForm(State.clients.find(c => c.id === ${c.id}))">+${State.clientPhotos[c.id].length - 4} más</button>` : ''}
+    </div>
+` : ''}
                         </div>
                         <div class="client-actions">
                             <button class="edit-btn" data-id="${c.id}" data-type="client" title="Editar">
@@ -1544,18 +1573,6 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
     let currentDiagnosisImage = null;
 
     function getDiagnosisView() {
-        const clientsHtml = State.clients.map(c => `
-            <div class="diagnosis-client-card" data-client-id="${c.id}">
-                <button class="btn btn-primary btn-sm select-client-btn" data-client-id="${c.id}" data-client-name="${c.name}">
-                    Seleccionar
-                </button>
-                <div class="diagnosis-client-info" style="text-align:center;flex:1;">
-                    <strong>${c.name}</strong>
-                    <span style="font-size:0.8rem;color:var(--text-secondary)">${c.phone || 'Sin teléfono'}</span>
-                </div>
-            </div>
-        `).join('');
-
         return `
             <div class="section-header">
                 <div>
@@ -1564,154 +1581,9 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 </div>
             </div>
             
-            <div id="diagnosis-client-selection">
-                <div class="data-card" style="margin-bottom:1.5rem;">
-                    <h3 style="margin-bottom:1rem;">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:8px;"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                        Seleccionar Cliente
-                    </h3>
-                    <p style="color:var(--text-secondary);margin-bottom:1rem;font-size:0.9rem;">¿Para quién realizarás el diagnóstico?</p>
-                    
-                    <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem;flex-wrap:wrap;">
-                        <button class="btn btn-primary" id="btn-new-client-diagnosis">
-                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                            Nuevo Cliente
-                        </button>
-                        <button class="btn btn-secondary" id="btn-show-existing-clients">
-                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg>
-                            Clientes Existentes
-                        </button>
-                    </div>
-                    
-                    <div id="existing-clients-list" style="display:none;">
-                        <input type="text" class="form-control" id="client-search-input" placeholder="Buscar cliente..." style="margin-bottom:1rem;">
-                        <div id="clients-results" style="max-height:300px;overflow-y:auto;">
-                            ${clientsHtml || '<p style="color:var(--text-secondary)">No hay clientes registrados</p>'}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="diagnosis-main" style="display:none;">
-                <div class="diagnosis-header-info" style="margin-bottom:1rem;padding:1rem;background:var(--bg-surface);border-radius:12px;border:1px solid var(--border-color);">
-                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
-                        <div>
-                            <strong style="font-size:1.1rem;" id="selected-client-name"></strong>
-                            <span style="color:var(--text-secondary);font-size:0.85rem;margin-left:0.5rem;" id="selected-client-phone"></span>
-                        </div>
-                        <button class="btn btn-secondary btn-sm" id="btn-change-client">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
-                            Cambiar Cliente
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- INTEGRATED DIAGNOSIS UI -->
-                <div class="diagnosis-integrated">
-                    <!-- Left: Upload -->
-                    <div class="diagnosis-panel">
-                        <div class="upload-zone upload-zone-dark" id="drop-zone">
-                            <input type="file" id="diag-file-input" accept="image/*" style="display:none;">
-                            <svg width="48" height="48" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24" style="margin:0 auto 1rem;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                            <h3 style="margin-bottom:0.5rem;">Sube tu foto microscópica</h3>
-                            <p style="font-size:0.9rem;">Arrastra y suelta o haz clic</p>
-                        </div>
-                        
-                        <div class="preview-container" id="preview-container" style="display:none;margin-top:1rem;">
-                            <img id="diag-preview-img" src="" alt="Preview" style="width:100%;border-radius:12px;">
-                        </div>
-                        
-                        <div id="action-buttons" style="display:none;margin-top:1.5rem;">
-                            <button id="analyze-btn" class="btn btn-primary" style="width:100%;">Iniciar Análisis</button>
-                            <button id="reset-btn" class="btn btn-secondary" style="margin-top:0.5rem;width:100%;">Cambiar Imagen</button>
-                        </div>
-                        
-                        <div id="colored-hair-toggle" style="display:none;margin-top:1rem;padding:1rem;background:rgba(139,92,246,0.1);border-radius:12px;">
-                            <label style="display:flex;align-items:center;gap:0.75rem;cursor:pointer;">
-                                <input type="checkbox" id="colored-hair-checkbox" style="width:20px;height:20px;accent-color:#8b5cf6;">
-                                <span>¿Cabello teñido?</span>
-                            </label>
-                        </div>
-                        
-                        <button id="camera-btn" class="btn btn-secondary" style="margin-top:1rem;width:100%;">
-                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:0.5rem;"><circle cx="12" cy="12" r="3"></circle><path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
-                            Sacar Foto
-                        </button>
-                        
-                        <div id="camera-container" style="display:none;margin-top:1rem;">
-                            <video id="diag-video" autoplay playsinline style="width:100%;border-radius:12px;background:#000;"></video>
-                            <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
-                                <button id="shutter-btn" class="btn btn-primary">Capturar</button>
-                                <button id="cancel-camera-btn" class="btn btn-secondary">Cancelar</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Right: Results -->
-                    <div class="diagnosis-panel" id="results-container">
-                        <div id="status-badge" style="display:inline-block;padding:0.25rem 0.75rem;background:#8b5cf6;color:#fff;border-radius:20px;font-size:0.75rem;font-weight:600;margin-bottom:1rem;box-shadow:0 0 10px rgba(139,92,246,0.3);">Calculando...</div>
-                        
-                        <h2 style="margin-bottom:1rem;">Resultado del Análisis</h2>
-                        
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1.5rem;">
-                            <div class="metric-card-dark">
-                                <div id="val-density" class="metric-value-dark">--</div>
-                                <div style="font-size:0.7rem;">Densidad <span style="color:#10b981;">(150-200)</span></div>
-                            </div>
-                            <div class="metric-card-dark">
-                                <div id="val-thickness" class="metric-value-dark">--</div>
-                                <div style="font-size:0.7rem;">Grosor <span style="color:#10b981;">(60-90)</span></div>
-                            </div>
-                            <div class="metric-card-dark">
-                                <div id="val-hydration" class="metric-value-dark">--</div>
-                                <div style="font-size:0.7rem;">Hidratación <span style="color:#10b981;">(50-70)</span></div>
-                            </div>
-                            <div class="metric-card-dark">
-                                <div id="val-sebum" class="metric-value-dark">--</div>
-                                <div style="font-size:0.7rem;">Sebo <span style="color:#10b981;">(40-60)</span></div>
-                            </div>
-                            <div class="metric-card-dark" style="grid-column:span 2;">
-                                <div id="val-dandruff" class="metric-value-dark">--</div>
-                                <div style="font-size:0.7rem;">Caspa <span style="color:#10b981;">(0-10)</span></div>
-                            </div>
-                        </div>
-                        
-                        <div id="maria-nila-products" style="margin-top:1rem;">
-                            <h4 style="color:#8b5cf6;margin-bottom:0.75rem;">Productos Maria Nila</h4>
-                            <div id="products-grid" style="display:grid;gap:0.75rem;"></div>
-                        </div>
-                        
-                        <div id="treatments-recommendations" style="margin-top:1.5rem;">
-                            <h4 style="color:#10b981;margin-bottom:0.75rem;">Tratamientos Olaplex</h4>
-                            <div id="treatments-grid" style="display:grid;gap:0.75rem;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <style>
-                .diagnosis-integrated { 
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 1.5rem;
-                }
-                .diagnosis-panel { 
-                    padding: 1.5rem;
-                    border-radius: 16px;
-                }
-                .upload-zone { 
-                    border: 2px dashed var(--border-color);
-                    border-radius: 12px;
-                    padding: 2rem;
-                    text-align: center;
-                    cursor: pointer;
-                    transition: all 0.3s;
-                }
-            </style>
+            <iframe src="diagnosis/index.html" class="diagnosis-iframe" style="width:100%;height:calc(100vh - 200px);border:none;border-radius:12px;background:var(--bg-card);"></iframe>
         `;
-    }
-
-    /* ═══════════════════════════════════════
+    }    /* ═══════════════════════════════════════
        EVENT BINDING
        ═══════════════════════════════════════ */
     function attachEvents() {
@@ -1778,6 +1650,14 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             dayEl.addEventListener('click', () => {
                 State.selectedDate = dayEl.dataset.date;
                 renderRoute();
+            });
+        });
+
+        // Edit appointment buttons
+        document.querySelectorAll('.edit-apt-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                const id = e.currentTarget.dataset.id;
+                if (id) editAppointment(id);
             });
         });
 
@@ -2770,33 +2650,33 @@ window.addEventListener('message', async (event) => {
         return `${hStr}:${mStr}`;
     }
 
-    function showAppointmentForm() {
+    function showAppointmentForm(apt = null) {
         if (State.clients.length === 0 || State.services.length === 0) {
             showToast('Debes tener al menos un cliente y un servicio antes de agendar una cita.', 'error');
             return;
         }
 
-        const defaultDate = State.selectedDate || toLocalDateStr(new Date());
-        const defaultDuration = State.services.length > 0 ? parseInt(State.services[0].duration) : 30;
-        const suggestedTime = findNextAvailableTime(defaultDate, defaultDuration);
+        const isEdit = apt !== null;
+        const defaultDate = isEdit ? apt.date : (State.selectedDate || toLocalDateStr(new Date()));
+        const defaultTime = isEdit ? apt.time : findNextAvailableTime(defaultDate, State.services.length > 0 ? parseInt(State.services[0].duration) : 30);
 
         const userColor = State.currentUserColor || '#6366f1';
         const html = `
             <form id="appointment-form">
                 <div class="form-user-badge" style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;padding:0.5rem;background:rgba(0,0,0,0.03);border-radius:8px;">
                     <div style="width:12px;height:12px;border-radius:50%;background:${userColor};flex-shrink:0;"></div>
-                    <span style="font-size:0.8rem;color:var(--text-secondary);">Creando cita como <strong>${State.currentUserEmail || 'usuario'}</strong></span>
+                    <span style="font-size:0.8rem;color:var(--text-secondary);">${isEdit ? 'Editando cita' : 'Creando cita'} como <strong>${State.currentUserEmail || 'usuario'}</strong></span>
                 </div>
                 <div class="form-group">
                     <label>Cliente</label>
                     <select class="form-control" name="clientId" required>
-                        ${State.clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+                        ${State.clients.map(c => `<option value="${c.id}" ${isEdit && c.id === apt.clientId ? 'selected' : ''}>${c.name}</option>`).join('')}
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Servicio</label>
                     <select class="form-control" name="serviceId" required>
-                        ${State.services.map(s => `<option value="${s.id}">${s.name} (${s.duration} min · ${parseFloat(s.price).toFixed(2)}€)</option>`).join('')}
+                        ${State.services.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.serviceId ? 'selected' : ''}>${s.name} (${s.duration} min · ${parseFloat(s.price).toFixed(2)}€)</option>`).join('')}
                     </select>
                 </div>
                 <div style="display:flex;gap:1rem">
@@ -2806,12 +2686,12 @@ window.addEventListener('message', async (event) => {
                     </div>
                     <div class="form-group" style="flex:1">
                         <label>Hora</label>
-                        <input type="time" class="form-control" name="time" required value="${suggestedTime}">
+                        <input type="time" class="form-control" name="time" required value="${defaultTime}">
                     </div>
                 </div>
                 <div class="form-group">
                     <label>Notas (opcional)</label>
-                    <textarea class="form-control" name="notes" rows="2" placeholder="Información adicional..."></textarea>
+                    <textarea class="form-control" name="notes" rows="2" placeholder="Información adicional...">${isEdit ? apt.notes || '' : ''}</textarea>
                 </div>
                 
                 <div class="form-group">
@@ -2826,11 +2706,11 @@ window.addEventListener('message', async (event) => {
                 
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Agendar Cita</button>
+                    <button type="submit" class="btn btn-primary">${isEdit ? 'Guardar Cambios' : 'Agendar Cita'}</button>
                 </div>
             </form>`;
 
-        openModal('Nueva Cita', html, () => {
+        openModal(isEdit ? 'Editar Cita' : 'Nueva Cita', html, () => {
             const form = document.getElementById('appointment-form');
             const dateInput = form.querySelector('[name="date"]');
             const timeInput = form.querySelector('[name="time"]');
@@ -2920,12 +2800,10 @@ window.addEventListener('message', async (event) => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Agendando…';
+                submitBtn.textContent = isEdit ? 'Guardando…' : 'Agendando…';
 
                 const fd = new FormData(e.target);
-                const appointmentId = generateId();
                 const data = {
-                    id: appointmentId,
                     clientId: fd.get('clientId'),
                     serviceId: fd.get('serviceId'),
                     date: fd.get('date'),
@@ -2934,19 +2812,13 @@ window.addEventListener('message', async (event) => {
                     userEmail: State.currentUserEmail || ''
                 };
 
-                const todayStr = toLocalDateStr(new Date());
-                
                 // Guardar fotos de la cita
                 if (pendingFiles.length > 0) {
                     data.appointmentPhotos = [];
-                    console.log('Saving photos for client:', data.clientId);
                     for (const pf of pendingFiles) {
-                        console.log('Uploading photo:', { date: pf.date, type: pf.type, notes: pf.notes });
                         const photoRecord = await uploadClientPhoto(pf.file, data.clientId, pf.date, pf.type, pf.notes);
                         if (photoRecord) {
                             data.appointmentPhotos.push(photoRecord);
-                        } else {
-                            console.log('Photo upload failed - no record returned');
                         }
                     }
                 }
@@ -2965,42 +2837,55 @@ window.addEventListener('message', async (event) => {
                 if (targetStartMinutes < workingStartMins || targetEndMinutes > workingEndMins) {
                     showToast(`El horario seleccionado se sale de tus horas de apertura (${State.settings.startTime} - ${State.settings.endTime}).`, 'error');
                     submitBtn.disabled = false;
-                    submitBtn.textContent = 'Agendar Cita';
+                    submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Agendar Cita';
                     return;
                 }
 
-                const hasCollision = State.appointments.some(apt => {
-                    if (apt.date !== data.date) return false;
-                    const [aptHour, aptMin] = apt.time.split(':').map(Number);
+                const hasCollision = State.appointments.some(a => {
+                    if (isEdit && a.id === apt.id) return false; // Skip self when editing
+                    if (a.date !== data.date) return false;
+                    const [aptHour, aptMin] = a.time.split(':').map(Number);
                     const aptStartMinutes = aptHour * 60 + aptMin;
-                    const aptService = State.services.find(s => s.id === apt.serviceId);
+                    const aptService = State.services.find(s => s.id === a.serviceId);
                     const aptEndMinutes = aptStartMinutes + (aptService ? parseInt(aptService.duration) : 0);
-                    
-                    // Hay superposición si InicioN < FinE y FinN > InicioE
                     return targetStartMinutes < aptEndMinutes && targetEndMinutes > aptStartMinutes;
                 });
 
                 if (hasCollision) {
                     showToast('El horario elegido choca con una cita ya existente.', 'error');
                     submitBtn.disabled = false;
-                    submitBtn.textContent = 'Agendar Cita';
+                    submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Agendar Cita';
                     return;
                 }
 
-                if (await addAppointment(data)) { 
-                    closeModal(); 
-                    renderRoute(); 
-                    
-                    // Notificar por WhatsApp si el cliente lo tiene activado
-                    const client = State.clients.find(c => c.id === data.clientId);
-                    if (client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1) && client.phone) {
-                        sendWASMessage(client.phone, client.name, data.date, data.time);
+                if (isEdit) {
+                    if (await updateAppointment(apt.id, data)) { 
+                        closeModal(); 
+                        renderRoute(); 
+                    }
+                } else {
+                    data.id = generateId();
+                    if (await addAppointment(data)) { 
+                        closeModal(); 
+                        renderRoute(); 
+                        
+                        // Notificar por WhatsApp si el cliente lo tiene activado
+                        const client = State.clients.find(c => c.id === data.clientId);
+                        if (client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1) && client.phone) {
+                            sendWASMessage(client.phone, client.name, data.date, data.time);
+                        }
                     }
                 }
-                else { submitBtn.disabled = false; submitBtn.textContent = 'Agendar Cita'; }
+                submitBtn.disabled = false;
+                submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Agendar Cita';
             });
         });
     }
+
+    window.editAppointment = function(id) {
+        const apt = State.appointments.find(a => a.id === id);
+        if (apt) showAppointmentForm(apt);
+    };
 
     /* ═══════════════════════════════════════
        INIT — Check session to start
@@ -3025,3 +2910,4 @@ window.addEventListener('message', async (event) => {
 passwordInput.addEventListener('focus', () => passwordInput.readOnly = false);
     }
 });
+
