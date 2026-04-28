@@ -199,7 +199,7 @@
                         </label>
                     </div>
                     <button id="analyze-btn" class="primary-btn">Iniciar Análisis AI</button>
-                    <button id="save-diagnosis-btn" class="secondary-btn" style="display: none; background: #10b981;">Guardar en Cliente</button>
+                    <button id="save-diagnosis-btn" class="secondary-btn" style="display: none; background: #10b981; font-weight: bold; font-size: 16px; padding: 12px 24px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);">Guardar en Cliente</button>
                     <button id="reset-btn" class="secondary-btn">Cambiar Imagen</button>
                 </div>
             </section>
@@ -373,89 +373,104 @@
         document.getElementById('reset-btn').onclick = () => location.reload();
 
         let currentDiagnosisResults = null;
-        
-        document.getElementById('save-diagnosis-btn').onclick = () => {
-            if (!currentDiagnosisResults || !currentImgData) return;
-            
-            const saveBtn = document.getElementById('save-diagnosis-btn');
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Verificando...';
-            
-            if (window.parent !== window) {
-                try {
-                    const img = new Image();
-                    img.src = currentImgData;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        canvas.width = img.width;
-                        canvas.height = img.height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0);
-                        const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                        const pixels = data.data;
-                        
-                        let brightness = 0, colorfulness = 0, edgePixels = 0;
-                        const sample = Math.floor(pixels.length / 100);
-                        
-                        for (let i = 0; i < pixels.length; i += 4) {
-                            brightness += (pixels[i] + pixels[i+1] + pixels[i+2]) / 3;
-                            const r = pixels[i] / 255, g = pixels[i+1] / 255, b = pixels[i+2] / 255;
-                            colorfulness += Math.max(r, g, b) - Math.min(r, g, b);
-                        }
-                        brightness /= (pixels.length / 4);
-                        colorfulness /= (pixels.length / 4);
-                        
-                        const isTooBright = brightness > 220;
-                        const isTooDark = brightness < 30;
-                        const isLowColor = colorfulness < 0.05;
-                        const isSmall = canvas.width < 200 || canvas.height < 200;
-                        
-                        if (isTooBright) {
-                            alert('La foto es demasiado clara. Asegúrate de que sea una foto microscópica del cuero cabelludo.');
-                            saveBtn.disabled = false;
-                            saveBtn.textContent = 'Guardar en Cliente';
-                            return;
-                        }
-                        if (isTooDark) {
-                            alert('La foto es demasiado oscura. Asegúrate de que sea una foto microscópica del cuero cabelludo.');
-                            saveBtn.disabled = false;
-                            saveBtn.textContent = 'Guardar en Cliente';
-                            return;
-                        }
-                        if (isLowColor) {
-                            alert('La foto parece ser en blanco y negro o muy desaturada. Sube una foto microscópica a color del cuero cabelludo.');
-                            saveBtn.disabled = false;
-                            saveBtn.textContent = 'Guardar en Cliente';
-                            return;
-                        }
-                        if (isSmall) {
-                            alert('La foto es muy pequeña. Sube una foto de mayor resolución (mínimo 200x200 pixeles).');
-                            saveBtn.disabled = false;
-                            saveBtn.textContent = 'Guardar en Cliente';
-                            return;
-                        }
-                        
-                        saveBtn.textContent = 'Guardando...';
-                        window.parent.postMessage({
-                            type: 'diagnosis_photo',
-                            photoData: currentImgData,
-                            results: currentDiagnosisResults
-                        }, '*');
-                        saveBtn.textContent = '✓ Guardado';
-                        showToast('Foto guardada en el cliente');
-                    };
-                    img.onerror = () => {
-                        alert('No se pudo procesar la imagen. Sube una foto válida del microscopio.');
-                        saveBtn.disabled = false;
-                        saveBtn.textContent = 'Guardar en Cliente';
-                    };
-                } catch (e) {
-                    console.warn('Error en validación:', e);
-                    saveBtn.disabled = false;
-                    saveBtn.textContent = 'Guardar en Cliente';
-                }
-            }
-        };
+         
+         document.getElementById('save-diagnosis-btn').onclick = () => {
+             if (!currentDiagnosisResults || !currentImgData) return;
+             
+             const saveBtn = document.getElementById('save-diagnosis-btn');
+             saveBtn.disabled = true;
+             saveBtn.textContent = 'Verificando...';
+             
+             if (window.parent !== window) {
+                 try {
+                     const img = new Image();
+                     img.src = currentImgData;
+                     img.onload = () => {
+                         const canvas = document.createElement('canvas');
+                         canvas.width = img.width;
+                         canvas.height = img.height;
+                         const ctx = canvas.getContext('2d');
+                         ctx.drawImage(img, 0, 0);
+                         const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                         const pixels = data.data;
+                         
+                         let brightness = 0, colorfulness = 0, edgePixels = 0;
+                         const sample = Math.floor(pixels.length / 100);
+                         
+                         for (let i = 0; i < pixels.length; i += 4) {
+                             brightness += (pixels[i] + pixels[i+1] + pixels[i+2]) / 3;
+                             const r = pixels[i] / 255, g = pixels[i+1] / 255, b = pixels[i+2] / 255;
+                             colorfulness += Math.max(r, g, b) - Math.min(r, g, b);
+                         }
+                         brightness /= (pixels.length / 4);
+                         colorfulness /= (pixels.length / 4);
+                         
+                         const isTooBright = brightness > 220;
+                         const isTooDark = brightness < 30;
+                         const isLowColor = colorfulness < 0.05;
+                         const isSmall = canvas.width < 200 || canvas.height < 200;
+                         
+                         if (isTooBright) {
+                             alert('La foto es demasiado clara. Asegúrate de que sea una foto microscópica del cuero cabelludo.');
+                             saveBtn.disabled = false;
+                             saveBtn.textContent = 'Guardar en Cliente';
+                             return;
+                         }
+                         if (isTooDark) {
+                             alert('La foto es demasiado oscura. Asegúrate de que sea una foto microscópica del cuero cabelludo.');
+                             saveBtn.disabled = false;
+                             saveBtn.textContent = 'Guardar en Cliente';
+                             return;
+                         }
+                         if (isLowColor) {
+                             alert('La foto parece ser en blanco y negro o muy desaturada. Sube una foto microscópica a color del cuero cabelludo.');
+                             saveBtn.disabled = false;
+                             saveBtn.textContent = 'Guardar en Cliente';
+                             return;
+                         }
+                         if (isSmall) {
+                             alert('La foto es muy pequeña. Sube una foto de mayor resolución (mínimo 200x200 pixeles).');
+                             saveBtn.disabled = false;
+                             saveBtn.textContent = 'Guardar en Cliente';
+                             return;
+                         }
+                         
+                         saveBtn.textContent = 'Guardando...';
+                         
+                         // Listen for response from parent
+                         const saveListener = (event) => {
+                             if (event.data && event.data.type === 'diagnosis_photo_saved') {
+                                 window.removeEventListener('message', saveListener);
+                                 saveBtn.textContent = '✓ Guardado';
+                                 saveBtn.style.background = '#059669';
+                                 showToast('Foto guardada en el cliente');
+                                 setTimeout(() => {
+                                     saveBtn.disabled = false;
+                                     saveBtn.textContent = 'Guardar en Cliente';
+                                     saveBtn.style.background = '#10b981';
+                                 }, 2000);
+                             }
+                         };
+                         window.addEventListener('message', saveListener);
+                         
+                         window.parent.postMessage({
+                             type: 'diagnosis_photo',
+                             photoData: currentImgData,
+                             results: currentDiagnosisResults
+                         }, '*');
+                     };
+                     img.onerror = () => {
+                         alert('No se pudo procesar la imagen. Sube una foto válida del microscopio.');
+                         saveBtn.disabled = false;
+                         saveBtn.textContent = 'Guardar en Cliente';
+                     };
+                 } catch (e) {
+                     console.warn('Error en validación:', e);
+                     saveBtn.disabled = false;
+                     saveBtn.textContent = 'Guardar en Cliente';
+                 }
+             }
+         };
         
         function showToast(msg) {
             const toast = document.createElement('div');

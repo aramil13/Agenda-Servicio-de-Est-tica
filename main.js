@@ -2308,8 +2308,16 @@ window.addEventListener('message', async (event) => {
                              });
                             
                             console.log('Diagnosis photo saved:', publicUrl);
-                            showToast('✓ Foto de diagnóstico guardada');
-                        }
+                             showToast('✓ Foto de diagnóstico guardada');
+                             
+                             // Notify diagnosis iframe that photo was saved
+                             const diagnosisFrame = document.querySelector('iframe[src*="diagnosis"]');
+                             if (diagnosisFrame) {
+                                 diagnosisFrame.contentWindow.postMessage({
+                                     type: 'diagnosis_photo_saved'
+                                 }, '*');
+                             }
+                         }
                     } catch (e) {
                         console.error('Error saving diagnosis photo:', e);
                     }
