@@ -1,63 +1,207 @@
-﻿// Base de datos de productos Maria Nila
+﻿// Base de datos de productos Maria Nila - Cat�logo Completo
 const MARIA_NILA_PRODUCTS = {
-    // Champús
+    // ==================== HEAD & HAIR HEAL (Cuero cabelludo sensible) ====================
     headHairHealShampoo: { name: "Head & Hair Heal Shampoo", desc: "Calma cuero cabelludo sensible con aloe vera y piroctona olamina.", img: "https://marianila.com/cdn/shop/files/13650-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-shampoo-350-ml", category: "scalp" },
-    trueSoftShampoo: { name: "True Soft Shampoo", desc: "Hidratación profunda con aceite de argán para cabello seco.", img: "https://marianila.com/cdn/shop/files/3630-packshot.jpg", url: "https://marianila.com/products/true-soft-shampoo-350-ml", category: "dry" },
-    pureVolumeShampoo: { name: "Pure Volume Shampoo", desc: "Voluminizador con provitamina B5 para cabello fino.", img: "https://marianila.com/cdn/shop/files/3610-packshot.jpg", url: "https://marianila.com/products/pure-volume-shampoo-350-ml", category: "fine" },
-    luminousColourShampoo: { name: "Luminous Colour Shampoo", desc: "Preserva color con extracto de Granada.", img: "https://marianila.com/cdn/shop/files/3625-packshot.jpg", url: "https://marianila.com/products/luminous-colour-shampoo-350-ml", category: "colored" },
-    purifyingCleanseShampoo: { name: "Purifying Cleanse Shampoo", desc: "Champú purificante para cuero cabelludo graso.", img: "https://marianila.com/cdn/shop/files/3615-packshot.jpg", url: "https://marianila.com/products/purifying-cleanse-shampoo-350-ml", category: "oily" },
-    structureRepairShampoo: { name: "Structure Repair Shampoo", desc: "Repara cabello dañado con keratina.", img: "https://marianila.com/cdn/shop/files/3600-packshot.jpg", url: "https://marianila.com/products/structure-repair-shampoo-350-ml", category: "damaged" },
-    // Acondicionadores
     headHairHealConditioner: { name: "Head & Hair Heal Conditioner", desc: "Acondicionador calmante para el cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/13651-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-conditioner-300-ml", category: "scalp" },
-    trueSoftConditioner: { name: "True Soft Conditioner", desc: "Acondicionador hidratante con aceite de argán.", img: "https://marianila.com/cdn/shop/files/3631-packshot.jpg", url: "https://marianila.com/products/true-soft-conditioner-300-ml", category: "dry" },
+    headHairHealMasque: { name: "Head & Hair Heal Masque", desc: "Mascarilla calmante con aloe vera para cuero cabelludo sensible.", img: "https://marianila.com/cdn/shop/files/13652-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-masque-250-ml", category: "scalp" },
+    headHairHealSoothingSerum: { name: "Head & Hair Heal Serum", desc: "S�rum calmante para el cuero cabelludo con aloe vera.", img: "https://marianila.com/cdn/shop/files/13653-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-soothing-serum-150-ml", category: "scalp" },
+    headHairHealDuo: { name: "Head & Hair Heal Duo", desc: "Pack ahorro champ� + acondicionador para cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/13654-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-care-duo", category: "scalp" },
+
+    // ==================== TRUE SOFT (Cabello seco) ====================
+    trueSoftShampoo: { name: "True Soft Shampoo", desc: "Hidrataci�n profunda con aceite de arg�n para cabello seco.", img: "https://marianila.com/cdn/shop/files/3630-packshot.jpg", url: "https://marianila.com/products/true-soft-shampoo-350-ml", category: "dry" },
+    trueSoftConditioner: { name: "True Soft Conditioner", desc: "Acondicionador hidratante con aceite de arg�n.", img: "https://marianila.com/cdn/shop/files/3631-packshot.jpg", url: "https://marianila.com/products/true-soft-conditioner-300-ml", category: "dry" },
+    trueSoftMasque: { name: "True Soft Masque", desc: "Mascarilla nutritiva para cabello seco con aceite de arg�n.", img: "https://marianila.com/cdn/shop/files/3632-packshot.jpg", url: "https://marianila.com/products/true-soft-masque-250-ml", category: "dry" },
+    trueSoftArganOil: { name: "True Soft Argan Oil", desc: "Aceite de arg�n para hidrataci�n profunda.", img: "https://marianila.com/cdn/shop/files/3637-packshot.jpg", url: "https://marianila.com/products/true-soft-argan-oil-100-ml", category: "dry" },
+    trueSoftBoosterMasque: { name: "True Soft Booster Masque", desc: "Mascarilla intensiva para cabello muy seco.", img: "https://marianila.com/cdn/shop/files/3633-packshot.jpg", url: "https://marianila.com/products/true-soft-booster-masque-250-ml", category: "dry" },
+    trueSoftDuo: { name: "True Soft Care Duo", desc: "Pack ahorro champ� + acondicionador True Soft.", img: "https://marianila.com/cdn/shop/files/3634-packshot.jpg", url: "https://marianila.com/products/true-soft-care-duo", category: "dry" },
+
+    // ==================== PURE VOLUME (Cabello fino) ====================
+    pureVolumeShampoo: { name: "Pure Volume Shampoo", desc: "Voluminizador con provitamina B5 para cabello fino.", img: "https://marianila.com/cdn/shop/files/3610-packshot.jpg", url: "https://marianila.com/products/pure-volume-shampoo-350-ml", category: "fine" },
     pureVolumeConditioner: { name: "Pure Volume Conditioner", desc: "Acondicionador voluminizador ligero.", img: "https://marianila.com/cdn/shop/files/3611-packshot.jpg", url: "https://marianila.com/products/pure-volume-conditioner-300-ml", category: "fine" },
+    pureVolumeMasque: { name: "Pure Volume Masque", desc: "Mascarilla voluminizadora con provitamina B5.", img: "https://marianila.com/cdn/shop/files/3612-packshot.jpg", url: "https://marianila.com/products/pure-volume-masque-250-ml", category: "fine" },
+    pureVolumeMousse: { name: "Pure Volume Mousse", desc: "Espuma nutritiva y voluminizadora para cabello fino.", img: "https://marianila.com/cdn/shop/files/3613-packshot.jpg", url: "https://marianila.com/products/pure-volume-mousse-300-ml", category: "fine" },
+
+    // ==================== LUMINOUS COLOUR (Cabello te�ido) ====================
+    luminousColourShampoo: { name: "Luminous Colour Shampoo", desc: "Preserva color con extracto de Granada.", img: "https://marianila.com/cdn/shop/files/3625-packshot.jpg", url: "https://marianila.com/products/luminous-colour-shampoo-350-ml", category: "colored" },
     luminousColourConditioner: { name: "Luminous Colour Conditioner", desc: "Acondicionador preservador de color.", img: "https://marianila.com/cdn/shop/files/3626-packshot.jpg", url: "https://marianila.com/products/luminous-colour-conditioner-300-ml", category: "colored" },
-    // Tratamientos
-    bondBuilder: { name: "Bond Builder", desc: "Reparador de enlaces capilares intensivo.", img: "https://marianila.com/cdn/shop/files/mnproductpage1200x1500px1.jpg", url: "https://marianila.com/products/bond-builder", category: "damaged" },
-    trueSoftArganOil: { name: "True Soft Argan Oil", desc: "Aceite de argán para hidratación.", img: "https://marianila.com/cdn/shop/files/IMG_c_s_3637_soft_argan_oil_100_ml.jpg", url: "https://marianila.com/products/true-soft-argan-oil-100-ml", category: "dry" }
+    luminousColourMasque: { name: "Luminous Colour Masque", desc: "Mascarilla protectora del color con extracto de granada.", img: "https://marianila.com/cdn/shop/files/3627-packshot.jpg", url: "https://marianila.com/products/luminous-colour-masque-250-ml", category: "colored" },
+
+    // ==================== PURIFYING CLEANSE (Cuero cabelludo graso) ====================
+    purifyingCleanseShampoo: { name: "Purifying Cleanse Shampoo", desc: "Champ� purificante para cuero cabelludo graso.", img: "https://marianila.com/cdn/shop/files/3615-packshot.jpg", url: "https://marianila.com/products/purifying-cleanse-shampoo-350-ml", category: "oily" },
+    purifyingCleanseExfoliatingSerum: { name: "Purifying Cleansing Serum", desc: "S�rum exfoliante detox para el cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/3616-packshot.jpg", url: "https://marianila.com/products/purifying-cleanse-exfoliating-serum-150-ml", category: "oily" },
+
+    // ==================== STRUCTURE REPAIR (Cabello da�ado) ====================
+    structureRepairShampoo: { name: "Structure Repair Shampoo", desc: "Repara cabello da�ado con keratina.", img: "https://marianila.com/cdn/shop/files/3600-packshot.jpg", url: "https://marianila.com/products/structure-repair-shampoo-350-ml", category: "damaged" },
+    structureRepairConditioner: { name: "Structure Repair Conditioner", desc: "Acondicionador reparador con keratina.", img: "https://marianila.com/cdn/shop/files/3601-packshot.jpg", url: "https://marianila.com/products/structure-repair-conditioner-300-ml", category: "damaged" },
+    structureRepairMasque: { name: "Structure Repair Masque", desc: "Mascarilla reparadora intensiva con keratina.", img: "https://marianila.com/cdn/shop/files/3602-packshot.jpg", url: "https://marianila.com/products/structure-repair-masque-250-ml", category: "damaged" },
+    structureRepairLeaveInCream: { name: "Structure Repair Leave In Cream", desc: "Crema sin enjuague reparadora para cabello da�ado.", img: "https://marianila.com/cdn/shop/files/3603-packshot.jpg", url: "https://marianila.com/products/structure-repair-leave-in-cream-100-ml", category: "damaged" },
+    bondBuilder: { name: "Bond Builder", desc: "Reparador de enlaces capilares intensivo.", img: "https://marianila.com/cdn/shop/files/3604-packshot.jpg", url: "https://marianila.com/products/bond-builder", category: "damaged" },
+
+    // ==================== SHEER SILVER (Cabello rubio/canoso) ====================
+    sheerSilverShampoo: { name: "Sheer Silver Shampoo", desc: "Pigmentos violeta que neutralizan tonos dorados en rubios.", img: "https://marianila.com/cdn/shop/files/3640-packshot.jpg", url: "https://marianila.com/products/sheer-silver-shampoo-350-ml", category: "blonde" },
+    sheerSilverConditioner: { name: "Sheer Silver Conditioner", desc: "Acondicionador con pigmentos violeta para rubios.", img: "https://marianila.com/cdn/shop/files/3641-packshot.jpg", url: "https://marianila.com/products/sheer-silver-conditioner-300-ml", category: "blonde" },
+    sheerSilverMasque: { name: "Sheer Silver Masque", desc: "Mascarilla con pigmentos violeta para neutralizar tonos.", img: "https://marianila.com/cdn/shop/files/3642-packshot.jpg", url: "https://marianila.com/products/sheer-silver-masque-250-ml", category: "blonde" },
+    sheerSilverBoosterMasque: { name: "Sheer Silver Booster Masque", desc: "Mascarilla intensiva con pigmentos violeta.", img: "https://marianila.com/cdn/shop/files/3643-packshot.jpg", url: "https://marianila.com/products/sheer-silver-booster-masque-250-ml", category: "blonde" },
+    sheerSilverDuo: { name: "Sheer Silver Duo", desc: "Pack ahorro champ� + acondicionador Sheer Silver.", img: "https://marianila.com/cdn/shop/files/3644-packshot.jpg", url: "https://marianila.com/products/sheer-silver-shampoo-conditioner-duo", category: "blonde" },
+
+    // ==================== COLOUR REFRESH (M�scaras de color) ====================
+    colourRefreshAutumnRed: { name: "Colour Refresh Autumn Red", desc: "M�scara de color rojo intenso con aceite de arg�n.", img: "https://marianila.com/cdn/shop/files/3650-packshot.jpg", url: "https://marianila.com/products/color-refresh-autumn-red-100-ml", category: "color-mask" },
+    colourRefreshCacao: { name: "Colour Refresh Cacao", desc: "M�scara de color marr�n oscuro con aceite de arg�n.", img: "https://marianila.com/cdn/shop/files/3651-packshot.jpg", url: "https://marianila.com/products/color-refresh-cacao-100-ml", category: "color-mask" },
+    colourRefreshCacaoIntense: { name: "Colour Refresh Cacao Intense", desc: "M�scara de color marr�n muy oscuro.", img: "https://marianila.com/cdn/shop/files/3652-packshot.jpg", url: "https://marianila.com/products/color-refresh-cacao-intense-100-ml", category: "color-mask" },
+    colourRefreshPearlSilver: { name: "Colour Refresh Pearl Silver", desc: "M�scara de color plata con pigmentos violeta.", img: "https://marianila.com/cdn/shop/files/3653-packshot.jpg", url: "https://marianila.com/products/color-refresh-pearl-silver-100-ml", category: "color-mask" },
+    colourRefreshBrightCopper: { name: "Colour Refresh Bright Copper", desc: "M�scara de color cobre brillante.", img: "https://marianila.com/cdn/shop/files/3654-packshot.jpg", url: "https://marianila.com/products/colour-refresh-bright-red-300-ml", category: "color-mask" },
+    colourRefreshBrightRed: { name: "Colour Refresh Bright Red", desc: "M�scara de color rojo brillante intenso.", img: "https://marianila.com/cdn/shop/files/3655-packshot.jpg", url: "https://marianila.com/products/color-refresh-bright-red-100-ml", category: "color-mask" },
+    colourRefreshCoolCream: { name: "Colour Refresh Cool Cream", desc: "M�scara de color beige fr�o para rubios.", img: "https://marianila.com/cdn/shop/files/3656-packshot.jpg", url: "https://marianila.com/products/colour-refresh-cool-cream-300-ml", category: "color-mask" },
+    colourRefreshPinkPeach: { name: "Colour Refresh Pink Peach", desc: "M�scara de color rosa melocot�n.", img: "https://marianila.com/cdn/shop/files/3657-packshot.jpg", url: "https://marianila.com/products/color-refresh-pink-peach-100-ml", category: "color-mask" },
+    colourRefreshLavender: { name: "Colour Refresh Lavender", desc: "M�scara de color lavanda suave.", img: "https://marianila.com/cdn/shop/files/3658-packshot.jpg", url: "https://marianila.com/products/color-refresh-lavender-100-ml", category: "color-mask" },
+    colourRefreshBeigeBlonde: { name: "Colour Refresh Beige Blonde", desc: "M�scara de color rubio beige.", img: "https://marianila.com/cdn/shop/files/3659-packshot.jpg", url: "https://marianila.com/products/color-refresh-beige-blonde-100-ml", category: "color-mask" },
+    colourRefreshCaramelBrown: { name: "Colour Refresh Caramel Brown", desc: "M�scara de color marr�n caramelo.", img: "https://marianila.com/cdn/shop/files/3660-packshot.jpg", url: "https://marianila.com/products/color-refresh-caramel-brown-100-ml", category: "color-mask" },
+    colourRefreshPearlRose: { name: "Colour Refresh Pearl Rose", desc: "M�scara de color rosa perla.", img: "https://marianila.com/cdn/shop/files/3661-packshot.jpg", url: "https://marianila.com/products/color-refresh-pearl-rose-100-ml", category: "color-mask" },
+    colourRefreshWhiteMix: { name: "Colour Refresh White Mix", desc: "Base blanca para diluir y crear tonos pastel.", img: "https://marianila.com/cdn/shop/files/3662-packshot.jpg", url: "https://marianila.com/products/color-refresh-white-mix-100-ml", category: "color-mask" },
+    colourRefreshHoneyBlonde: { name: "Colour Refresh Honey Blonde", desc: "M�scara de color rubio miel.", img: "https://marianila.com/cdn/shop/files/3663-packshot.jpg", url: "https://marianila.com/products/color-refresh-honey-blonde-100-ml", category: "color-mask" },
+    colourRefreshBlack: { name: "Colour Refresh Black", desc: "M�scara de color negro intenso.", img: "https://marianila.com/cdn/shop/files/3664-packshot.jpg", url: "https://marianila.com/products/colour-refresh-black-100-ml", category: "color-mask" },
+    colourRefreshVividViolet: { name: "Colour Refresh Vivid Violet", desc: "M�scara de color violeta vivo.", img: "https://marianila.com/cdn/shop/files/3665-packshot.jpg", url: "https://marianila.com/products/color-refresh-vivid-violet-100-ml", category: "color-mask" },
+    colourRefreshBrightCopper: { name: "Colour Refresh Bright Copper", desc: "M�scara de color cobre vivo.", img: "https://marianila.com/cdn/shop/files/3666-packshot.jpg", url: "https://marianila.com/products/colour-refresh-bright-copper-300-ml", category: "color-mask" },
+
+    // ==================== COILS & CURLS (Cabello rizado) ====================
+    coilsCurlsCoWash: { name: "Coils & Curls Co-Wash", desc: "Limpieza suave sin sulfatos para rizos.", img: "https://marianila.com/cdn/shop/files/3670-packshot.jpg", url: "https://marianila.com/products/coils-curls-co-wash", category: "curly" },
+    coilsCurlsOilInCream: { name: "Coils & Curls Oil In Cream", desc: "Crema leave-in definidora de rizos con manteca de karit�.", img: "https://marianila.com/cdn/shop/files/3671-packshot.jpg", url: "https://marianila.com/products/coils-curls-oil-in-cream", category: "curly" },
+    coilsCurlsFinishingTreatmentMasque: { name: "Coils & Curls Finishing Masque", desc: "Mascarilla nutritiva para definir y suavizar rizos.", img: "https://marianila.com/cdn/shop/files/3672-packshot.jpg", url: "https://marianila.com/products/coils-curls-finishing-treatment-masque", category: "curly" },
+    coilsCurlsWeightlessCurlDefiner: { name: "Weightless Curl Definer", desc: "Gel definidor de rizos sin peso con aloe vera.", img: "https://marianila.com/cdn/shop/files/3673-packshot.jpg", url: "https://marianila.com/products/coils-curls-weightless-curl-definer", category: "curly" },
+    coilsCurlsLusciousCurlDefiner: { name: "Luscious Curl Definer", desc: "Gel rico que define rizos con medio agarre.", img: "https://marianila.com/cdn/shop/files/3674-packshot.jpg", url: "https://marianila.com/products/coils-curls-luscious-curl-definer", category: "curly" },
+
+    // ==================== STYLING (Productos para peinar) ====================
+    oceanSpray: { name: "Ocean Spray", desc: "Spray de agua salada con extra agarre para beach waves.", img: "https://marianila.com/cdn/shop/files/3680-packshot.jpg", url: "https://marianila.com/products/ocean-spray-150-ml", category: "styling" },
+    saltyMist: { name: "Salty Mist", desc: "Bruma salina ligera para textura natural.", img: "https://marianila.com/cdn/shop/files/3681-packshot.jpg", url: "https://marianila.com/products/salty-mist-150-ml", category: "styling" },
+    stylingMousse: { name: "Styling Mousse", desc: "Espuma de peinado con agarre flexible.", img: "https://marianila.com/cdn/shop/files/3682-packshot.jpg", url: "https://marianila.com/products/styling-mousse-300-ml", category: "styling" },
+    stylingSpray: { name: "Styling Spray", desc: "Spray de peinado con agarre ligero.", img: "https://marianila.com/cdn/shop/files/3683-packshot.jpg", url: "https://marianila.com/products/styling-spray-300-ml", category: "styling" },
+    finishingSpray: { name: "Finishing Spray", desc: "Laca de fijaci�n fuerte y brillo.", img: "https://marianila.com/cdn/shop/files/3684-packshot.jpg", url: "https://marianila.com/products/finishing-spray-300-ml", category: "styling" },
+    shapingHeatSpray: { name: "Shaping Heat Spray", desc: "Protector t�rmico para plancha y secador.", img: "https://marianila.com/cdn/shop/files/3685-packshot.jpg", url: "https://marianila.com/products/shaping-heat-spray-150-ml", category: "styling" },
+    creamHeatSpray: { name: "Cream Heat Spray", desc: "Protector t�rmico en crema para peinado.", img: "https://marianila.com/cdn/shop/files/3686-packshot.jpg", url: "https://marianila.com/products/cream-heat-spray-150-ml", category: "styling" },
+    quickDryHeatSpray: { name: "Quick Dry Heat Spray", desc: "Protector t�rmico de secado r�pido.", img: "https://marianila.com/cdn/shop/files/3687-packshot.jpg", url: "https://marianila.com/products/quick-dry-heat-spray-150-ml", category: "styling" },
+    glossCoat: { name: "Gloss Coat", desc: "Spray alisador termoactivado para brillo.", img: "https://marianila.com/cdn/shop/files/3688-packshot.jpg", url: "https://marianila.com/products/gloss-coat-200-ml", category: "styling" },
+    stylingCream: { name: "Styling Cream", desc: "Crema moldeadora flexible para definici�n.", img: "https://marianila.com/cdn/shop/files/3689-packshot.jpg", url: "https://marianila.com/products/styling-cream-100-ml", category: "styling" },
+    volumeSpray: { name: "Volume Spray", desc: "Spray voluminizador ligero para ra�z.", img: "https://marianila.com/cdn/shop/files/3690-packshot.jpg", url: "https://marianila.com/products/volume-spray-100-ml", category: "styling" },
+    powerPowder: { name: "Power Powder", desc: "Polvo texturizador para volumen extra en ra�z.", img: "https://marianila.com/cdn/shop/files/3691-packshot.jpg", url: "https://marianila.com/products/power-powder-20-g", category: "styling" },
+    cleansingPowder: { name: "Cleansing Powder", desc: "Polvo limpiador para peinar y texturizar.", img: "https://marianila.com/cdn/shop/files/3692-packshot.jpg", url: "https://marianila.com/products/cleansing-powder-60-g", category: "styling" },
+    sprayWax: { name: "Spray Wax", desc: "Cera en aerosol para textura y definici�n.", img: "https://marianila.com/cdn/shop/files/3693-packshot.jpg", url: "https://marianila.com/products/spray-wax-200-ml", category: "styling" },
+    stylingPaste: { name: "Styling Paste", desc: "Pasta moldeadora flexible con mate.", img: "https://marianila.com/cdn/shop/files/3694-packshot.jpg", url: "https://marianila.com/products/styling-paste-100-ml", category: "styling" },
+    extremeWax: { name: "Extreme Wax", desc: "Cera de fijaci�n extrema y brillo medio.", img: "https://marianila.com/cdn/shop/files/3695-packshot.jpg", url: "https://marianila.com/products/extreme-wax-100-ml", category: "styling" },
+    fixatingWax: { name: "Fixating Wax", desc: "Cera fijadora de acabado mate.", img: "https://marianila.com/cdn/shop/files/3696-packshot.jpg", url: "https://marianila.com/products/fixating-wax-100-ml", category: "styling" },
+    veganSculptingWax: { name: "Vegan Sculpting Wax", desc: "Cera moldeadora vegana para estilismo.", img: "https://marianila.com/cdn/shop/files/3697-packshot.jpg", url: "https://marianila.com/products/vegan-sculpting-wax-100-ml", category: "styling" },
+    dryShampoo: { name: "Dry Shampoo", desc: "Champ� seco refrescante para lavados entre lavados.", img: "https://marianila.com/cdn/shop/files/3698-packshot.jpg", url: "https://marianila.com/products/dry-shampoo-250-ml", category: "styling" },
+    soothingDryShampoo: { name: "Soothing Dry Shampoo", desc: "Champ� seco calmante para cuero cabelludo sensible.", img: "https://marianila.com/cdn/shop/files/3699-packshot.jpg", url: "https://marianila.com/products/soothing-dry-shampoo-250-ml", category: "styling" },
+
+    // ==================== OTROS ====================
+    healingCicaOil: { name: "Healing Cica Oil", desc: "Aceite reparador con Cica para barrera cut�nea.", img: "https://marianila.com/cdn/shop/files/3700-packshot.jpg", url: "https://marianila.com/products/healing-cica-oil-100-ml", category: "treatment" },
+    floralDriftHairMist: { name: "Floral Drift Hair Mist", desc: "Bruma capilar floral con fragancia suave.", img: "https://marianila.com/cdn/shop/files/3701-packshot.jpg", url: "https://marianila.com/products/floral-drift-fine-fragrance-hair-mist-100-ml", category: "treatment" }
 };
 
-// Tratamiento Premium Olaplex del Salón
+// Tratamiento Premium Olaplex del Sal�n
 const OLAPLEX_TREATMENTS = {
     treatmentPremium: { 
         name: "Tratamiento Premium Olaplex", 
-        desc: "Régenera puentes de disulfuro. Protocolo: 1) Broad Spectrum Chelating (3 min) - elimina minerales. 2) Olaplex N°1 (5 min) - recupera enlaces. 3) Olaplex N°2 (3 min) - sella enlaces. 4) Champú N°4 (1 min). 5) Mascarilla N°5 (3 min - encapsulado sin oxígeno).",
+        desc: "R�genera puentes de disulfuro. Protocolo: 1) Broad Spectrum Chelating (3 min) - elimina minerales. 2) Olaplex N�1 (5 min) - recupera enlaces. 3) Olaplex N�2 (3 min) - sella enlaces. 4) Champ� N�4 (1 min). 5) Mascarilla N�5 (3 min - encapsulado sin ox�geno).",
     },
     treatmentExpress: { 
         name: "Tratamiento Olaplex Express", 
-        desc: "Tratamiento 3 veces más fuerte, 3 veces más suave, 3 veces más elástico en 3 min. Paso 1: Prechampu. Paso 2: Olaplex N°3 Plus aplicado con las manos de raíces a puntas.",
+        desc: "Tratamiento 3 veces m�s fuerte, 3 veces m�s suave, 3 veces m�s el�stico en 3 min. Paso 1: Prechampu. Paso 2: Olaplex N�3 Plus aplicado con las manos de ra�ces a puntas.",
     }
 };
 
 function getMariaNilaRecommendations(diagnosis) {
     const recommendations = [];
-    const { density, thickness, hydration, sebum, isColored } = diagnosis;
-    
-    // Lógica de recomendaciones según resultados
+    const { density, thickness, hydration, sebum, isColored, isBlonde, isCurly, isDamaged } = diagnosis;
+
+    // Cabello seco (hidrataci�n baja)
     if (hydration < 50) {
         recommendations.push(MARIA_NILA_PRODUCTS.trueSoftShampoo);
         recommendations.push(MARIA_NILA_PRODUCTS.trueSoftConditioner);
+        recommendations.push(MARIA_NILA_PRODUCTS.trueSoftMasque);
+        recommendations.push(MARIA_NILA_PRODUCTS.trueSoftArganOil);
     }
+
+    // Cabello fino (densidad baja)
     if (density < 150) {
         recommendations.push(MARIA_NILA_PRODUCTS.pureVolumeShampoo);
         recommendations.push(MARIA_NILA_PRODUCTS.pureVolumeConditioner);
+        recommendations.push(MARIA_NILA_PRODUCTS.pureVolumeMousse);
+        recommendations.push(MARIA_NILA_PRODUCTS.volumeSpray);
     }
+
+    // Cuero cabelludo graso
     if (sebum > 65 || sebum === 'Alto') {
         recommendations.push(MARIA_NILA_PRODUCTS.purifyingCleanseShampoo);
+        recommendations.push(MARIA_NILA_PRODUCTS.purifyingCleanseExfoliatingSerum);
     }
+
+    // Cabello te�ido
     if (isColored) {
         recommendations.push(MARIA_NILA_PRODUCTS.luminousColourShampoo);
         recommendations.push(MARIA_NILA_PRODUCTS.luminousColourConditioner);
+        recommendations.push(MARIA_NILA_PRODUCTS.luminousColourMasque);
+        // M�scaras de color seg�n tono
+        recommendations.push(MARIA_NILA_PRODUCTS.colourRefreshCacao);
+        recommendations.push(MARIA_NILA_PRODUCTS.colourRefreshHoneyBlonde);
     }
-    if (thickness < 65) {
+
+    // Rubios / Canas
+    if (isBlonde) {
+        recommendations.push(MARIA_NILA_PRODUCTS.sheerSilverShampoo);
+        recommendations.push(MARIA_NILA_PRODUCTS.sheerSilverConditioner);
+        recommendations.push(MARIA_NILA_PRODUCTS.sheerSilverMasque);
+        recommendations.push(MARIA_NILA_PRODUCTS.colourRefreshPearlSilver);
+    }
+
+    // Cabello rizado
+    if (isCurly) {
+        recommendations.push(MARIA_NILA_PRODUCTS.coilsCurlsCoWash);
+        recommendations.push(MARIA_NILA_PRODUCTS.coilsCurlsOilInCream);
+        recommendations.push(MARIA_NILA_PRODUCTS.coilsCurlsFinishingTreatmentMasque);
+        recommendations.push(MARIA_NILA_PRODUCTS.coilsCurlsWeightlessCurlDefiner);
+    }
+
+    // Cabello da�ado
+    if (isDamaged || thickness < 65) {
+        recommendations.push(MARIA_NILA_PRODUCTS.structureRepairShampoo);
+        recommendations.push(MARIA_NILA_PRODUCTS.structureRepairConditioner);
+        recommendations.push(MARIA_NILA_PRODUCTS.structureRepairMasque);
         recommendations.push(MARIA_NILA_PRODUCTS.bondBuilder);
     }
-    // Default si no hay recomendaciones específicas
-    if (recommendations.length === 0) {
+
+    // Cuero cabelludo sensible
+    if (hydration < 40 || sebum < 30) {
         recommendations.push(MARIA_NILA_PRODUCTS.headHairHealShampoo);
         recommendations.push(MARIA_NILA_PRODUCTS.headHairHealConditioner);
+        recommendations.push(MARIA_NILA_PRODUCTS.headHairHealSoothingSerum);
     }
-    return recommendations.slice(0, 4);
+
+    // Protectores t�rmicos (siempre �tiles)
+    recommendations.push(MARIA_NILA_PRODUCTS.shapingHeatSpray);
+    recommendations.push(MARIA_NILA_PRODUCTS.creamHeatSpray);
+
+    // Styling para textura
+    recommendations.push(MARIA_NILA_PRODUCTS.oceanSpray);
+    recommendations.push(MARIA_NILA_PRODUCTS.stylingMousse);
+
+    // Eliminar duplicados por nombre
+    const unique = [];
+    const seen = new Set();
+    for (const p of recommendations) {
+        if (p && !seen.has(p.name)) {
+            seen.add(p.name);
+            unique.push(p);
+        }
+    }
+
+    // Default si no hay recomendaciones espec�ficas
+    if (unique.length === 0) {
+        unique.push(MARIA_NILA_PRODUCTS.headHairHealShampoo);
+        unique.push(MARIA_NILA_PRODUCTS.headHairHealConditioner);
+        unique.push(MARIA_NILA_PRODUCTS.trueSoftArganOil);
+    }
+
+    return unique.slice(0, 8);
 }
 
 function getOlaplexRecommendations(diagnosis) {
@@ -86,7 +230,7 @@ function displayDiagnosisProducts(products) {
         html += '<img src="' + p.img + '" alt="" style="width:60px;height:60px;object-fit:cover;border-radius:8px;background:white;" onerror="this.style.display=\'none\'">';
         html += '<div style="flex:1;"><strong style="color:#fff;">' + p.name + '</strong>';
         html += '<p style="font-size:0.75rem;color:rgba(255,255,255,0.6);">' + p.desc + '</p>';
-        html += '<a href="' + p.url + '" target="_blank" style="color:#a78bfa;">Ver producto →</a></div></div>';
+        html += '<a href="' + p.url + '" target="_blank" style="color:#a78bfa;">Ver producto ?</a></div></div>';
     }
     container.innerHTML = html || '<p style="color:#888;">No hay recomendaciones</p>';
 }
@@ -99,7 +243,7 @@ function displayDiagnosisTreatments(treatments) {
     for (const t of treatments) {
         if (!t) continue;
         html += '<div style="display:flex;gap:1rem;padding:1rem;background:rgba(255,255,255,0.05);border-radius:12px;border-left:3px solid #10b981;">';
-        html += '<div style="font-size:1.5rem;">💊</div>';
+        html += '<div style="font-size:1.5rem;">??</div>';
         html += '<div style="flex:1;"><strong style="color:#fff;">' + t.name + '</strong>';
         html += '<p style="font-size:0.75rem;color:rgba(255,255,255,0.6);">' + (t.desc || '') + '</p></div></div>';
     }
@@ -107,11 +251,11 @@ function displayDiagnosisTreatments(treatments) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('--- Nymara App: Diagnóstico Capilar Integrado ---');
+    console.log('--- Nymara App: Diagn�stico Capilar Integrado ---');
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        SUPABASE CLIENT
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     const SUPABASE_URL = 'https://wqbrappajbrzanpymwtx.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_rxdHNZAUSQw-C8-BvzX4rA_9qH6GeL9';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -120,9 +264,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        STATE
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     const State = {
         clients: [],
         services: [],
@@ -147,9 +291,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        DOM REFERENCES
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     const appContent = document.getElementById('app-content');
     const navItems = document.querySelectorAll('.nav-item');
     const modalOverlay = document.getElementById('modal-overlay');
@@ -170,9 +314,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        HELPERS
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     const USER_COLORS = [
         '#e74c3c', '#2ecc71', '#3498db', '#9b59b6', '#f39c12',
         '#1abc9c', '#e67e22', '#e91e63', '#00bcd4', '#8bc34a',
@@ -213,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${y}-${m}-${d}`;
     }
 
-    const WEEKDAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    const WEEKDAY_NAMES = ['Lun', 'Mar', 'Mi�', 'Jue', 'Vie', 'S�b', 'Dom'];
     const MONTH_NAMES = [
         'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
         'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
@@ -241,9 +385,9 @@ document.addEventListener('DOMContentLoaded', () => {
         window.open(waUrl, '_blank');
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        TOAST NOTIFICATIONS
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function showToast(message, type = 'success') {
         // Remove existing toast
         const existing = document.querySelector('.toast-notification');
@@ -252,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const toast = document.createElement('div');
         toast.className = `toast-notification toast-${type}`;
         toast.innerHTML = `
-            <span class="toast-icon">${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</span>
+            <span class="toast-icon">${type === 'success' ? '?' : type === 'error' ? '?' : '?'}</span>
             <span>${message}</span>
         `;
         document.body.appendChild(toast);
@@ -266,9 +410,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        SUPABASE DATA OPERATIONS
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
 
     /** Loads all data from Supabase into our local State cache */
     async function loadAllData() {
@@ -294,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 clientId: a.client_id,
                 serviceId: a.service_id,
                 date: a.date,
-                time: a.time.substring(0, 5), // "HH:MM:SS" → "HH:MM"
+                time: a.time.substring(0, 5), // "HH:MM:SS" ? "HH:MM"
                 notes: a.notes || '',
                 whatsappSent: a.whatsapp_sent || false,
                 userEmail: a.user_email || '',
@@ -311,7 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
             State.isLoading = false;
             renderRoute();
             
-            // Verificación post-carga: ¿Hay recordatorios para los próximos 3 días?
+            // Verificaci�n post-carga: �Hay recordatorios para los pr�ximos 3 días?
             if (State.session) {
                 const today = new Date();
                 const futureLimit = new Date(today);
@@ -328,15 +472,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 }).length;
                 
                 if (count > 0) {
-                    showToast(`Tienes ${count} recordatorio${count !== 1 ? 's' : ''} WhatsApp pendiente${count !== 1 ? 's' : ''} para los próximos días.`, 'info');
+                    showToast(`Tienes ${count} recordatorio${count !== 1 ? 's' : ''} WhatsApp pendiente${count !== 1 ? 's' : ''} para los pr�ximos días.`, 'info');
                 }
             }
         }
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        AUTHENTICATION LOGIC
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
 
     // Check existing session
     async function checkSession() {
@@ -424,7 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (error) throw error;
                 // Supabase automatically updates the session via onAuthStateChange listener
             } catch (err) {
-                authError.textContent = err.message || 'Error en la autenticación';
+                authError.textContent = err.message || 'Error en la autenticaci�n';
                 authError.style.display = 'block';
             } finally {
                 authSubmitText.style.opacity = '1';
@@ -439,7 +583,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Logout button
     if (btnLogout) {
         btnLogout.addEventListener('click', async () => {
-            if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+            if (confirm('�Est�s seguro de que quieres cerrar sesi�n?')) {
                 await supabase.auth.signOut();
                 // State resetting data if necessary
                 State.clients = [];
@@ -453,9 +597,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function addClient(data) {
         const { error } = await supabase.from('clients').insert([data]);
-        if (error) { showToast('Error al añadir cliente: ' + error.message, 'error'); return false; }
+        if (error) { showToast('Error al Añadir cliente: ' + error.message, 'error'); return false; }
         State.clients.push(data);
-        showToast('Cliente añadido correctamente');
+        showToast('Cliente a�adido correctamente');
         return true;
     }
 
@@ -464,6 +608,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const fileExt = file.name.split('.').pop();
         const photoId = generateId();
         const fileName = `${clientId}/${photoId}.${fileExt}`;
+        
+        // Calcular hash para evitar duplicados
+        const buffer = await file.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        const photoHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        
+        // Verificar si ya existe en BD por hash
+        const { data: existing, error: checkError } = await supabase
+            .from('client_photos')
+            .select('id')
+            .eq('client_id', clientId)
+            .eq('photo_hash', photoHash)
+            .limit(1);
+        
+        if (checkError) {
+            console.error('Error checking duplicate:', checkError);
+        } else if (existing && existing.length > 0) {
+            showToast('Esta foto ya existe para este cliente', 'error');
+            return null;
+        }
         
         const { data, error } = await supabase.storage
             .from('client-photos')
@@ -483,6 +647,7 @@ document.addEventListener('DOMContentLoaded', () => {
             id: photoId,
             client_id: clientId,
             photo_url: publicUrl,
+            photo_hash: photoHash,
             photo_date: photoDate,
             photo_type: photoType,
             notes: photoNotes,
@@ -497,6 +662,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return null;
         }
         console.log('Photo inserted successfully!');
+        
+        // Actualizar State
+        if (!State.clientPhotos[clientId]) State.clientPhotos[clientId] = [];
+        State.clientPhotos[clientId].push(photoRecord);
+        
+        // También actualizar sessionPhotos si estamos en el formulario
+        if (typeof sessionPhotos !== 'undefined') {
+            sessionPhotos.push(photoRecord);
+        }
+        
         return photoRecord;
     }
 
@@ -579,7 +754,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).eq('id', data.id);
         if (error) { 
             console.error('Supabase update error:', error);
-            showToast('Error al actualizar (¿columna "enviar_was" existe?): ' + error.message, 'error'); 
+            showToast('Error al actualizar (�columna "enviar_was" existe?): ' + error.message, 'error'); 
             return false; 
         }
         State.clients = State.clients.map(c => c.id === data.id ? data : c);
@@ -595,13 +770,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
-    // ── Services CRUD ──
+    // -- Services CRUD --
 
     async function addService(data) {
         const { error } = await supabase.from('services').insert([data]);
-        if (error) { showToast('Error al añadir servicio: ' + error.message, 'error'); return false; }
+        if (error) { showToast('Error al Añadir servicio: ' + error.message, 'error'); return false; }
         State.services.push(data);
-        showToast('Servicio añadido correctamente');
+        showToast('Servicio a�adido correctamente');
         return true;
     }
 
@@ -621,7 +796,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
-    // ── Appointments CRUD ──
+    // -- Appointments CRUD --
 
     async function addAppointment(data) {
         // Map JS camelCase to DB snake_case
@@ -666,7 +841,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <label>Tipo</label>
                     <select class="form-control" id="edit-client-photo-type">
                         <option value="before" ${currentType === 'before' ? 'selected' : ''}>Antes</option>
-                        <option value="after" ${currentType === 'after' ? 'selected' : ''}>Después</option>
+                        <option value="after" ${currentType === 'after' ? 'selected' : ''}>Despu�s</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -704,7 +879,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <label>Tipo</label>
                     <select class="form-control" id="edit-apt-photo-type">
                         <option value="before" ${currentType === 'before' ? 'selected' : ''}>Antes</option>
-                        <option value="after" ${currentType === 'after' ? 'selected' : ''}>Después</option>
+                        <option value="after" ${currentType === 'after' ? 'selected' : ''}>Despu�s</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -748,7 +923,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Intentamos actualizar la columna whatsapp_sent
         const { error } = await supabase.from('appointments').update({ whatsapp_sent: true }).eq('id', id);
         if (error) { 
-            console.error('Error al marcar como avisado (¿columna whatsapp_sent existe?):', error);
+            console.error('Error al marcar como avisado (�columna whatsapp_sent existe?):', error);
             // Si falla, al menos lo marcamos en local para que desaparezca de la lista actual
         }
         const apt = State.appointments.find(a => a.id === id);
@@ -764,9 +939,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        ROUTING
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     let currentRoute = 'agenda';
 
     function navigate(route) {
@@ -781,9 +956,9 @@ document.addEventListener('DOMContentLoaded', () => {
         item.addEventListener('click', () => navigate(item.dataset.target));
     });
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        MODAL
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function openModal(title, htmlContent, onMount) {
         modalTitle.textContent = title;
         modalBody.innerHTML = htmlContent;
@@ -811,22 +986,22 @@ document.addEventListener('DOMContentLoaded', () => {
         overlayMouseDownTarget = null;
     });
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        RENDER DISPATCHER
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function renderRoute() {
         if (State.isLoading) {
             appContent.innerHTML = `
                 <div class="fade-in" style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:1rem;">
                     <div class="loading-spinner"></div>
-                    <p style="color:var(--text-secondary);font-size:1.1rem;">Conectando con Supabase…</p>
+                    <p style="color:var(--text-secondary);font-size:1.1rem;">Conectando con Supabase�</p>
                 </div>`;
             return;
         }
 
         if (currentRoute === 'agenda') content = getAgendaView();
         else if (currentRoute === 'clients') {
-            // Recargar fotos de clientes al entrar a la pestaña
+            // Recargar fotos de clientes al entrar a la pesta�a
             loadAllClientPhotos().then(() => {
                 const clientsContent = getClientsView();
                 const fadeInDiv = appContent.querySelector('.fade-in');
@@ -851,15 +1026,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         attachEvents();
 
-        // Cargar lista de clientes para diagnóstico
+        // Cargar lista de clientes para diagn�stico
         if (currentRoute === 'diagnosis') {
             loadDiagnosisClients();
         }
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        CALENDAR HELPERS
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function getCalendarDays(year, month) {
         const firstDay = new Date(year, month, 1);
         let startWeekday = firstDay.getDay(); // 0=Sun
@@ -899,9 +1074,9 @@ document.addEventListener('DOMContentLoaded', () => {
             .sort((a, b) => a.time.localeCompare(b.time));
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        AGENDA VIEW  (Calendar + Day Detail)
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function getAgendaView() {
         const todayStr = toLocalDateStr(new Date());
         const todaysAppointments = getAppointmentsForDate(todayStr);
@@ -931,7 +1106,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 eventsHtml += `<span class="cal-event" style="border-left:3px solid ${aptUserColor}">${apt.time} ${cName}</span>`;
             });
             if (apts.length > maxShow) {
-                eventsHtml += `<span class="cal-more">+${apts.length - maxShow} más</span>`;
+                eventsHtml += `<span class="cal-more">+${apts.length - maxShow} m�s</span>`;
             }
 
             calCells += `
@@ -972,16 +1147,16 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 if (appointmentPhotos.length > 0) {
                     photosHtml = '<div class="day-detail-photos" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px">';
                     appointmentPhotos.forEach(p => {
-                        const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
+                        const photoType = (p.photo_type === 'after') ? 'Despu�s' : 'Antes';
                         const photoDate = p.photo_date || '';
                         photosHtml += `
                             <div class="apt-mini-photo" data-apt-id="${apt.id}" data-photo-id="${p.id}" style="position:relative;text-align:center">
-                                <img src="${p.photo_url}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                                <img src="${p.photo_url}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto,<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                                 <div style="font-size:0.65rem;color:var(--text-secondary)">${photoType}</div>
                                 <div style="font-size:0.6rem;color:var(--text-secondary)">${photoDate}</div>
                                 <div style="position:absolute;top:0;left:0;right:0;display:flex;justify-content:center;gap:2px">
-                                    <button type="button" class="apt-photo-edit-btn" data-photo-id="${p.id}" title="Editar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">✏️</button>
-                                    <button type="button" class="apt-photo-delete-btn" data-photo-id="${p.id}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">🗑️</button>
+                                    <button type="button" class="apt-photo-edit-btn" data-photo-id="${p.id}" title="Editar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">??</button>
+                                    <button type="button" class="apt-photo-delete-btn" data-photo-id="${p.id}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">???</button>
                                 </div>
                             </div>`;
                     });
@@ -990,15 +1165,18 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 
                 detailHtml += `
                     <div class="day-detail-item">
-                        <div class="day-detail-time" style="color:${userColor}">${apt.time} – ${endStr}</div>
+                        <div class="day-detail-time" style="color:${userColor}">${apt.time} � ${endStr}</div>
                         <div class="day-detail-info">
                             <strong>${client.name}</strong>
-                            <span>${service.name} · ${service.duration} min${apt.notes ? ' · ' + apt.notes : ''}</span>
+                            <span>${service.name} � ${service.duration} min${apt.notes ? ' � ' + apt.notes : ''}</span>
                             <span class="apt-user-key" style="color:${userColor}" title="${apt.userEmail}">${userDisplay}</span>
                             ${photosHtml}
                             </div>
                         </div>
                         <div class="day-detail-actions">
+                            <button class="edit-apt-btn" data-id="${apt.id}" title="Editar cita">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </button>
                             <button class="delete-btn" data-id="${apt.id}" title="Eliminar cita">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
@@ -1079,14 +1257,14 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             <div class="section-header">
                 <div>
                     <h1 class="section-title">Agenda</h1>
-                    <p style="color:var(--text-secondary)">Calendario de citas · <span class="supabase-badge">⚡ Supabase</span></p>
+                    <p style="color:var(--text-secondary)">Calendario de citas � <span class="supabase-badge">? Supabase</span></p>
                 </div>
                 <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
                     <button class="btn btn-secondary" id="btn-settings" title="Configurar Horario">
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         Horas
                     </button>
-                    <button class="btn btn-primary" id="btn-add-appointment" onclick="showAppointmentForm()">
+                    <button class="btn btn-primary" id="btn-add-appointment">
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                         Nueva Cita
                     </button>
@@ -1118,9 +1296,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             <!-- Calendar -->
             <div class="calendar-wrapper">
                 <div class="calendar-nav">
-                    <button id="cal-prev">◀</button>
+                    <button id="cal-prev">?</button>
                     <h2>${monthLabel}</h2>
-                    <button id="cal-next">▶</button>
+                    <button id="cal-next">?</button>
                 </div>
                 <div class="calendar-grid">
                     ${WEEKDAY_NAMES.map(n => `<div class="cal-header">${n}</div>`).join('')}
@@ -1130,16 +1308,16 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
 
             <!-- Day Detail -->
             <div class="day-detail">
-                <h3>📋 ${detailLabel}</h3>
+                <h3>?? ${detailLabel}</h3>
                 ${timelineHtml}
                 ${detailHtml}
             </div>
         `;
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        CLIENTS VIEW
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function getClientsView() {
         let rows = '';
         if (State.clients.length === 0) {
@@ -1147,7 +1325,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             <div class="empty-state data-card">
                 <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                 <h3>No hay clientes registrados</h3>
-                <p>Añade tu primer cliente pulsando el botón superior.</p>
+                <p>A�ade tu primer cliente pulsando el bot�n superior.</p>
             </div>`;
         } else {
             rows = `<div class="clients-list">${State.clients.map(c => {
@@ -1157,22 +1335,22 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                         <div class="client-info">
                             <h3 style="margin:0;font-weight:600">${c.name}</h3>
                             <div style="display:flex;align-items:center;gap:12px;font-size:0.85rem;color:var(--text-secondary)">
-                                ${c.phone ? `<span><a href="https://wa.me/${c.phone.replace(/\D/g, '')}" target="_blank" style="color:var(--text-secondary)">📱 ${c.phone}</a></span>` : ''}
-                                ${c.email ? `<span>✉️ ${c.email}</span>` : ''}
-                                <span class="${c.enviar_was ? 'status-success' : 'status-danger'}" style="font-size:0.75rem">WA: ${c.enviar_was ? 'Sí' : 'No'}</span>
+                                ${c.phone ? `<span><a href="https://wa.me/${c.phone.replace(/\D/g, '')}" target="_blank" style="color:var(--text-secondary)">?? ${c.phone}</a></span>` : ''}
+                                ${c.email ? `<span>?? ${c.email}</span>` : ''}
+                                <span class="${c.enviar_was ? 'status-success' : 'status-danger'}" style="font-size:0.75rem">WA: ${c.enviar_was ? 'S�' : 'No'}</span>
                             </div>
                              ${c.observations ? `<p style="font-size:0.8rem;color:var(--text-secondary);margin:4px 0 0;font-style:italic">"${c.observations}"</p>` : ''}
                              ${State.clientPhotos && State.clientPhotos[c.id] && State.clientPhotos[c.id].length > 0 ? `
                                  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
                                      ${State.clientPhotos[c.id].slice(0, 4).map(p => {
-                                         const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
+                                         const photoType = (p.photo_type === 'after') ? 'Despu�s' : 'Antes';
                                          return `<div style="position:relative;text-align:center">
-                                             <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid var(--border-color)" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                                             <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid var(--border-color)" onclick="openModal('Foto,<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                                              <div style="font-size:0.6rem;color:var(--text-secondary);margin-top:2px">${photoType}</div>
                                              <div style="font-size:0.55rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
                                          </div>`;
                                      }).join('')}
-                                     ${State.clientPhotos[c.id].length > 4 ? `<button style="font-size:0.75rem;color:var(--primary-color);align-self:center;cursor:pointer;background:none;border:none;padding:0" onclick="showClientForm(State.clients.find(c => c.id === '${c.id}'))">+${State.clientPhotos[c.id].length - 4} más</button>` : ''}
+                                     ${State.clientPhotos[c.id].length > 4 ? `<button style="font-size:0.75rem;color:var(--primary-color);align-self:center;cursor:pointer;background:none;border:none;padding:0" onclick="showClientForm(State.clients.find(c => c.id === '${c.id}'))">+${State.clientPhotos[c.id].length - 4} m�s</button>` : ''}
                                  </div>
                              ` : ''}
                          </div>
@@ -1191,7 +1369,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
 
         return `
             <div class="section-header">
-                <div><h1 class="section-title">Clientes</h1><p style="color:var(--text-secondary)">Base de datos de clientes · <span class="supabase-badge">⚡ Supabase</span></p></div>
+                <div><h1 class="section-title">Clientes</h1><p style="color:var(--text-secondary)">Base de datos de clientes � <span class="supabase-badge">? Supabase</span></p></div>
                 <button class="btn btn-primary" id="btn-add-client">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                     Añadir Cliente
@@ -1200,9 +1378,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             ${rows}`;
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        SERVICES VIEW
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function getServicesView() {
         let rows = '';
         if (State.services.length === 0) {
@@ -1222,7 +1400,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                         <tr>
                             <td style="font-weight:600">${s.name}</td>
                             <td>${s.duration} min</td>
-                            <td>${parseFloat(s.price).toFixed(2)} €</td>
+                            <td>${parseFloat(s.price).toFixed(2)} �</td>
                             <td>
                                 <div class="actions">
                                     <button class="edit-btn" data-id="${s.id}" data-type="service" title="Editar">
@@ -1241,7 +1419,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
 
         return `
             <div class="section-header">
-                <div><h1 class="section-title">Servicios</h1><p style="color:var(--text-secondary)">Catálogo de servicios · <span class="supabase-badge">⚡ Supabase</span></p></div>
+                <div><h1 class="section-title">Servicios</h1><p style="color:var(--text-secondary)">Cat�logo de servicios � <span class="supabase-badge">? Supabase</span></p></div>
                 <button class="btn btn-primary" id="btn-add-service">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                     Añadir Servicio
@@ -1250,9 +1428,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             ${rows}`;
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        MONTHLY LISTING VIEW
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function getMonthlyView() {
         const year = State.monthlyYear;
         const month = State.monthlyMonth;
@@ -1321,7 +1499,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     <tr class="monthly-apt-row">
                         <td class="monthly-time-cell">
                             <span class="monthly-time">${apt.time}</span>
-                            <span class="monthly-time-end">– ${endStr}</span>
+                            <span class="monthly-time-end">� ${endStr}</span>
                         </td>
                         <td>
                             <div style="font-weight:600">${client.name}</div>
@@ -1330,8 +1508,8 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             <span class="monthly-service-badge">${service.name}</span>
                         </td>
                         <td>${service.duration} min</td>
-                        <td style="font-weight:600">${parseFloat(service.price).toFixed(2)} €</td>
-                        <td style="color:var(--text-secondary);font-size:0.85rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${apt.notes || '—'}</td>
+                        <td style="font-weight:600">${parseFloat(service.price).toFixed(2)} �</td>
+                        <td style="color:var(--text-secondary);font-size:0.85rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${apt.notes || '�'}</td>
                     </tr>`;
             });
         }
@@ -1342,7 +1520,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             monthOptions += `<option value="${i}" ${i === month ? 'selected' : ''}>${name}</option>`;
         });
 
-        // Year options (current year ± 2)
+        // Year options (current year � 2)
         const currentYear = new Date().getFullYear();
         let yearOptions = '';
         for (let y = currentYear - 2; y <= currentYear + 2; y++) {
@@ -1353,7 +1531,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             <div class="section-header">
                 <div>
                     <h1 class="section-title">Listado Mensual</h1>
-                    <p style="color:var(--text-secondary)">Detalle de citas por mes · <span class="supabase-badge">⚡ Supabase</span></p>
+                    <p style="color:var(--text-secondary)">Detalle de citas por mes � <span class="supabase-badge">? Supabase</span></p>
                 </div>
                 <button class="btn btn-primary" id="btn-print-monthly">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
@@ -1391,7 +1569,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     <div class="stat-icon">
                         <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                     </div>
-                    <div class="stat-content"><h3>Clientes Únicos</h3><p>${clientesUnicos.size}</p></div>
+                    <div class="stat-content"><h3>Clientes �nicos</h3><p>${clientesUnicos.size}</p></div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">
@@ -1403,14 +1581,14 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     <div class="stat-icon stat-icon-highlight">
                         <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
-                    <div class="stat-content"><h3>Ingresos Estimados</h3><p>${totalIngresos.toFixed(2)} €</p></div>
+                    <div class="stat-content"><h3>Ingresos Estimados</h3><p>${totalIngresos.toFixed(2)} �</p></div>
                 </div>
             </div>
 
             <!-- Listing Table -->
             <div class="data-card monthly-table-card" id="monthly-print-area">
                 <div class="monthly-table-header">
-                    <h3>📋 ${monthLabel}</h3>
+                    <h3>?? ${monthLabel}</h3>
                     <span class="monthly-count-badge">${totalCitas} cita${totalCitas !== 1 ? 's' : ''}</span>
                 </div>
                 <table class="table monthly-table">
@@ -1432,11 +1610,11 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         `;
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        WHATSAPP REMINDERS VIEW
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function getWhatsAppView() {
-        // Buscamos citas en los próximos 3 días para dar más margen
+        // Buscamos citas en los pr�ximos 3 días para dar m�s margen
         const today = new Date();
         const futureLimit = new Date(today);
         futureLimit.setDate(today.getDate() + 3);
@@ -1480,7 +1658,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             <div style="font-weight:500;color:var(--accent-primary)">${apt.time}</div>
                         </td>
                         <td>
-                            <span class="monthly-service-badge">${service ? service.name : '—'}</span>
+                            <span class="monthly-service-badge">${service ? service.name : '�'}</span>
                         </td>
                         <td>
                             <button class="btn btn-primary btn-sm send-reminder-btn" 
@@ -1501,7 +1679,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             <div class="section-header">
                 <div>
                     <h1 class="section-title">Recordatorios WhatsApp</h1>
-                    <p style="color:var(--text-secondary)">Gestiona los avisos para las próximas citas · <span class="supabase-badge">⚡ Automático</span></p>
+                    <p style="color:var(--text-secondary)">Gestiona los avisos para las pr�ximas citas � <span class="supabase-badge">? Autom�tico</span></p>
                 </div>
             </div>
 
@@ -1509,7 +1687,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 <div class="monthly-table-header" style="background: var(--bg-surface); padding: 1.5rem; border-bottom: 1px solid var(--border-color);">
                     <h3 style="display:flex;align-items:center;gap:0.75rem;">
                         <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        Próximas Citas (3 días)
+                        Pr�ximas Citas (3 días)
                     </h3>
                     <span class="monthly-count-badge">${toRemind.length} pendiente${toRemind.length !== 1 ? 's' : ''}</span>
                 </div>
@@ -1520,7 +1698,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             <th>Fecha</th>
                             <th>Hora</th>
                             <th>Servicio</th>
-                            <th>Acción</th>
+                            <th>acción</th>
                         </tr>
                     </thead>
                     <tbody>${toRemind.map(apt => {
@@ -1537,7 +1715,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                                 </td>
                                 <td><span class="status-badge" style="background:var(--bg-body);color:var(--text-primary)">${dLabel}</span></td>
                                 <td><div style="font-weight:500;color:var(--accent-primary)">${apt.time}</div></td>
-                                <td><span class="monthly-service-badge">${service ? service.name : '—'}</span></td>
+                                <td><span class="monthly-service-badge">${service ? service.name : '�'}</span></td>
                                 <td>
                                     <button class="btn btn-primary btn-sm send-reminder-btn" 
                                             style="padding: 0.4rem 0.8rem;"
@@ -1555,14 +1733,14 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             </div>
             
             <p style="margin-top: 1.5rem; color: var(--text-secondary); font-size: 0.85rem; text-align: center; font-style: italic;">
-                * Debes tener abierta esta pestaña para gestionar los recordatorios diarios.
+                * Debes tener abierta esta pesta�a para gestionar los recordatorios diarios.
             </p>
         `;
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
 DIAGNOSIS VIEW - FULLY INTEGRATED
-        ═══════════════════════════════════════ */
+        --------------------------------------- */
     let diagnosisImage = null;
     let diagnosisClientId = null;
     let diagnosisClientName = null;
@@ -1576,15 +1754,15 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         return `
             <div class="section-header">
                 <div>
-                    <h1 class="section-title">Diagnóstico Capilar</h1>
-                    <p style="color:var(--text-secondary)">Análisis avanzado del cuero cabelludo · <span class="supabase-badge">⚡ IA Vision</span></p>
+                    <h1 class="section-title">Diagn�stico Capilar</h1>
+                    <p style="color:var(--text-secondary)">añlisis avanzado del cuero cabelludo � <span class="supabase-badge">? IA Vision</span></p>
                 </div>
              </div>
              
             <div id="diagnosis-client-selection" style="display: ${hasClient ? 'none' : 'block'};">
                 <div style="max-width:700px;margin:60px auto;padding:40px;background:var(--bg-card);border:2px solid var(--accent-color);border-radius:16px;box-shadow:0 0 30px rgba(167,139,250,0.3);">
                     <h2 style="margin-top:0;color:#fff;font-size:28px;text-align:center;margin-bottom:10px;">SELECCIONAR CLIENTE</h2>
-                    <p style="color:var(--text-secondary);text-align:center;margin-bottom:30px;font-size:16px;">Elija un cliente de la lista para realizar el diagnóstico capilar</p>
+                    <p style="color:var(--text-secondary);text-align:center;margin-bottom:30px;font-size:16px;">Elija un cliente de la lista para realizar el diagn�stico capilar</p>
                     <div id="diagnosis-clients-list"></div>
                 </div>
             </div>
@@ -1627,7 +1805,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             </div>
         `).join('');
 
-        // Limpiar evento anterior y agregar delegación
+        // Limpiar evento anterior y agregar delegaci�n
         list.onclick = null;
         list.onclick = (e) => {
             const card = e.target.closest('.diagnosis-client-card');
@@ -1643,11 +1821,14 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         };
     }
 
-    /* ═════════════════════════════════════
+    /* -------------------------------------
        EVENT BINDING
-       ═════════════════════════════════════ */
+       ------------------------------------- */
     function attachEvents() {
         // Add buttons
+        const btnAddAppt = document.getElementById('btn-add-appointment');
+        if (btnAddAppt) btnAddAppt.addEventListener('click', () => showAppointmentForm());
+
         const btnSettings = document.getElementById('btn-settings');
         if (btnSettings) btnSettings.addEventListener('click', showSettingsForm);
 
@@ -1724,15 +1905,15 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 const id = e.currentTarget.dataset.id;
                 const type = e.currentTarget.dataset.type;
                 if (type === 'client') {
-                    if (confirm('¿Eliminar este cliente? Se eliminarán también sus citas.')) {
+                    if (confirm('�Eliminar este cliente? Se eliminar�n tambi�n sus citas.')) {
                         if (await deleteClient(id)) renderRoute();
                     }
                 } else if (type === 'service') {
-                    if (confirm('¿Eliminar este servicio? Se eliminarán también las citas asociadas.')) {
+                    if (confirm('�Eliminar este servicio? Se eliminar�n tambi�n las citas asociadas.')) {
                         if (await deleteService(id)) renderRoute();
                     }
                 } else {
-                    if (confirm('¿Cancelar esta cita?')) {
+                    if (confirm('�Cancelar esta cita?')) {
                         if (await deleteAppointment(id)) renderRoute();
                     }
                 }
@@ -1761,7 +1942,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 const photoId = e.currentTarget.dataset.photoId;
                 const aptItem = e.currentTarget.closest('.apt-mini-photo');
                 const aptId = aptItem?.dataset.aptId;
-                if (aptId && photoId && confirm('¿Eliminar esta foto?')) {
+                if (aptId && photoId && confirm('�Eliminar esta foto?')) {
                     const apt = State.appointments.find(a => a.id === aptId);
                     if (apt && apt.appointmentPhotos) {
                         apt.appointmentPhotos = apt.appointmentPhotos.filter(p => p.id !== photoId);
@@ -1801,7 +1982,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 const { name, phone, date, time } = e.currentTarget.dataset;
                 const id = e.currentTarget.closest('[data-id]') ? e.currentTarget.closest('[data-id]').dataset.id : null;
                 
-                // Si el botón está en la vista de recordatorios, intentamos sacar el ID de la cita
+                // Si el bot�n est� en la vista de recordatorios, intentamos sacar el ID de la cita
                 const aptId = e.currentTarget.closest('tr')?.dataset.aptid;
 
                 sendWASMessage(phone, name, date, time);
@@ -1873,10 +2054,10 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             <form id="client-form-diagnosis">
                 <div class="form-group">
                     <label>Nombre y Apellidos</label>
-                    <input type="text" class="form-control" name="name" required placeholder="Ej: María García">
+                    <input type="text" class="form-control" name="name" required placeholder="Ej: Mar�a Garc�a">
                 </div>
                 <div class="form-group">
-                    <label>Teléfono</label>
+                    <label>teléfono</label>
                     <input type="tel" class="form-control" name="phone" placeholder="Ej: +34 600 123 456">
                 </div>
                 <div class="form-group">
@@ -1884,9 +2065,9 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     <input type="email" class="form-control" name="email" placeholder="Ej: correo@ejemplo.com">
                 </div>
                 <div class="form-group">
-                    <label>¿Enviar mensaje de WhatsApp automático?</label>
+                    <label>�Enviar mensaje de WhatsApp autom�tico?</label>
                     <select class="form-control" name="enviar_was">
-                        <option value="true">Sí</option>
+                        <option value="true">S�</option>
                         <option value="false" selected>No</option>
                     </select>
                 </div>
@@ -1896,12 +2077,12 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 </div>
             </form>`;
 
-        openModal('Nuevo Cliente para Diagnóstico', html, () => {
+        openModal('Nuevo Cliente para Diagn�stico', html, () => {
             document.getElementById('client-form-diagnosis').addEventListener('submit', async e => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Guardando…';
+                submitBtn.textContent = 'Guardandoñ';
 
                 const fd = new FormData(e.target);
                 const clientId = generateId();
@@ -1930,7 +2111,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         const selClient = document.getElementById('diagnosis-client-selection');
         const mainDiag = document.getElementById('diagnosis-main');
         if (!selClient || !mainDiag) {
-            console.error('Elementos de diagnóstico no encontrados');
+            console.error('Elementos de diagn�stico no encontrados');
             return;
         }
         selClient.style.display = 'none';
@@ -1944,8 +2125,9 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
 
         sessionStorage.setItem('nymara_diagnosis_client_id', client.id);
         sessionStorage.setItem('nymara_diagnosis_client_name', client.name);
+        sessionStorage.setItem('nymara_uploaded_hashes', '[]');
         
-        showToast('Cliente ' + client.name + ' seleccionado para diagnóstico');
+        showToast('Cliente ' + client.name + ' seleccionado para diagn�stico');
     }
 
     function initDiagnosisEvents() {
@@ -2070,16 +2252,16 @@ if (analyzeBtn) {
             if (!validateDiagnosisImage(currentDiagnosisImage)) {
                 console.log('Image validation failed');
                 if (statusBadge) {
-                    statusBadge.textContent = 'Imagen no válida';
+                    statusBadge.textContent = 'Imagen no v�lida';
                     statusBadge.style.background = '#ef4444';
                 }
-                alert('⚠️ Imagen no válida.\n\nLa foto debe ser una toma microscópica del cuero cabelludo.');
+                alert('?? Imagen no v�lida.\n\nLa foto debe ser una toma microsc�pica del cuero cabelludo.');
                 if (analyzeBtn) analyzeBtn.disabled = false;
                 return;
             }
             
             console.log('Running detection functions...');
-            // Análisis real de la imagen
+            // añlisis real de la imagen
             const density = detectHairDensity(currentDiagnosisImage);
             console.log('Density:', density);
             const thickness = detectHairThickness(currentDiagnosisImage);
@@ -2104,16 +2286,16 @@ if (analyzeBtn) {
             displayDiagnosisTreatments(getOlaplexRecommendations(diagnosis));
             
             if (statusBadge) {
-                statusBadge.textContent = '✓ Análisis completado';
+                statusBadge.textContent = '? añlisis completado';
                 statusBadge.style.background = '#10b981';
             }
             // Guardar resultados para usar al guardar
             currentDiagnosisResults = { density, thickness, hydration, sebumLevel, sebumLabel, dandruffValue, dandruffLabel, isColored };
         } catch (err) {
             console.error('ERROR in diagnosis:', err);
-            console.warn('Análisis completado con advertencias');
+            console.warn('añlisis completado con advertencias');
             if (statusBadge) {
-                statusBadge.textContent = '✓ Análisis completado';
+                statusBadge.textContent = '? añlisis completado';
                 statusBadge.style.background = '#10b981';
             }
         } finally {
@@ -2184,7 +2366,7 @@ if (analyzeBtn) {
             const brightness = (r + g + b) / 3;
             const saturation = Math.max(r, g, b) === 0 ? 0 : (Math.max(r, g, b) - Math.min(r, g, b)) / Math.max(r, g, b);
             
-            // Detectar cabello (oscuro con cierta saturación)
+            // Detectar cabello (oscuro con cierta saturaci�n)
             if (brightness < 100 && saturation > 0.1 && saturation < 0.5) {
                 hairPixels++;
             }
@@ -2224,7 +2406,7 @@ if (analyzeBtn) {
             }
         }
         
-        // Grosor basado en transiciones (más transiciones = cabello más fino)
+        // Grosor basado en transiciones (m�s transiciones = cabello m�s fino)
         const thickness = Math.floor(90 - (totalDarkPixels / 20));
         return Math.min(120, Math.max(40, thickness));
     }
@@ -2269,13 +2451,13 @@ if (analyzeBtn) {
         }
         sebumValue = Math.min(10, Math.max(0, sebumValue));
         
-        // Determinar etiqueta según rango
+        // Determinar etiqueta seg�n rango
         let sebumLabel;
         if (sebumValue < 3) sebumLabel = 'Normal';
         else if (sebumValue < 7) sebumLabel = 'Medio';
         else sebumLabel = 'Alto';
         
-        // Hidratación basada en sebo
+        // Hidrataci�n basada en sebo
         let hydration;
         if (sebumValue >= 7) hydration = Math.floor(40 + Math.random() * 20);
         else if (sebumValue < 3) hydration = Math.floor(30 + Math.random() * 25);
@@ -2315,7 +2497,7 @@ if (analyzeBtn) {
         let dandruffValue = Math.round(dandruffRatio * 10);
         dandruffValue = Math.min(10, Math.max(0, dandruffValue));
         
-        // Determinar etiqueta según rango
+        // Determinar etiqueta seg�n rango
         let dandruffLabel;
         if (dandruffValue < 3) dandruffLabel = 'Normal';
         else if (dandruffValue < 7) dandruffLabel = 'Medio';
@@ -2333,7 +2515,7 @@ window.addEventListener('message', async (event) => {
                 const photoData = event.data.photoData;
                 
                 console.log('DEBUG: Parent received diagnosis_photo message:', { clientId, clientName, results, hasPhoto: !!photoData });
-                showToast(`Análisis completado para ${clientName || 'Cliente'}`);
+                showToast(`añlisis completado para ${clientName || 'Cliente'}`);
                 
                 // Guardar foto si existe
                 if (photoData && clientId) {
@@ -2367,11 +2549,11 @@ window.addEventListener('message', async (event) => {
                                 photo_url: publicUrl,
                                 photo_date: new Date().toISOString().split('T')[0],
                                 photo_type: 'antes',
-                                notes: `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'}, Caspa: ${results?.dandruff || '--'}, Grasa: ${results?.grease || '--'}`
+                                notes: `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidrataci�n: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'}, Caspa: ${results?.dandruff || '--'}, Grasa: ${results?.grease || '--'}`
                             });
                             
                             console.log('Diagnosis photo saved:', publicUrl);
-                            showToast('✓ Foto de diagnóstico guardada');
+                            showToast('? Foto de diagn�stico guardada');
                               
                             // Notify diagnosis iframe that photo was saved
                             const diagnosisFrame = document.querySelector('iframe[src*="diagnosis"]');
@@ -2406,9 +2588,9 @@ window.addEventListener('message', async (event) => {
         }
     });
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        FORMS (now async submit handlers)
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function showClientForm(info = null) {
         const isEdit = !!info;
         const html = `
@@ -2418,7 +2600,7 @@ window.addEventListener('message', async (event) => {
                     <input type="text" class="form-control" name="name" required value="${isEdit ? info.name : ''}">
                 </div>
                 <div class="form-group">
-                    <label>Teléfono</label>
+                    <label>teléfono</label>
                     <input type="tel" class="form-control" name="phone" value="${isEdit ? info.phone : ''}">
                 </div>
                 <div class="form-group">
@@ -2426,9 +2608,9 @@ window.addEventListener('message', async (event) => {
                     <input type="email" class="form-control" name="email" value="${isEdit ? info.email : ''}">
                 </div>
                 <div class="form-group">
-                    <label>¿Enviar mensaje de WhatsApp automático?</label>
+                    <label>�Enviar mensaje de WhatsApp autom�tico?</label>
                     <select class="form-control" name="enviar_was">
-                        <option value="true" ${isEdit && (info.enviar_was === true || info.enviar_was === 'true' || info.enviar_was === 1) ? 'selected' : ''}>Sí</option>
+                        <option value="true" ${isEdit && (info.enviar_was === true || info.enviar_was === 'true' || info.enviar_was === 1) ? 'selected' : ''}>S�</option>
                         <option value="false" ${!isEdit || (info.enviar_was === false || info.enviar_was === 'false' || info.enviar_was === 0 || info.enviar_was === null) ? 'selected' : ''}>No</option>
                     </select>
                 </div>
@@ -2457,21 +2639,23 @@ window.addEventListener('message', async (event) => {
             let currentClientId = isEdit ? info.id : generateId();
             let sessionPhotos = [];
             let pendingFiles = [];
+            let uploadedHashes = [];
+
             const renderPhotos = () => {
                 const container = document.getElementById('client-photos-list');
                 if (!container) return;
                 
                 let html = '';
                 sessionPhotos.forEach((p, idx) => {
-                    const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
+                    const photoType = (p.photo_type === 'after') ? 'Despu�s' : 'Antes';
                     html += `
                         <div class="client-mini-photo" data-photo-id="${p.id}" style="position:relative;text-align:center">
-                            <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                            <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto,<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                             <div style="font-size:0.65rem;color:var(--text-secondary)">${photoType}</div>
                             <div style="font-size:0.6rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
                             <div style="display:flex;gap:2px;justify-content:center">
-                                <button type="button" class="client-photo-edit-btn" data-photo-id="${p.id}" title="Editar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">✏️</button>
-                                <button type="button" class="delete-btn" data-id="${p.id}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">🗑️</button>
+                                <button type="button" class="client-photo-edit-btn" data-photo-id="${p.id}" title="Editar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">??</button>
+                                <button type="button" class="delete-btn" data-id="${p.id}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">???</button>
                             </div>
                         </div>`;
                 });
@@ -2483,7 +2667,7 @@ window.addEventListener('message', async (event) => {
                             <div style="font-size:0.65rem;color:var(--text-secondary)">Antes</div>
                             <div style="font-size:0.6rem;color:var(--text-secondary)">${toLocalDateStr(new Date())}</div>
                             <div style="display:flex;gap:2px;justify-content:center">
-                                <button type="button" class="delete-pending-btn" data-idx="${idx}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">🗑️</button>
+                                <button type="button" class="delete-pending-btn" data-idx="${idx}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">???</button>
                             </div>
                         </div>`;
                 });
@@ -2509,9 +2693,21 @@ window.addEventListener('message', async (event) => {
                     const file = e.target.files[0];
                     if (!file) return;
                     
+                    const buffer = await file.arrayBuffer();
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+                    const hash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+                    
+                    const isDuplicate = sessionPhotos.some(p => p.photo_hash === hash) || uploadedHashes.includes(hash);
+                    if (isDuplicate) {
+                        showToast('Esta foto ya existe', 'error');
+                        photoInput.value = '';
+                        return;
+                    }
+                    
                     const reader = new FileReader();
                     reader.onload = ev => {
-                        pendingFiles.push({ file, preview: ev.target.result });
+                        pendingFiles.push({ file, hash, preview: ev.target.result });
+                        uploadedHashes.push(hash);
                         renderPhotos();
                     };
                     reader.readAsDataURL(file);
@@ -2525,7 +2721,7 @@ window.addEventListener('message', async (event) => {
                     const delBtn = e.target.closest('.delete-btn');
                     if (delBtn) {
                         const photoId = delBtn.dataset.id;
-                        if (confirm('¿Eliminar foto?')) {
+                        if (confirm('�Eliminar foto?')) {
                             await deleteClientPhoto(photoId, currentClientId);
                             sessionPhotos = sessionPhotos.filter(p => p.id !== photoId);
                             renderPhotos();
@@ -2536,6 +2732,7 @@ window.addEventListener('message', async (event) => {
                     const delPending = e.target.closest('.delete-pending-btn');
                     if (delPending) {
                         const idx = parseInt(delPending.dataset.idx);
+                        uploadedHashes.splice(idx, 1);
                         pendingFiles.splice(idx, 1);
                         renderPhotos();
                         return;
@@ -2574,7 +2771,7 @@ window.addEventListener('message', async (event) => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Guardando…';
+                submitBtn.textContent = 'Guardandoñ';
 
                 const fd = new FormData(e.target);
                 const data = { 
@@ -2625,7 +2822,7 @@ window.addEventListener('message', async (event) => {
                     <input type="number" class="form-control" name="duration" min="5" step="5" required value="${isEdit ? info.duration : '30'}">
                 </div>
                 <div class="form-group">
-                    <label>Precio (€)</label>
+                    <label>Precio (�)</label>
                     <input type="number" class="form-control" name="price" min="0" step="0.01" required value="${isEdit ? info.price : '0'}">
                 </div>
                 <div class="form-actions">
@@ -2639,7 +2836,7 @@ window.addEventListener('message', async (event) => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Guardando…';
+                submitBtn.textContent = 'Guardandoñ';
 
                 const fd = new FormData(e.target);
                 const data = { id: isEdit ? info.id : generateId(), name: fd.get('name'), duration: parseInt(fd.get('duration')), price: parseFloat(fd.get('price')) };
@@ -2679,7 +2876,7 @@ window.addEventListener('message', async (event) => {
                 const end = fd.get('endTime');
 
                 if (start >= end) {
-                    showToast('La hora de cierre debe ser posterior a la de apertura.', 'error');
+                    showToast('La hora de Cierre debe ser posterior a la de Apertura.', 'error');
                     return;
                 }
 
@@ -2752,7 +2949,7 @@ window.addEventListener('message', async (event) => {
                 <div class="form-group">
                     <label>Servicio</label>
                     <select class="form-control" name="serviceId" required>
-                        ${State.services.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.serviceId ? 'selected' : ''}>${s.name} (${s.duration} min · ${parseFloat(s.price).toFixed(2)}€)</option>`).join('')}
+                        ${State.services.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.serviceId ? 'selected' : ''}>${s.name} (${s.duration} min � ${parseFloat(s.price).toFixed(2)}�)</option>`).join('')}
                     </select>
                 </div>
                 <div style="display:flex;gap:1rem">
@@ -2767,7 +2964,7 @@ window.addEventListener('message', async (event) => {
                 </div>
                 <div class="form-group">
                     <label>Notas (opcional)</label>
-                    <textarea class="form-control" name="notes" rows="2" placeholder="Información adicional...">${isEdit ? apt.notes || '' : ''}</textarea>
+                    <textarea class="form-control" name="notes" rows="2" placeholder="información adicional...">${isEdit ? apt.notes || '' : ''}</textarea>
                 </div>
                 
                 <div class="form-group">
@@ -2793,24 +2990,49 @@ window.addEventListener('message', async (event) => {
             const serviceSelect = form.querySelector('[name="serviceId"]');
             
             let pendingFiles = [];
-
+            let uploadedHashes = [];
+            let existingPhotos = [];
+            
+            // Cargar fotos existentes si estamos editando
+            if (isEdit && apt && apt.appointmentPhotos) {
+                existingPhotos = apt.appointmentPhotos.map(p => ({
+                    ...p,
+                    isExisting: true
+                }));
+            }
+            
             const renderAptPhotos = () => {
                 const container = document.getElementById('apt-photos-list');
                 if (!container) return;
                 
                 let html = '';
+                
+                // Mostrar fotos existentes
+                existingPhotos.forEach((p, idx) => {
+                    html += `
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                            <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                            <span style="font-size:0.7rem;color:var(--text-secondary)">${p.photo_date || toLocalDateStr(new Date())}</span>
+                            <span style="font-size:0.65rem;color:var(--text-secondary)">${p.photo_type === 'after' ? 'Después' : 'Antes'}</span>
+                        </div>`;
+                });
+                
+                // Mostrar fotos pendientes de subir
                 pendingFiles.forEach((pf, idx) => {
                     html += `
                         <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
                             <img src="${pf.preview}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${pf.preview} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                             <span style="font-size:0.7rem;color:var(--text-secondary)">${pf.date || toLocalDateStr(new Date())}</span>
-                            <button type="button" class="delete-apt-pending-btn" data-idx="${idx}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">🗑️</button>
+                            <button type="button" class="delete-apt-pending-btn" data-idx="${idx}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">???</button>
                         </div>`;
                 });
                 
                 container.innerHTML = html;
             };
-
+            
+            // Renderizar fotos existentes al abrir
+            renderAptPhotos();
+            
             const btnAddPhoto = document.getElementById('btn-add-apt-photo');
             const photoInput = document.getElementById('apt-photo-input');
             
@@ -2821,22 +3043,38 @@ window.addEventListener('message', async (event) => {
                     const file = e.target.files[0];
                     if (!file) return;
                     
+                    const buffer = await file.arrayBuffer();
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+                    const hash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+                    
+                    // Verificar duplicados en fotos existentes
+                    const isDuplicateInExisting = existingPhotos.some(p => p.photo_hash === hash);
+                    const isDuplicateInPending = uploadedHashes.includes(hash);
+                    
+                    if (isDuplicateInExisting || isDuplicateInPending) {
+                        showToast('Esta foto ya existe', 'error');
+                        photoInput.value = '';
+                        return;
+                    }
+                    
                     const reader = new FileReader();
                     reader.onload = ev => {
-                        pendingFiles.push({ file, preview: ev.target.result, type: 'before', date: toLocalDateStr(new Date()), notes: '' });
+                        pendingFiles.push({ file, hash, preview: ev.target.result, type: 'before', date: toLocalDateStr(new Date()), notes: '' });
+                        uploadedHashes.push(hash);
                         renderAptPhotos();
                     };
                     reader.readAsDataURL(file);
                     photoInput.value = '';
                 });
             }
-
+            
             const photosList = document.getElementById('apt-photos-list');
             if (photosList) {
                 photosList.addEventListener('click', e => {
                     const delPending = e.target.closest('.delete-apt-pending-btn');
                     if (delPending) {
                         const idx = parseInt(delPending.dataset.idx);
+                        uploadedHashes.splice(idx, 1);
                         pendingFiles.splice(idx, 1);
                         renderAptPhotos();
                     }
@@ -2862,7 +3100,7 @@ window.addEventListener('message', async (event) => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
                 submitBtn.disabled = true;
-                submitBtn.textContent = isEdit ? 'Guardando…' : 'Agendando…';
+                submitBtn.textContent = isEdit ? 'Guardandoñ' : 'Agendandoñ';
 
                 const fd = new FormData(e.target);
                 const data = {
@@ -2897,7 +3135,7 @@ window.addEventListener('message', async (event) => {
                 const workingEndMins = endH * 60 + endM;
 
                 if (targetStartMinutes < workingStartMins || targetEndMinutes > workingEndMins) {
-                    showToast(`El horario seleccionado se sale de tus horas de apertura (${State.settings.startTime} - ${State.settings.endTime}).`, 'error');
+                    showToast(`El horario seleccionado se sale de tus horas de Apertura (${State.settings.startTime} - ${State.settings.endTime}).`, 'error');
                     submitBtn.disabled = false;
                     submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Agendar Cita';
                     return;
@@ -2944,16 +3182,14 @@ window.addEventListener('message', async (event) => {
         });
     }
 
-    window.showAppointmentForm = showAppointmentForm;
-
     window.editAppointment = function(id) {
         const apt = State.appointments.find(a => a.id === id);
         if (apt) showAppointmentForm(apt);
     };
 
-    /* ═══════════════════════════════════════
-       INIT — Check session to start
-       ═══════════════════════════════════════ */
+    /* ---------------------------------------
+       INIT � Check session to start
+       --------------------------------------- */
     checkSession();
 
     // Combat aggressive browser autofill
@@ -2970,8 +3206,11 @@ window.addEventListener('message', async (event) => {
         }, 600);
 
         // Also remove readonly on focus as a fallback
-        emailInput.addEventListener('focus', () => emailInput.readOnly = false);
-passwordInput.addEventListener('focus', () => passwordInput.readOnly = false);
+        emailInput.addEventListener('focus', function() { emailInput.readOnly = false; });
+        passwordInput.addEventListener('focus', function() { passwordInput.readOnly = false; });
     }
 });
+
+
+
 
