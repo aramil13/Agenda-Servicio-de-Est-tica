@@ -2953,6 +2953,10 @@ window.addEventListener('message', async (event) => {
                     <select class="form-control" name="clientId" required>
                         ${State.clients.map(c => `<option value="${c.id}" ${isEdit && c.id === apt.clientId ? 'selected' : ''}>${c.name}</option>`).join('')}
                     </select>
+                    <div id="client-info" style="margin-top:6px;font-size:0.8rem;color:var(--text-secondary);display:none">
+                        <span id="client-phone"></span>
+                        <span id="client-email" style="margin-left:10px"></span>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Servicio</label>
@@ -3059,6 +3063,28 @@ window.addEventListener('message', async (event) => {
                 input.style.borderColor = userColor;
                 input.style.setProperty('caret-color', userColor);
             });
+
+            const clientSelect = form.querySelector('[name="clientId"]');
+            const clientInfo = document.getElementById('client-info');
+            const clientPhone = document.getElementById('client-phone');
+            const clientEmail = document.getElementById('client-email');
+
+            function updateClientInfo() {
+                const clientId = clientSelect.value;
+                const client = State.clients.find(c => c.id === clientId);
+                if (client && clientInfo) {
+                    clientInfo.style.display = 'block';
+                    clientPhone.innerHTML = client.phone ? `📱 ${client.phone}` : '';
+                    clientEmail.innerHTML = client.email ? `✉️ ${client.email}` : '';
+                } else if (clientInfo) {
+                    clientInfo.style.display = 'none';
+                }
+            }
+
+            if (clientSelect) {
+                clientSelect.addEventListener('change', updateClientInfo);
+                updateClientInfo();
+            }
 
             function updateSuggestion() {
                 const selDate = dateInput.value;
