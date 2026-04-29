@@ -127,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clients: [],
         services: [],
         appointments: [],
+        salons: [],
         clientPhotos: {},
         // Calendar state
         calYear: new Date().getFullYear(),
@@ -276,15 +277,22 @@ document.addEventListener('DOMContentLoaded', () => {
         renderRoute();
 
         try {
-            const [clientsRes, servicesRes, appointmentsRes] = await Promise.all([
+            const [clientsRes, servicesRes, appointmentsRes, salonsRes] = await Promise.all([
                 supabase.from('clients').select('*').order('name'),
                 supabase.from('services').select('*').order('name'),
                 supabase.from('appointments').select('*').order('date').order('time'),
+                supabase.from('salons').select('*').order('name')
             ]);
 
             if (clientsRes.error) throw clientsRes.error;
             if (servicesRes.error) throw servicesRes.error;
             if (appointmentsRes.error) throw appointmentsRes.error;
+            if (salonsRes.error) {
+                console.warn('Tabla salons no existe aún:', salonsRes.error.message);
+                State.salons = [];
+            } else {
+                State.salons = salonsRes.data;
+            }
 
             State.clients = clientsRes.data;
             State.services = servicesRes.data;
@@ -293,6 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 id: a.id,
                 clientId: a.client_id,
                 serviceId: a.service_id,
+                salonId: a.salon_id || null,
                 date: a.date,
                 time: a.time.substring(0, 5), // "HH:MM:SS" → "HH:MM"
                 notes: a.notes || '',
@@ -621,6 +630,61 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
+    // ── Salons CRUD ──
+
+    async function addSalon(data) {
+        console.log('Adding salon:', data);
+        const { data: result, error } = await supabase.from('salons').insert([{
+            id: data.id,
+            name: data.name,
+            address: data.address || null,
+            phone: data.phone || null,
+            email: data.email || null
+        }]).select().single();
+        
+        if (error) { 
+            console.error('Error adding salon:', error);
+            showToast('Error al añadir salón: ' + error.message, 'error'); 
+            return false; 
+        }
+        console.log('Salon added:', result);
+        State.salons.push(result || data);
+        showToast('Salón añadido correctamente');
+        return true;
+    }
+
+    async function updateSalon(data) {
+        console.log('Updating salon:', data);
+        const { error } = await supabase.from('salons').update({
+            name: data.name,
+            address: data.address || null,
+            phone: data.phone || null,
+            email: data.email || null
+        }).eq('id', data.id);
+        
+        if (error) { 
+            console.error('Error updating salon:', error);
+            showToast('Error al actualizar salón: ' + error.message, 'error'); 
+            return false; 
+        }
+        State.salons = State.salons.map(s => s.id === data.id ? data : s);
+        showToast('Salón actualizado correctamente');
+        return true;
+    }
+
+    async function deleteSalon(id) {
+        console.log('Deleting salon:', id);
+        const { error } = await supabase.from('salons').delete().eq('id', id);
+        if (error) { 
+            console.error('Error deleting salon:', error);
+            showToast('Error al eliminar salón: ' + error.message, 'error'); 
+            return false; 
+        }
+        State.salons = State.salons.filter(s => s.id !== id);
+        showToast('Salón eliminado');
+        return true;
+    }
+
     // ── Appointments CRUD ──
 
     async function addAppointment(data) {
@@ -629,6 +693,7 @@ document.addEventListener('DOMContentLoaded', () => {
             id: data.id,
             client_id: data.clientId,
             service_id: data.serviceId,
+            salon_id: data.salonId || null,
             date: data.date,
             time: data.time,
             notes: data.notes,
@@ -646,6 +711,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const dbRow = {
             client_id: data.clientId,
             service_id: data.serviceId,
+            salon_id: data.salonId || null,
             date: data.date,
             time: data.time,
             notes: data.notes,
@@ -837,6 +903,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         else if (currentRoute === 'services') content = getServicesView();
         else if (currentRoute === 'monthly') content = getMonthlyView();
+        else if (currentRoute === 'salons') content = getSalonsView();
         else if (currentRoute === 'whatsapp') content = getWhatsAppView();
         else if (currentRoute === 'diagnosis') content = getDiagnosisView();
 
@@ -988,17 +1055,23 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     photosHtml += '</div>';
                 }
                 
+                const salon = apt.salonId ? State.salons.find(s => s.id === apt.salonId) : null;
+                
                 detailHtml += `
                     <div class="day-detail-item">
                         <div class="day-detail-time" style="color:${userColor}">${apt.time} – ${endStr}</div>
                         <div class="day-detail-info">
                             <strong>${client.name}</strong>
                             <span>${service.name} · ${service.duration} min${apt.notes ? ' · ' + apt.notes : ''}</span>
+                            ${salon ? `<span style="color:var(--accent-color);font-size:0.8rem">📍 ${salon.name}</span>` : ''}
                             <span class="apt-user-key" style="color:${userColor}" title="${apt.userEmail}">${userDisplay}</span>
                             ${photosHtml}
                             </div>
                         </div>
                         <div class="day-detail-actions">
+                            <button class="edit-apt-btn" data-id="${apt.id}" title="Editar cita" style="background:none;border:none;cursor:pointer;margin-right:8px;">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </button>
                             <button class="delete-btn" data-id="${apt.id}" title="Eliminar cita">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
@@ -1296,6 +1369,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             monthAppointments.forEach((apt, idx) => {
                 const client = State.clients.find(c => c.id === apt.clientId) || { name: 'Eliminado' };
                 const service = State.services.find(s => s.id === apt.serviceId) || { name: 'Eliminado', duration: 0, price: 0 };
+                const salon = apt.salonId ? State.salons.find(s => s.id === apt.salonId) : null;
                 const endTime = new Date(new Date(`${apt.date}T${apt.time}`).getTime() + (service.duration || 0) * 60000);
                 const endStr = endTime.toTimeString().substring(0, 5);
 
@@ -1309,7 +1383,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     const dayCount = monthAppointments.filter(a => a.date === apt.date).length;
                     tableRows += `
                         <tr class="monthly-date-row">
-                            <td colspan="6">
+                            <td colspan="7">
                                 <span class="monthly-date-label">${dayLabel}</span>
                                 <span class="monthly-date-count">${dayCount} cita${dayCount !== 1 ? 's' : ''}</span>
                             </td>
@@ -1328,6 +1402,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                         </td>
                         <td>
                             <span class="monthly-service-badge">${service.name}</span>
+                        </td>
+                        <td>
+                            <span style="color:var(--accent-color);font-size:0.85rem">${salon ? salon.name : '—'}</span>
                         </td>
                         <td>${service.duration} min</td>
                         <td style="font-weight:600">${parseFloat(service.price).toFixed(2)} €</td>
@@ -1419,6 +1496,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             <th>Hora</th>
                             <th>Cliente</th>
                             <th>Servicio</th>
+                            <th>Salón</th>
                             <th>Duración</th>
                             <th>Precio</th>
                             <th>Notas</th>
@@ -1644,8 +1722,111 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
     }
 
     /* ═════════════════════════════════════
-       EVENT BINDING
-       ═════════════════════════════════════ */
+        SALONS VIEW
+        ═════════════════════════════════════ */
+    function getSalonsView() {
+        let rows = '';
+        if (State.salons.length === 0) {
+            rows = `
+            <div class="empty-state data-card">
+                <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                <h3>No hay salones registrados</h3>
+                <p>Añade los salones donde trabajas.</p>
+            </div>`;
+        } else {
+            rows = `
+            <div class="data-card">
+                <table class="table">
+                    <thead><tr><th>Nombre</th><th>Dirección</th><th>Teléfono</th><th>Email</th><th>Acciones</th></tr></thead>
+                    <tbody>
+                    ${State.salons.map(s => `
+                        <tr>
+                            <td style="font-weight:600">${s.name}</td>
+                            <td>${s.address || '—'}</td>
+                            <td>${s.phone ? `<a href="https://wa.me/${s.phone.replace(/\D/g, '')}" target="_blank" style="color:var(--text-secondary)">${s.phone}</a>` : '—'}</td>
+                            <td>${s.email || '—'}</td>
+                            <td>
+                                <div class="actions">
+                                    <button class="edit-btn" data-id="${s.id}" data-type="salon" title="Editar">
+                                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                    </button>
+                                    <button class="delete-btn" data-id="${s.id}" data-type="salon" title="Eliminar">
+                                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+        }
+
+        return `
+            <div class="section-header">
+                <div><h1 class="section-title">Salones</h1><p style="color:var(--text-secondary)">Gestión de salones · <span class="supabase-badge">⚡ Supabase</span></p></div>
+                <button class="btn btn-primary" id="btn-add-salon">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                    Añadir Salón
+                </button>
+            </div>
+            ${rows}`;
+    }
+
+    function showSalonForm(info = null) {
+        const isEdit = !!info;
+        const html = `
+            <form id="salon-form">
+                <div class="form-group">
+                    <label>Nombre del Salón</label>
+                    <input type="text" class="form-control" name="name" required value="${isEdit ? info.name : ''}">
+                </div>
+                <div class="form-group">
+                    <label>Dirección</label>
+                    <input type="text" class="form-control" name="address" value="${isEdit ? (info.address || '') : ''}" placeholder="Calle, número, ciudad...">
+                </div>
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="tel" class="form-control" name="phone" value="${isEdit ? (info.phone || '') : ''}" placeholder="+34 600 000 000">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" class="form-control" name="email" value="${isEdit ? (info.email || '') : ''}" placeholder="salon@ejemplo.com">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">${isEdit ? 'Guardar' : 'Añadir'}</button>
+                </div>
+            </form>`;
+
+        openModal(isEdit ? 'Editar Salón' : 'Nuevo Salón', html, () => {
+            document.getElementById('salon-form').addEventListener('submit', async e => {
+                e.preventDefault();
+                const submitBtn = e.target.querySelector('[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Guardando…';
+
+                const fd = new FormData(e.target);
+                const data = {
+                    id: isEdit ? info.id : generateId(),
+                    name: fd.get('name'),
+                    address: fd.get('address'),
+                    phone: fd.get('phone'),
+                    email: fd.get('email')
+                };
+
+                let success;
+                if (isEdit) success = await updateSalon(data);
+                else success = await addSalon(data);
+
+                if (success) { closeModal(); renderRoute(); }
+                else { submitBtn.disabled = false; submitBtn.textContent = isEdit ? 'Guardar' : 'Añadir'; }
+            });
+        });
+    }
+
+    /* ═════════════════════════════════════
+        MONTHLY LISTING VIEW
+        ═════════════════════════════════════ */
     function attachEvents() {
         // Add buttons
         const btnSettings = document.getElementById('btn-settings');
@@ -1656,6 +1837,10 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
 
         const btnAddService = document.getElementById('btn-add-service');
         if (btnAddService) btnAddService.addEventListener('click', () => showServiceForm());
+
+        // Salons
+        const btnAddSalon = document.getElementById('btn-add-salon');
+        if (btnAddSalon) btnAddSalon.addEventListener('click', () => showSalonForm());
 
         // Monthly listing controls
         const monthlyPrev = document.getElementById('monthly-prev');
@@ -1731,6 +1916,10 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     if (confirm('¿Eliminar este servicio? Se eliminarán también las citas asociadas.')) {
                         if (await deleteService(id)) renderRoute();
                     }
+                } else if (type === 'salon') {
+                    if (confirm('¿Eliminar este salón?')) {
+                        if (await deleteSalon(id)) renderRoute();
+                    }
                 } else {
                     if (confirm('¿Cancelar esta cita?')) {
                         if (await deleteAppointment(id)) renderRoute();
@@ -1792,6 +1981,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 const type = e.currentTarget.dataset.type;
                 if (type === 'client') showClientForm(State.clients.find(c => c.id === id));
                 else if (type === 'service') showServiceForm(State.services.find(s => s.id === id));
+                else if (type === 'salon') showSalonForm(State.salons.find(s => s.id === id));
             });
         });
 
@@ -2755,6 +2945,13 @@ window.addEventListener('message', async (event) => {
                         ${State.services.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.serviceId ? 'selected' : ''}>${s.name} (${s.duration} min · ${parseFloat(s.price).toFixed(2)}€)</option>`).join('')}
                     </select>
                 </div>
+                <div class="form-group">
+                    <label>Salón</label>
+                    <select class="form-control" name="salonId">
+                        <option value="">Sin salón asignado</option>
+                        ${State.salons.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.salonId ? 'selected' : ''}>${s.name}</option>`).join('')}
+                    </select>
+                </div>
                 <div style="display:flex;gap:1rem">
                     <div class="form-group" style="flex:1">
                         <label>Fecha</label>
@@ -2868,6 +3065,7 @@ window.addEventListener('message', async (event) => {
                 const data = {
                     clientId: fd.get('clientId'),
                     serviceId: fd.get('serviceId'),
+                    salonId: fd.get('salonId') || null,
                     date: fd.get('date'),
                     time: fd.get('time'),
                     notes: fd.get('notes'),
