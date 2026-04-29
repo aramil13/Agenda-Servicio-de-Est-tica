@@ -1230,7 +1230,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     const [stH_str, stM_str] = [Math.floor(clippedStart / 60).toString().padStart(2, '0'), (clippedStart % 60).toString().padStart(2, '0')];
                     const [endH_str, endM_str] = [Math.floor(clippedEnd / 60).toString().padStart(2, '0'), (clippedEnd % 60).toString().padStart(2, '0')];
                     const bgOption = bgPalette[idx % bgPalette.length];
-                    timelineHtml += `<div class="timeline-segment booked" style="width:${pct}%; background: ${bgOption}; border-left: 1px solid rgba(255,255,255,0.4); border-right: 1px solid rgba(255,255,255,0.4);" title="Ocupado: ${stH_str}:${stM_str} - ${endH_str}:${endM_str}"></div>`;
+                    timelineHtml += `<div class="timeline-segment booked" style="width:${pct}%; background: ${bgOption}; border-left: 1px solid rgba(255,255,255,0.4); border-right: 1px solid rgba(255,255,255,0.4);" title="Ocupado: ${stH_str}:${stM_str} - ${endH_str}:${endM_str}"><span class="segment-time">${stH_str}:${stM_str}-${endH_str}:${endM_str}</span></div>`;
                 }
 
                 cursorMins = Math.max(cursorMins, clippedEnd);
@@ -1246,6 +1246,21 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             }
         }
         timelineHtml += '</div>';
+
+        // Time ruler with all time slots
+        const slotInterval = 60; // minutes per slot, show hourly marks
+        const numSlots = Math.floor(totalMinutes / slotInterval);
+        timelineHtml += '<div class="timeline-ruler">';
+        for (let i = 0; i <= numSlots; i++) {
+            const mins = startDayMins + i * slotInterval;
+            if (mins > endDayMins) break;
+            const h = Math.floor(mins / 60).toString().padStart(2, '0');
+            const m = (mins % 60).toString().padStart(2, '0');
+            const pct = (i / numSlots) * 100;
+            timelineHtml += `<span class="timeline-tick" style="left:${pct}%">${h}:${m}</span>`;
+        }
+        timelineHtml += '</div>';
+
         timelineHtml += `
             <div class="timeline-legend">
                 <div class="legend-item"><span class="legend-color free-color"></span> Libre</div>
