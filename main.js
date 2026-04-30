@@ -2622,11 +2622,11 @@ if (analyzeBtn) {
         const shinyRatio = shinyPixels / totalPixels;
         const dryRatio = dryPixels / totalPixels;
         
-        // Calcular nivel de sebo de 0 a 10 (sensibilidad bajada)
+        // Calcular nivel de sebo de 0 a 10
         let sebumValue = 5; // Normal base
-        if (shinyRatio > 0.4) {
+        if (shinyRatio > 0.28) { // +30% sensibilidad
             sebumValue = 8 + Math.floor(shinyRatio * 10); // 8-10 Alto
-        } else if (dryRatio > 0.5) {
+        } else if (dryRatio > 0.35) { // +30% sensibilidad
             sebumValue = 2 + Math.floor(dryRatio * 10); // 0-3 Normal bajo
         } else {
             sebumValue = 4 + Math.floor(Math.random() * 3); // 4-6 Normal medio
@@ -2671,12 +2671,12 @@ if (analyzeBtn) {
             
             if (isSkinTone) skinPixels++;
             
-            const isDandruff = brightness > 240 && saturation < 0.1 && (maxChannel - minChannel) > 50 && !isSkinTone;
+            const isDandruff = brightness > 250 && saturation < 0.05 && (maxChannel - minChannel) > 75 && !isSkinTone; // -50% sensibilidad
             if (isDandruff) dandruffPixels++;
         }
         
         const dandruffRatio = (dandruffPixels / totalPixels) * 100;
-        let dandruffValue = Math.round(dandruffRatio * 2); // Sensibilidad muy reducida
+        let dandruffValue = Math.round(dandruffRatio * 1); // -50% sensibilidad
         dandruffValue = Math.min(10, Math.max(0, dandruffValue));
         
         // Determinar etiqueta según rango
