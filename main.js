@@ -2622,11 +2622,11 @@ if (analyzeBtn) {
         const shinyRatio = shinyPixels / totalPixels;
         const dryRatio = dryPixels / totalPixels;
         
-        // Calcular nivel de sebo de 0 a 10
+        // Calcular nivel de sebo de 0 a 10 (sensibilidad bajada)
         let sebumValue = 5; // Normal base
-        if (shinyRatio > 0.15) {
+        if (shinyRatio > 0.4) {
             sebumValue = 8 + Math.floor(shinyRatio * 10); // 8-10 Alto
-        } else if (dryRatio > 0.2) {
+        } else if (dryRatio > 0.5) {
             sebumValue = 2 + Math.floor(dryRatio * 10); // 0-3 Normal bajo
         } else {
             sebumValue = 4 + Math.floor(Math.random() * 3); // 4-6 Normal medio
@@ -2671,12 +2671,12 @@ if (analyzeBtn) {
             
             if (isSkinTone) skinPixels++;
             
-            const isDandruff = brightness > 220 && saturation < 0.15 && (maxChannel - minChannel) > 30 && !isSkinTone;
+            const isDandruff = brightness > 240 && saturation < 0.1 && (maxChannel - minChannel) > 50 && !isSkinTone;
             if (isDandruff) dandruffPixels++;
         }
         
         const dandruffRatio = (dandruffPixels / totalPixels) * 100;
-        let dandruffValue = Math.round(dandruffRatio * 10);
+        let dandruffValue = Math.round(dandruffRatio * 2); // Sensibilidad muy reducida
         dandruffValue = Math.min(10, Math.max(0, dandruffValue));
         
         // Determinar etiqueta según rango
@@ -2731,7 +2731,7 @@ window.addEventListener('message', async (event) => {
                                 photo_url: publicUrl,
                                 photo_date: new Date().toISOString().split('T')[0],
                                 photo_type: 'antes',
-                                notes: `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'}, Caspa: ${results?.dandruff || '--'}, Grasa: ${results?.grease || '--'}`
+                                notes: `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'}, Caspa: ${results?.dandruff || '--'}`
                             });
                             
                             console.log('Diagnosis photo saved:', publicUrl);

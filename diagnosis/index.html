@@ -180,9 +180,8 @@
                 </button>
 
                 <div id="camera-container" style="display:none;">
-                    <video id="video" autoplay playsinline></video>
+                    <video id="video" autoplay playsinline style="cursor:pointer;" title="Toca para capturar"></video>
                     <div style="display: flex; gap: 10px; padding: 15px; background: rgba(0,0,0,0.5);">
-                        <button id="shutter-btn" class="primary-btn">Capturar</button>
                         <button id="cancel-camera-btn" class="secondary-btn" style="margin:0;">Cancelar</button>
                     </div>
                 </div>
@@ -225,10 +224,6 @@
                     <div class="metric-card">
                         <div class="metric-value" id="val-dandruff">--</div>
                         <div class="metric-label">Nivel Caspa (1-10)</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value" id="val-grease">--</div>
-                        <div class="metric-label">Nivel Grasa (1-10)</div>
                     </div>
                 </div>
 
@@ -351,7 +346,6 @@
             cameraBtn: document.getElementById('camera-btn'),
             cameraContainer: document.getElementById('camera-container'),
             video: document.getElementById('video'),
-            shutterBtn: document.getElementById('shutter-btn'),
             cancelCameraBtn: document.getElementById('cancel-camera-btn'),
             previewImg: document.getElementById('preview-img'),
             actionButtons: document.getElementById('action-buttons'),
@@ -384,7 +378,7 @@
             elements.cameraBtn.style.display = 'flex';
         }
 
-        elements.shutterBtn.onclick = () => {
+        elements.video.onclick = () => {
             const canvas = document.createElement('canvas');
             canvas.width = elements.video.videoWidth;
             canvas.height = elements.video.videoHeight;
@@ -441,20 +435,13 @@
                 let dandruffLevel = 'Bajo';
                 if (dandruffRaw > 3 && dandruffRaw <= 7) dandruffLevel = 'Medio';
                 if (dandruffRaw > 7) dandruffLevel = 'Alto';
-                
-                const greaseRaw = Math.floor(Math.random() * 10) + 1;
-                let greaseLevel = 'Bajo';
-                if (greaseRaw > 3 && greaseRaw <= 7) greaseLevel = 'Medio';
-                if (greaseRaw > 7) greaseLevel = 'Alto';
-                
+
                 const results = {
                     density, thickness, hydration,
                     sebum: sebumLevel,
                     sebumValue: sebumRaw,
                     dandruff: dandruffLevel,
                     dandruffValue: dandruffRaw,
-                    grease: greaseLevel,
-                    greaseValue: greaseRaw,
                     isColored: elements.coloredHair.checked
                 };
 
@@ -463,7 +450,6 @@
                 document.getElementById('val-hydration').textContent = hydration + '% (55-75%)';
                 document.getElementById('val-sebum').textContent = sebumLevel + ' (' + sebumRaw + '/10)';
                 document.getElementById('val-dandruff').textContent = dandruffLevel + ' (' + dandruffRaw + '/10)';
-                document.getElementById('val-grease').textContent = greaseLevel + ' (' + greaseRaw + '/10)';
 
                 renderRecommendations(results);
                 currentDiagnosisResults = results;
@@ -549,7 +535,7 @@
             }
             
             // Purifying Cleanse (cuero cabelludo graso)
-            if (sebum === 'Alto' || diagnosis.grease === 'Alto') {
+            if (sebum === 'Alto') {
                 addToCategory(MARIA_NILA_PRODUCTS.purifyingCleanseShampoo);
                 addToCategory(MARIA_NILA_PRODUCTS.purifyingCleanseDetoxMasque);
             }
