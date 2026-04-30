@@ -2671,12 +2671,12 @@ if (analyzeBtn) {
             
             if (isSkinTone) skinPixels++;
             
-            const isDandruff = brightness > 250 && saturation < 0.05 && (maxChannel - minChannel) > 75 && !isSkinTone; // -50% sensibilidad
+            const isDandruff = brightness > 252 && saturation < 0.03 && (maxChannel - minChannel) > 100 && !isSkinTone; // -80% sensibilidad total
             if (isDandruff) dandruffPixels++;
         }
         
         const dandruffRatio = (dandruffPixels / totalPixels) * 100;
-        let dandruffValue = Math.round(dandruffRatio * 1); // -50% sensibilidad
+        let dandruffValue = Math.round(dandruffRatio * 0.14); // -93% sensibilidad total
         dandruffValue = Math.min(10, Math.max(0, dandruffValue));
         
         // Determinar etiqueta según rango
