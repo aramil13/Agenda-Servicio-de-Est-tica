@@ -1,20 +1,116 @@
 ﻿// Base de datos de productos Maria Nila
 const MARIA_NILA_PRODUCTS = {
-    // Champús
+    // ==================== HEAD & HAIR HEAL (Cuero cabelludo sensible) ====================
     headHairHealShampoo: { name: "Head & Hair Heal Shampoo", desc: "Calma cuero cabelludo sensible con aloe vera y piroctona olamina.", img: "https://marianila.com/cdn/shop/files/13650-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-shampoo-350-ml", category: "scalp" },
-    trueSoftShampoo: { name: "True Soft Shampoo", desc: "Hidratación profunda con aceite de argán para cabello seco.", img: "https://marianila.com/cdn/shop/files/3630-packshot.jpg", url: "https://marianila.com/products/true-soft-shampoo-350-ml", category: "dry" },
-    pureVolumeShampoo: { name: "Pure Volume Shampoo", desc: "Voluminizador con provitamina B5 para cabello fino.", img: "https://marianila.com/cdn/shop/files/3610-packshot.jpg", url: "https://marianila.com/products/pure-volume-shampoo-350-ml", category: "fine" },
-    luminousColourShampoo: { name: "Luminous Colour Shampoo", desc: "Preserva color con extracto de Granada.", img: "https://marianila.com/cdn/shop/files/3625-packshot.jpg", url: "https://marianila.com/products/luminous-colour-shampoo-350-ml", category: "colored" },
-    purifyingCleanseShampoo: { name: "Purifying Cleanse Shampoo", desc: "Champú purificante para cuero cabelludo graso.", img: "https://marianila.com/cdn/shop/files/3615-packshot.jpg", url: "https://marianila.com/products/purifying-cleanse-shampoo-350-ml", category: "oily" },
-    structureRepairShampoo: { name: "Structure Repair Shampoo", desc: "Repara cabello dañado con keratina.", img: "https://marianila.com/cdn/shop/files/3600-packshot.jpg", url: "https://marianila.com/products/structure-repair-shampoo-350-ml", category: "damaged" },
-    // Acondicionadores
     headHairHealConditioner: { name: "Head & Hair Heal Conditioner", desc: "Acondicionador calmante para el cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/13651-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-conditioner-300-ml", category: "scalp" },
-    trueSoftConditioner: { name: "True Soft Conditioner", desc: "Acondicionador hidratante con aceite de argán.", img: "https://marianila.com/cdn/shop/files/3631-packshot.jpg", url: "https://marianila.com/products/true-soft-conditioner-300-ml", category: "dry" },
+    headHairHealMasque: { name: "Head & Hair Heal Masque", desc: "Mascarilla calmante con aloe vera para cuero cabelludo sensible.", img: "https://marianila.com/cdn/shop/files/13652-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-masque-250-ml", category: "scalp" },
+    headHairHealSoothingSerum: { name: "Head & Hair Heal Serum", desc: "Serum calmante para el cuero cabelludo con aloe vera.", img: "https://marianila.com/cdn/shop/files/13653-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-soothing-serum-150-ml", category: "scalp" },
+    headHairHealScalpScrub: { name: "Head & Hair Heal Scalp Scrub", desc: "Exfoliante fisico para cuero cabelludo sensible con sales marinas.", img: "https://marianila.com/cdn/shop/files/13655-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-scalp-scrub-200-ml", category: "scalp" },
+    headHairHealScalpTonic: { name: "Head & Hair Heal Scalp Tonic", desc: "Tonico calmante para reducir irritacion y picazon del cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/13656-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-scalp-tonic-150-ml", category: "scalp" },
+    headHairHealDuo: { name: "Head & Hair Heal Care Duo", desc: "Pack ahorro champu + acondicionador para cuero cabelludo sensible.", img: "https://marianila.com/cdn/shop/files/13654-packshot.jpg", url: "https://marianila.com/products/care-duo-head-hair-heal", category: "scalp" },
+    
+    // ==================== TRUE SOFT (Cabello seco) ====================
+    trueSoftShampoo: { name: "True Soft Shampoo", desc: "Hidratacion profunda con aceite de argan para cabello seco.", img: "https://marianila.com/cdn/shop/files/3630-packshot.jpg", url: "https://marianila.com/products/true-soft-shampoo-350-ml", category: "dry" },
+    trueSoftConditioner: { name: "True Soft Conditioner", desc: "Acondicionador hidratante con aceite de argan.", img: "https://marianila.com/cdn/shop/files/3631-packshot.jpg", url: "https://marianila.com/products/true-soft-conditioner-300-ml", category: "dry" },
+    trueSoftMasque: { name: "True Soft Masque", desc: "Mascarilla nutritiva para cabello seco con aceite de argan.", img: "https://marianila.com/cdn/shop/files/3632-packshot.jpg", url: "https://marianila.com/products/true-soft-masque-250-ml", category: "dry" },
+    trueSoftArganOil: { name: "True Soft Argan Oil", desc: "Aceite de argan para hidratacion.", img: "https://marianila.com/cdn/shop/files/3637-packshot.jpg", url: "https://marianila.com/products/true-soft-argan-oil-100-ml", category: "dry" },
+    trueSoftBoosterMasque: { name: "True Soft Booster Masque", desc: "Mascarilla intensiva para cabello muy seco.", img: "https://marianila.com/cdn/shop/files/3633-packshot.jpg", url: "https://marianila.com/products/true-soft-booster-masque-250-ml", category: "dry" },
+    trueSoftLeaveInCream: { name: "True Soft Leave In Cream", desc: "Crema sin enjuague hidratante con aceite de argan para cabello seco.", img: "https://marianila.com/cdn/shop/files/3635-packshot.jpg", url: "https://marianila.com/products/true-soft-leave-in-cream-100-ml", category: "dry" },
+    trueSoftHairPrimer: { name: "True Soft Hair Primer", desc: "Pre-shampoo hidratante que facilita el desenredado y protege.", img: "https://marianila.com/cdn/shop/files/3636-packshot.jpg", url: "https://marianila.com/products/true-soft-hair-primer-150-ml", category: "dry" },
+    trueSoftDuo: { name: "True Soft Care Duo", desc: "Pack ahorro champu + acondicionador True Soft.", img: "https://marianila.com/cdn/shop/files/3634-packshot.jpg", url: "https://marianila.com/products/care-duo-true-soft", category: "dry" },
+    
+    // ==================== PURE VOLUME (Cabello fino) ====================
+    pureVolumeShampoo: { name: "Pure Volume Shampoo", desc: "Voluminizador con provitamina B5 para cabello fino.", img: "https://marianila.com/cdn/shop/files/3610-packshot.jpg", url: "https://marianila.com/products/pure-volume-shampoo-350-ml", category: "fine" },
     pureVolumeConditioner: { name: "Pure Volume Conditioner", desc: "Acondicionador voluminizador ligero.", img: "https://marianila.com/cdn/shop/files/3611-packshot.jpg", url: "https://marianila.com/products/pure-volume-conditioner-300-ml", category: "fine" },
+    pureVolumeMasque: { name: "Pure Volume Masque", desc: "Mascarilla voluminizadora con provitamina B5.", img: "https://marianila.com/cdn/shop/files/3612-packshot.jpg", url: "https://marianila.com/products/pure-volume-masque-250-ml", category: "fine" },
+    pureVolumeMousse: { name: "Pure Volume Mousse", desc: "Espuma nutritiva y voluminizadora para cabello fino.", img: "https://marianila.com/cdn/shop/files/3613-packshot.jpg", url: "https://marianila.com/products/pure-volume-mousse-300-ml", category: "fine" },
+    pureVolumeLeaveInCream: { name: "Pure Volume Leave In Cream", desc: "Crema ligera sin enjuague para dar cuerpo al cabello fino.", img: "https://marianila.com/cdn/shop/files/3614-packshot.jpg", url: "https://marianila.com/products/pure-volume-leave-in-cream-100-ml", category: "fine" },
+
+    // ==================== LUMINOUS COLOUR (Cabello teñido) ====================
+    luminousColourShampoo: { name: "Luminous Colour Shampoo", desc: "Preserva color con extracto de Granada.", img: "https://marianila.com/cdn/shop/files/3625-packshot.jpg", url: "https://marianila.com/products/luminous-colour-shampoo-350-ml", category: "colored" },
     luminousColourConditioner: { name: "Luminous Colour Conditioner", desc: "Acondicionador preservador de color.", img: "https://marianila.com/cdn/shop/files/3626-packshot.jpg", url: "https://marianila.com/products/luminous-colour-conditioner-300-ml", category: "colored" },
-    // Tratamientos
-    bondBuilder: { name: "Bond Builder", desc: "Reparador de enlaces capilares intensivo.", img: "https://marianila.com/cdn/shop/files/mnproductpage1200x1500px1.jpg", url: "https://marianila.com/products/bond-builder", category: "damaged" },
-    trueSoftArganOil: { name: "True Soft Argan Oil", desc: "Aceite de argán para hidratación.", img: "https://marianila.com/cdn/shop/files/IMG_c_s_3637_soft_argan_oil_100_ml.jpg", url: "https://marianila.com/products/true-soft-argan-oil-100-ml", category: "dry" }
+    luminousColourMasque: { name: "Luminous Colour Masque", desc: "Mascarilla protectora del color con extracto de granada.", img: "https://marianila.com/cdn/shop/files/3627-packshot.jpg", url: "https://marianila.com/products/luminous-colour-masque-250-ml", category: "colored" },
+    luminousColourLeaveInCream: { name: "Luminous Colour Leave In Cream", desc: "Crema sin enjuague que sella el color y aporta brillo.", img: "https://marianila.com/cdn/shop/files/3628-packshot.jpg", url: "https://marianila.com/products/luminous-colour-leave-in-cream-100-ml", category: "colored" },
+    luminousColourToneFinishSpray: { name: "Luminous Colour Tone Finish Spray", desc: "Spray fijador que mantiene el color vibrante y aporta brillo.", img: "https://marianila.com/cdn/shop/files/3629-packshot.jpg", url: "https://marianila.com/products/luminous-colour-tone-finish-spray-150-ml", category: "colored" },
+
+    // ==================== PURIFYING CLEANSE (Cuero cabelludo graso) ====================
+    purifyingCleanseShampoo: { name: "Purifying Cleanse Shampoo", desc: "Champu purificante para cuero cabelludo graso.", img: "https://marianila.com/cdn/shop/files/3615-packshot.jpg", url: "https://marianila.com/products/purifying-cleanse-shampoo-350-ml", category: "oily" },
+    purifyingCleanseExfoliatingSerum: { name: "Purifying Cleansing Serum", desc: "Serum exfoliante detox para el cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/3616-packshot.jpg", url: "https://marianila.com/products/purifying-cleanse-exfoliating-serum-150-ml", category: "oily" },
+    purifyingCleanseDetoxMasque: { name: "Purifying Cleanse Detox Masque", desc: "Mascarilla detox purificante para cuero cabelludo graso.", img: "https://marianila.com/cdn/shop/files/3617-packshot.jpg", url: "https://marianila.com/products/purifying-cleanse-detox-masque-250-ml", category: "oily" },
+
+    // ==================== STRUCTURE REPAIR (Cabello dañado) ====================
+    structureRepairShampoo: { name: "Structure Repair Shampoo", desc: "Repara cabello dañado con keratina.", img: "https://marianila.com/cdn/shop/files/3600-packshot.jpg", url: "https://marianila.com/products/structure-repair-shampoo-350-ml", category: "damaged" },
+    structureRepairConditioner: { name: "Structure Repair Conditioner", desc: "Acondicionador reparador con keratina.", img: "https://marianila.com/cdn/shop/files/3601-packshot.jpg", url: "https://marianila.com/products/structure-repair-conditioner-300-ml", category: "damaged" },
+    structureRepairMasque: { name: "Structure Repair Masque", desc: "Mascarilla reparadora intensiva con keratina.", img: "https://marianila.com/cdn/shop/files/3602-packshot.jpg", url: "https://marianila.com/products/structure-repair-masque-250-ml", category: "damaged" },
+    structureRepairLeaveInCream: { name: "Structure Repair Leave In Cream", desc: "Crema sin enjuague reparadora para cabello dañado.", img: "https://marianila.com/cdn/shop/files/3603-packshot.jpg", url: "https://marianila.com/products/structure-repair-leave-in-cream-100-ml", category: "damaged" },
+    bondBuilder: { name: "Bond Builder", desc: "Reparador de enlaces capilares intensivo.", img: "https://marianila.com/cdn/shop/files/3604-packshot.jpg", url: "https://marianila.com/products/bond-builder-100-ml", category: "damaged" },
+    structureRepairBondingBooster: { name: "Structure Repair Bonding Booster", desc: "Potenciador de union que refuerza enlaces capilares en tratamientos quimicos.", img: "https://marianila.com/cdn/shop/files/3605-packshot.jpg", url: "https://marianila.com/products/structure-repair-bonding-booster-100-ml", category: "damaged" },
+
+    // ==================== SHEER SILVER (Cabello rubio/canoso) ====================
+    sheerSilverShampoo: { name: "Sheer Silver Shampoo", desc: "Pigmentos violeta que neutralizan tonos dorados en rubios.", img: "https://marianila.com/cdn/shop/files/3640-packshot.jpg", url: "https://marianila.com/products/sheer-silver-shampoo-350-ml", category: "blonde" },
+    sheerSilverConditioner: { name: "Sheer Silver Conditioner", desc: "Acondicionador con pigmentos violeta para rubios.", img: "https://marianila.com/cdn/shop/files/3641-packshot.jpg", url: "https://marianila.com/products/sheer-silver-conditioner-300-ml", category: "blonde" },
+    sheerSilverMasque: { name: "Sheer Silver Masque", desc: "Mascarilla con pigmentos violeta para neutralizar tonos.", img: "https://marianila.com/cdn/shop/files/3642-packshot.jpg", url: "https://marianila.com/products/sheer-silver-masque-250-ml", category: "blonde" },
+    sheerSilverBoosterMasque: { name: "Sheer Silver Booster Masque", desc: "Mascarilla intensiva con pigmentos violeta.", img: "https://marianila.com/cdn/shop/files/3643-packshot.jpg", url: "https://marianila.com/products/sheer-silver-booster-masque-250-ml", category: "blonde" },
+    sheerSilverToneFixerSpray: { name: "Sheer Silver Tone Fixer Spray", desc: "Spray fijador con pigmentos violeta para neutralizar tonos amarillos entre lavados.", img: "https://marianila.com/cdn/shop/files/3645-packshot.jpg", url: "https://marianila.com/products/sheer-silver-tone-fixer-spray-150-ml", category: "blonde" },
+    sheerSilverDuo: { name: "Sheer Silver Shampoo + Conditioner Duo", desc: "Pack champu y acondicionador con pigmentos violeta para rubios.", img: "https://marianila.com/cdn/shop/files/3644-packshot.jpg", url: "https://marianila.com/products/sheer-silver-shampoo-conditioner-duo", category: "blonde" },
+    
+    // ==================== COLOUR REFRESH (Máscaras de color) ====================
+    colourRefreshAutumnRed: { name: "Colour Refresh Autumn Red", desc: "Mascara de color rojo intenso con aceite de argan.", img: "https://marianila.com/cdn/shop/files/3650-packshot.jpg", url: "https://marianila.com/products/colour-refresh-autumn-red-100-ml", category: "color-mask" },
+    colourRefreshCacao: { name: "Colour Refresh Cacao", desc: "Mascara de color marron oscuro con aceite de argan.", img: "https://marianila.com/cdn/shop/files/3651-packshot.jpg", url: "https://marianila.com/products/colour-refresh-cacao-100-ml", category: "color-mask" },
+    colourRefreshCacaoIntense: { name: "Colour Refresh Cacao Intense", desc: "Mascara de color marron muy oscuro.", img: "https://marianila.com/cdn/shop/files/3652-packshot.jpg", url: "https://marianila.com/products/colour-refresh-cacao-intense-100-ml", category: "color-mask" },
+    colourRefreshPearlSilver: { name: "Colour Refresh Pearl Silver", desc: "Mascara de color plata con pigmentos violeta.", img: "https://marianila.com/cdn/shop/files/3653-packshot.jpg", url: "https://marianila.com/products/colour-refresh-pearl-silver-100-ml", category: "color-mask" },
+    colourRefreshBrightCopper: { name: "Colour Refresh Bright Copper", desc: "Mascara de color cobre brillante.", img: "https://marianila.com/cdn/shop/files/3666-packshot.jpg", url: "https://marianila.com/products/colour-refresh-bright-copper-300-ml", category: "color-mask" },
+    colourRefreshBrightRed: { name: "Colour Refresh Bright Red", desc: "Mascara de color rojo brillante intenso.", img: "https://marianila.com/cdn/shop/files/3655-packshot.jpg", url: "https://marianila.com/products/colour-refresh-bright-red-100-ml", category: "color-mask" },
+    colourRefreshCoolCream: { name: "Colour Refresh Cool Cream", desc: "Mascara de color beige frio para rubios.", img: "https://marianila.com/cdn/shop/files/3656-packshot.jpg", url: "https://marianila.com/products/colour-refresh-cool-cream-100-ml", category: "color-mask" },
+    colourRefreshPinkPeach: { name: "Colour Refresh Pink Peach", desc: "Mascara de color rosa melocoton.", img: "https://marianila.com/cdn/shop/files/3657-packshot.jpg", url: "https://marianila.com/products/colour-refresh-pink-peach-100-ml", category: "color-mask" },
+    colourRefreshLavender: { name: "Colour Refresh Lavender", desc: "Mascara de color lavanda suave.", img: "https://marianila.com/cdn/shop/files/3658-packshot.jpg", url: "https://marianila.com/products/colour-refresh-lavender-100-ml", category: "color-mask" },
+    colourRefreshBeigeBlonde: { name: "Colour Refresh Beige Blonde", desc: "Mascara de color rubio beige.", img: "https://marianila.com/cdn/shop/files/3659-packshot.jpg", url: "https://marianila.com/products/colour-refresh-beige-blonde-100-ml", category: "color-mask" },
+    colourRefreshCaramelBrown: { name: "Colour Refresh Caramel Brown", desc: "Mascara de color marron caramelo.", img: "https://marianila.com/cdn/shop/files/3660-packshot.jpg", url: "https://marianila.com/products/colour-refresh-caramel-brown-100-ml", category: "color-mask" },
+    colourRefreshPearlRose: { name: "Colour Refresh Pearl Rose", desc: "Mascara de color rosa perla.", img: "https://marianila.com/cdn/shop/files/3661-packshot.jpg", url: "https://marianila.com/products/colour-refresh-pearl-rose-100-ml", category: "color-mask" },
+    colourRefreshWhiteMix: { name: "Colour Refresh White Mix", desc: "Base blanca para diluir y crear tonos pastel.", img: "https://marianila.com/cdn/shop/files/3662-packshot.jpg", url: "https://marianila.com/products/colour-refresh-white-mix-100-ml", category: "color-mask" },
+    colourRefreshHoneyBlonde: { name: "Colour Refresh Honey Blonde", desc: "Mascara de color rubio miel.", img: "https://marianila.com/cdn/shop/files/3663-packshot.jpg", url: "https://marianila.com/products/colour-refresh-honey-blonde-100-ml", category: "color-mask" },
+    colourRefreshBlack: { name: "Colour Refresh Black", desc: "Mascara de color negro intenso.", img: "https://marianila.com/cdn/shop/files/3664-packshot.jpg", url: "https://marianila.com/products/colour-refresh-black-100-ml", category: "color-mask" },
+    colourRefreshVividViolet: { name: "Colour Refresh Vivid Violet", desc: "Mascara de color violeta vivo.", img: "https://marianila.com/cdn/shop/files/3665-packshot.jpg", url: "https://marianila.com/products/colour-refresh-vivid-violet-100-ml", category: "color-mask" },
+
+    // ==================== COILS & CURLS (Cabello rizado) ====================
+    coilsCurlsCoWash: { name: "Coils & Curls Co-Wash", desc: "Limpieza suave sin sulfatos para rizos.", img: "https://marianila.com/cdn/shop/files/3670-packshot.jpg", url: "https://marianila.com/products/coils-curls-co-wash", category: "curly" },
+    coilsCurlsOilInCream: { name: "Coils & Curls Oil In Cream", desc: "Crema leave-in definidora de rizos con manteca de karite.", img: "https://marianila.com/cdn/shop/files/3671-packshot.jpg", url: "https://marianila.com/products/coils-curls-oil-in-cream", category: "curly" },
+    coilsCurlsFinishingTreatmentMasque: { name: "Coils & Curls Finishing Masque", desc: "Mascarilla nutritiva para definir y suavizar rizos.", img: "https://marianila.com/cdn/shop/files/3672-packshot.jpg", url: "https://marianila.com/products/coils-curls-finishing-treatment-masque", category: "curly" },
+    coilsCurlsWeightlessCurlDefiner: { name: "Weightless Curl Definer", desc: "Gel definidor de rizos sin peso con aloe vera.", img: "https://marianila.com/cdn/shop/files/3673-packshot.jpg", url: "https://marianila.com/products/coils-curls-weightless-curl-definer", category: "curly" },
+    coilsCurlsLusciousCurlDefiner: { name: "Luscious Curl Definer", desc: "Gel rico que define rizos con medio agarre.", img: "https://marianila.com/cdn/shop/files/3674-packshot.jpg", url: "https://marianila.com/products/coils-curls-luscious-curl-definer", category: "curly" },
+    coilsCurlsPrimer: { name: "Coils & Curls Primer", desc: "Pre-shampoo y acondicionador sin enjuague para rizos definidos.", img: "https://marianila.com/cdn/shop/files/3675-packshot.jpg", url: "https://marianila.com/products/coils-curls-primer", category: "curly" },
+    coilsCurlsCurlCream: { name: "Coils & Curls Curl Cream", desc: "Crema definidora de rizos con medio agarre y brillo.", img: "https://marianila.com/cdn/shop/files/3676-packshot.jpg", url: "https://marianila.com/products/coils-curls-curl-cream", category: "curly" },
+
+    // ==================== STYLING (Productos para peinar) ====================
+    oceanSpray: { name: "Ocean Spray", desc: "Spray de agua salada con extra agarre para beach waves.", img: "https://marianila.com/cdn/shop/files/3680-packshot.jpg", url: "https://marianila.com/products/ocean-spray-150-ml", category: "styling" },
+    saltyMist: { name: "Salty Mist", desc: "Bruma salina ligera para textura natural.", img: "https://marianila.com/cdn/shop/files/3681-packshot.jpg", url: "https://marianila.com/products/salty-mist-150-ml", category: "styling" },
+    stylingMousse: { name: "Styling Mousse", desc: "Espuma de peinado con agarre flexible.", img: "https://marianila.com/cdn/shop/files/3682-packshot.jpg", url: "https://marianila.com/products/styling-mousse-300-ml", category: "styling" },
+    stylingSpray: { name: "Styling Spray", desc: "Spray de peinado con agarre ligero.", img: "https://marianila.com/cdn/shop/files/3683-packshot.jpg", url: "https://marianila.com/products/styling-spray-300-ml", category: "styling" },
+    finishingSpray: { name: "Finishing Spray", desc: "Laca de fijacion fuerte y brillo.", img: "https://marianila.com/cdn/shop/files/3684-packshot.jpg", url: "https://marianila.com/products/finishing-spray-300-ml", category: "styling" },
+    shapingHeatSpray: { name: "Shaping Heat Spray", desc: "Protector termico para plancha y secador.", img: "https://marianila.com/cdn/shop/files/3685-packshot.jpg", url: "https://marianila.com/products/shaping-heat-spray-150-ml", category: "styling" },
+    creamHeatSpray: { name: "Cream Heat Spray", desc: "Protector termico en crema para peinado.", img: "https://marianila.com/cdn/shop/files/3686-packshot.jpg", url: "https://marianila.com/products/cream-heat-spray-150-ml", category: "styling" },
+    quickDryHeatSpray: { name: "Quick Dry Heat Spray", desc: "Protector termico de secado rapido.", img: "https://marianila.com/cdn/shop/files/3687-packshot.jpg", url: "https://marianila.com/products/quick-dry-heat-spray-150-ml", category: "styling" },
+    glossCoat: { name: "Gloss Coat", desc: "Spray alisador termoactivado para brillo.", img: "https://marianila.com/cdn/shop/files/3688-packshot.jpg", url: "https://marianila.com/products/gloss-coat-200-ml", category: "styling" },
+    stylingCream: { name: "Styling Cream", desc: "Crema moldeadora flexible para definicion.", img: "https://marianila.com/cdn/shop/files/3689-packshot.jpg", url: "https://marianila.com/products/styling-cream-100-ml", category: "styling" },
+    volumeSpray: { name: "Volume Spray", desc: "Spray voluminizador ligero para raiz.", img: "https://marianila.com/cdn/shop/files/3690-packshot.jpg", url: "https://marianila.com/products/volume-spray-100-ml", category: "styling" },
+    powerPowder: { name: "Power Powder", desc: "Polvo texturizador para volumen extra en raiz.", img: "https://marianila.com/cdn/shop/files/3691-packshot.jpg", url: "https://marianila.com/products/power-powder-20-g", category: "styling" },
+    cleansingPowder: { name: "Cleansing Powder", desc: "Polvo limpiador para peinar y texturizar.", img: "https://marianila.com/cdn/shop/files/3692-packshot.jpg", url: "https://marianila.com/products/cleansing-powder-60-g", category: "styling" },
+    sprayWax: { name: "Spray Wax", desc: "Cera en aerosol para textura y definicion.", img: "https://marianila.com/cdn/shop/files/3693-packshot.jpg", url: "https://marianila.com/products/spray-wax-200-ml", category: "styling" },
+    stylingPaste: { name: "Styling Paste", desc: "Pasta moldeadora flexible con mate.", img: "https://marianila.com/cdn/shop/files/3694-packshot.jpg", url: "https://marianila.com/products/styling-paste-100-ml", category: "styling" },
+    extremeWax: { name: "Extreme Wax", desc: "Cera de fijacion extrema y brillo medio.", img: "https://marianila.com/cdn/shop/files/3695-packshot.jpg", url: "https://marianila.com/products/extreme-wax-100-ml", category: "styling" },
+    fixatingWax: { name: "Fixating Wax", desc: "Cera fijadora de acabado mate.", img: "https://marianila.com/cdn/shop/files/3696-packshot.jpg", url: "https://marianila.com/products/fixating-wax-100-ml", category: "styling" },
+    veganSculptingWax: { name: "Vegan Sculpting Wax", desc: "Cera moldeadora vegana para estilismo.", img: "https://marianila.com/cdn/shop/files/3697-packshot.jpg", url: "https://marianila.com/products/vegan-sculpting-wax-100-ml", category: "styling" },
+    dryShampoo: { name: "Dry Shampoo", desc: "Champu seco refrescante para lavados entre lavados.", img: "https://marianila.com/cdn/shop/files/3698-packshot.jpg", url: "https://marianila.com/products/dry-shampoo-250-ml", category: "styling" },
+    soothingDryShampoo: { name: "Soothing Dry Shampoo", desc: "Champu seco calmante para cuero cabelludo sensible.", img: "https://marianila.com/cdn/shop/files/3699-packshot.jpg", url: "https://marianila.com/products/soothing-dry-shampoo-250-ml", category: "styling" },
+    hairPrimer: { name: "Hair Primer", desc: "Pre-shampoo protector que facilita el desenredado y protege del calor.", img: "https://marianila.com/cdn/shop/files/3702-packshot.jpg", url: "https://marianila.com/products/hair-primer-150-ml", category: "styling" },
+    shineCream: { name: "Shine Cream", desc: "Crema brillante para aportar luz y suavidad sin peso.", img: "https://marianila.com/cdn/shop/files/3703-packshot.jpg", url: "https://marianila.com/products/shine-cream-100-ml", category: "styling" },
+    textureCream: { name: "Texture Cream", desc: "Crema texturizadora para definicion y separacion de mechas.", img: "https://marianila.com/cdn/shop/files/3704-packshot.jpg", url: "https://marianila.com/products/texture-cream-100-ml", category: "styling" },
+
+    // ==================== OTROS ====================
+    healingCicaOil: { name: "Healing Cica Oil", desc: "Aceite reparador con Cica para barrera cutanea.", img: "https://marianila.com/cdn/shop/files/3700-packshot.jpg", url: "https://marianila.com/products/healing-cica-oil-100-ml", category: "treatment" },
+    floralDriftHairMist: { name: "Floral Drift Hair Mist", desc: "Bruma capilar floral con fragancia suave.", img: "https://marianila.com/cdn/shop/files/3701-packshot.jpg", url: "https://marianila.com/products/floral-drift-fine-fragrance-hair-mist-100-ml", category: "treatment" },
+    hairButter: { name: "Hair Butter", desc: "Manteca nutritiva intensiva con manteca de karite para cabello muy seco.", img: "https://marianila.com/cdn/shop/files/3705-packshot.jpg", url: "https://marianila.com/products/hair-butter-100-ml", category: "treatment" },
+    scalpTreatment: { name: "Scalp Treatment", desc: "Tratamiento intensivo para equilibrar y calmar el cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/3706-packshot.jpg", url: "https://marianila.com/products/scalp-treatment-100-ml", category: "treatment" }
 };
 
 // Tratamiento Premium Olaplex del Salón
@@ -31,33 +127,96 @@ const OLAPLEX_TREATMENTS = {
 
 function getMariaNilaRecommendations(diagnosis) {
     const recommendations = [];
-    const { density, thickness, hydration, sebum, isColored } = diagnosis;
+    const { density, thickness, hydration, sebum, isColored, isBlonde, isCurly, isDamaged } = diagnosis;
     
-    // Lógica de recomendaciones según resultados
+    // Cabello seco (hidratación baja)
     if (hydration < 50) {
         recommendations.push(MARIA_NILA_PRODUCTS.trueSoftShampoo);
         recommendations.push(MARIA_NILA_PRODUCTS.trueSoftConditioner);
+        recommendations.push(MARIA_NILA_PRODUCTS.trueSoftMasque);
+        recommendations.push(MARIA_NILA_PRODUCTS.trueSoftArganOil);
+        recommendations.push(MARIA_NILA_PRODUCTS.trueSoftLeaveInCream);
     }
+    
+    // Cabello fino (densidad baja)
     if (density < 150) {
         recommendations.push(MARIA_NILA_PRODUCTS.pureVolumeShampoo);
         recommendations.push(MARIA_NILA_PRODUCTS.pureVolumeConditioner);
+        recommendations.push(MARIA_NILA_PRODUCTS.pureVolumeMousse);
+        recommendations.push(MARIA_NILA_PRODUCTS.pureVolumeLeaveInCream);
+        recommendations.push(MARIA_NILA_PRODUCTS.volumeSpray);
     }
+    
+    // Cuero cabelludo graso
     if (sebum > 65 || sebum === 'Alto') {
         recommendations.push(MARIA_NILA_PRODUCTS.purifyingCleanseShampoo);
+        recommendations.push(MARIA_NILA_PRODUCTS.purifyingCleanseExfoliatingSerum);
+        recommendations.push(MARIA_NILA_PRODUCTS.purifyingCleanseDetoxMasque);
     }
+    
+    // Cabello teñido
     if (isColored) {
         recommendations.push(MARIA_NILA_PRODUCTS.luminousColourShampoo);
         recommendations.push(MARIA_NILA_PRODUCTS.luminousColourConditioner);
+        recommendations.push(MARIA_NILA_PRODUCTS.luminousColourMasque);
+        recommendations.push(MARIA_NILA_PRODUCTS.luminousColourLeaveInCream);
+        recommendations.push(MARIA_NILA_PRODUCTS.colourRefreshCacao);
+        recommendations.push(MARIA_NILA_PRODUCTS.colourRefreshHoneyBlonde);
     }
-    if (thickness < 65) {
+    
+    // Rubios / Canas
+    if (isBlonde) {
+        recommendations.push(MARIA_NILA_PRODUCTS.sheerSilverShampoo);
+        recommendations.push(MARIA_NILA_PRODUCTS.sheerSilverConditioner);
+        recommendations.push(MARIA_NILA_PRODUCTS.sheerSilverMasque);
+        recommendations.push(MARIA_NILA_PRODUCTS.sheerSilverToneFixerSpray);
+        recommendations.push(MARIA_NILA_PRODUCTS.colourRefreshPearlSilver);
+    }
+    
+    // Cabello rizado
+    if (isCurly) {
+        recommendations.push(MARIA_NILA_PRODUCTS.coilsCurlsCoWash);
+        recommendations.push(MARIA_NILA_PRODUCTS.coilsCurlsOilInCream);
+        recommendations.push(MARIA_NILA_PRODUCTS.coilsCurlsFinishingTreatmentMasque);
+        recommendations.push(MARIA_NILA_PRODUCTS.coilsCurlsWeightlessCurlDefiner);
+        recommendations.push(MARIA_NILA_PRODUCTS.coilsCurlsCurlCream);
+    }
+    
+    // Cabello dañado
+    if (isDamaged || thickness < 65) {
+        recommendations.push(MARIA_NILA_PRODUCTS.structureRepairShampoo);
+        recommendations.push(MARIA_NILA_PRODUCTS.structureRepairConditioner);
+        recommendations.push(MARIA_NILA_PRODUCTS.structureRepairMasque);
         recommendations.push(MARIA_NILA_PRODUCTS.bondBuilder);
+        recommendations.push(MARIA_NILA_PRODUCTS.structureRepairBondingBooster);
     }
-    // Default si no hay recomendaciones específicas
-    if (recommendations.length === 0) {
+    
+    // Cuero cabelludo sensible
+    if (hydration < 40 || sebum < 30) {
         recommendations.push(MARIA_NILA_PRODUCTS.headHairHealShampoo);
         recommendations.push(MARIA_NILA_PRODUCTS.headHairHealConditioner);
+        recommendations.push(MARIA_NILA_PRODUCTS.headHairHealSoothingSerum);
+        recommendations.push(MARIA_NILA_PRODUCTS.headHairHealScalpTonic);
     }
-    return recommendations.slice(0, 4);
+    
+    // Protectores térmicos (siempre útiles)
+    recommendations.push(MARIA_NILA_PRODUCTS.shapingHeatSpray);
+    recommendations.push(MARIA_NILA_PRODUCTS.creamHeatSpray);
+    
+    // Styling para textura
+    recommendations.push(MARIA_NILA_PRODUCTS.oceanSpray);
+    recommendations.push(MARIA_NILA_PRODUCTS.stylingMousse);
+    recommendations.push(MARIA_NILA_PRODUCTS.textureCream);
+    
+    // Eliminar duplicados por nombre
+    const seen = new Set();
+    const unique = recommendations.filter(p => {
+        if (!p || seen.has(p.name)) return false;
+        seen.add(p.name);
+        return true;
+    });
+    
+    return unique.slice(0, 12);
 }
 
 function getOlaplexRecommendations(diagnosis) {
