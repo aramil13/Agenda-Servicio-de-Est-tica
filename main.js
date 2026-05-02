@@ -663,9 +663,6 @@ document.addEventListener('DOMContentLoaded', () => {
             photo_type: photoType,
             notes: photoNotes,
             photo_hash: photoHash,
-            caspa_level: caspaLevel,
-            sebo_level: seboLevel,
-            eritema_level: eritemaLevel,
             created_at: new Date().toISOString()
         };
         
@@ -964,10 +961,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await updateClientPhoto(photoId, clientId, { 
                     photo_type: newType, 
                     photo_date: newDate, 
-                    notes: notesWithDiag,
-                    caspa_level: parseInt(newCaspa),
-                    sebo_level: parseInt(newSebo),
-                    eritema_level: parseInt(newEritema)
+                    notes: notesWithDiag
                 });
                 closeModal();
                 showToast('Foto actualizada');
