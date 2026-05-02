@@ -2711,32 +2711,24 @@ if (analyzeBtn) {
         
         let erythemaPixels = 0;
         let skinPixels = 0;
-        const totalPixels = data.length / 4;
         
         for (let i = 0; i < data.length; i += 4) {
             const r = data[i], g = data[i+1], b = data[i+2];
-            const brightness = (r + g + b) / 3;
             
-            // Detectar tono de piel (rojo > verde y rojo > azul, saturación moderada)
-            const hasRedTone = r > g && r > b;
-            const isSkinTone = r > 100 && g > 80 && b > 50 && brightness > 80 && brightness < 220;
+            // Detectar piel (tonos rojizos/amarillentos típicos de piel)
+            const isSkinTone = r > 95 && g > 40 && b > 20 && r > b && r > g * 0.8;
+            if (isSkinTone) skinPixels++;
             
-            if (isSkinTone) {
-                skinPixels++;
-                // Eritema: rojez intensa (rojo dominante con saturación alta)
-                const maxChannel = Math.max(r, g, b);
-                const minChannel = Math.min(r, g, b);
-                const saturation = maxChannel === 0 ? 0 : (maxChannel - minChannel) / maxChannel;
-                
-                if (r > 150 && r > g * 1.3 && r > b * 1.3 && saturation > 0.3) {
-                    erythemaPixels++;
-                }
+            // Eritema: rojez (rojo significativamente mayor que verde y azul)
+            if (r > g + 30 && r > b + 30 && r > 120) {
+                erythemaPixels++;
             }
         }
         
         if (skinPixels === 0) return 0;
         const erythemaRatio = erythemaPixels / skinPixels;
         let erythemaValue = Math.round(erythemaRatio * 10);
+        console.log('Eritema detection:', { erythemaPixels, skinPixels, erythemaRatio, erythemaValue });
         return Math.min(10, Math.max(0, erythemaValue));
     }
 
@@ -2944,9 +2936,9 @@ window.addEventListener('message', async (event) => {
                             <img src="${pf.preview}" style="width:60px;height:60px;object-fit:cover;border-radius:8px">
                             <div style="font-size:0.65rem;color:var(--text-secondary)">Antes</div>
                             <div style="font-size:0.6rem;color:var(--text-secondary)">${toLocalDateStr(new Date())}</div>
-                            <div style="font-size:0.55rem;color:var(--text-secondary)">
-                                C:${pf.caspa||0} S:${pf.sebo||0} E:${pf.eritema||0}
-                            </div>
+                             <div style="font-size:0.6rem;color:#e74c3c;font-weight:bold">
+                                 C:${pf.caspa||0} S:${pf.sebo||0} E:${pf.eritema||0}
+                             </div>
                             <div style="display:flex;gap:2px;justify-content:center">
                                 <button type="button" class="delete-pending-btn" data-idx="${idx}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">🗑️</button>
                             </div>
@@ -3053,13 +3045,15 @@ window.addEventListener('message', async (event) => {
                     if (!file) return;
                     
                     const reader = new FileReader();
-                    reader.onload = async ev => {
-                        // Run diagnosis on the image
+                    reader.onload = ev => {
                         const img = new Image();
-                        img.onload = async () => {
+                        img.onload = () => {
+                            // Run diagnosis
                             const dandruffResult = detectDandruffLevel(img);
                             const { sebumLevel } = detectHydrationAndSebum(img);
                             const erythemaResult = detectErythemaLevel(img);
+                            
+                            console.log('Diagnosis results:', { dandruffResult, sebumLevel, erythemaResult });
                             
                             pendingFiles.push({ 
                                 file, 
