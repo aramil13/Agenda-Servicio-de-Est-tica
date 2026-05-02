@@ -877,9 +877,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function updateAppointment(id, data) {
         const dbRow = {
-            client_id: data.clientId,
-            service_id: data.serviceId,
-            salon_id: data.salonId || null,
+            client_id: data.client_id,
+            service_id: data.service_id,
+            salon_id: data.salon_id || null,
             date: data.date,
             time: data.time,
             notes: data.notes,
@@ -3454,8 +3454,7 @@ window.addEventListener('message', async (event) => {
                     salonId: fd.get('salonId') || null,
                     date: fd.get('date'),
                     time: fd.get('time'),
-                    notes: fd.get('notes'),
-                    userEmail: State.currentUserEmail || ''
+                    notes: fd.get('notes')
                 };
 
                 // Guardar fotos de la cita (subir automáticamente al cliente)
