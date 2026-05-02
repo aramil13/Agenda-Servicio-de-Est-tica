@@ -3464,11 +3464,17 @@ window.addEventListener('message', async (event) => {
                     userEmail: State.currentUserEmail || ''
                 };
 
-                // Guardar fotos de la cita
+                // Guardar fotos de la cita (subir automáticamente al cliente)
                 if (pendingFiles.length > 0) {
                     data.appointmentPhotos = [];
                     for (const pf of pendingFiles) {
-                        const photoRecord = await uploadClientPhoto(pf.file, data.clientId, pf.date, pf.type, pf.notes);
+                        const photoRecord = await uploadClientPhoto(
+                            pf.file, 
+                            data.clientId, 
+                            pf.date || toLocalDateStr(new Date()), 
+                            pf.type || 'before', 
+                            pf.notes || ''
+                        );
                         if (photoRecord) {
                             data.appointmentPhotos.push(photoRecord);
                         }
