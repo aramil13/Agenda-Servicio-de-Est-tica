@@ -634,7 +634,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    async function uploadClientPhoto(file, clientId, photoDate, photoType, photoNotes) {
+    async function uploadClientPhoto(file, clientId, photoDate, photoType, photoNotes, caspaLevel = null, seboLevel = null, eritemaLevel = null) {
         console.log('uploadClientPhoto called:', { clientId, photoDate, photoType });
         const fileExt = file.name.split('.').pop();
         const photoId = generateId();
@@ -663,6 +663,9 @@ document.addEventListener('DOMContentLoaded', () => {
             photo_type: photoType,
             notes: photoNotes,
             photo_hash: photoHash,
+            caspa_level: caspaLevel,
+            sebo_level: seboLevel,
+            eritema_level: eritemaLevel,
             created_at: new Date().toISOString()
         };
         
@@ -894,6 +897,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.editClientPhoto = async function(photoId, clientId, currentDate, currentNotes, currentType) {
+        // Obtener la foto actual para extraer valores de diagnóstico
+        const { data: photoData } = await supabase.from('client_photos').select('*').eq('id', photoId).single();
+        
+        // Extraer valores de diagnóstico de las notas o usar valores por defecto
+        let caspaVal = 0, seboVal = 5, eritemaVal = 0;
+        if (photoData?.notes) {
+            const caspaMatch = photoData.notes.match(/Caspa:\s*(\d+)/i);
+            const seboMatch = photoData.notes.match(/Sebo:\s*(\d+)/i);
+            const eritemaMatch = photoData.notes.match(/Eritema:\s*(\d+)/i);
+            if (caspaMatch) caspaVal = parseInt(caspaMatch[1]) || 0;
+            if (seboMatch) seboVal = parseInt(seboMatch[1]) || 5;
+            if (eritemaMatch) eritemaVal = parseInt(eritemaMatch[1]) || 0;
+        }
+        
         openModal('Editar Foto', `
             <form id="edit-client-photo-form">
                 <div class="form-group">
@@ -906,6 +923,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="form-group">
                     <label>Fecha</label>
                     <input type="date" class="form-control" id="edit-client-photo-date" value="${currentDate}">
+                </div>
+                <div class="form-group">
+                    <label>Caspa (0-10)</label>
+                    <input type="range" class="form-control" id="edit-client-photo-caspa" min="0" max="10" value="${caspaVal}" oninput="this.nextElementSibling.textContent = this.value">
+                    <span style="font-size:0.85rem;color:var(--text-secondary)">${caspaVal}</span>
+                </div>
+                <div class="form-group">
+                    <label>Sebo (0-10)</label>
+                    <input type="range" class="form-control" id="edit-client-photo-sebo" min="0" max="10" value="${seboVal}" oninput="this.nextElementSibling.textContent = this.value">
+                    <span style="font-size:0.85rem;color:var(--text-secondary)">${seboVal}</span>
+                </div>
+                <div class="form-group">
+                    <label>Eritema (0-10)</label>
+                    <input type="range" class="form-control" id="edit-client-photo-eritema" min="0" max="10" value="${eritemaVal}" oninput="this.nextElementSibling.textContent = this.value">
+                    <span style="font-size:0.85rem;color:var(--text-secondary)">${eritemaVal}</span>
                 </div>
                 <div class="form-group">
                     <label>Notas</label>
@@ -921,9 +953,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 const newType = document.getElementById('edit-client-photo-type').value;
                 const newDate = document.getElementById('edit-client-photo-date').value;
+                const newCaspa = document.getElementById('edit-client-photo-caspa').value;
+                const newSebo = document.getElementById('edit-client-photo-sebo').value;
+                const newEritema = document.getElementById('edit-client-photo-eritema').value;
                 const newNotes = document.getElementById('edit-client-photo-notes').value;
                 
-                await updateClientPhoto(photoId, clientId, { photo_type: newType, photo_date: newDate, notes: newNotes });
+                // Incluir diagnósticos en las notas
+                const notesWithDiag = `${newNotes ? newNotes + ' | ' : ''}Caspa: ${newCaspa}, Sebo: ${newSebo}, Eritema: ${newEritema}`;
+                
+                await updateClientPhoto(photoId, clientId, { 
+                    photo_type: newType, 
+                    photo_date: newDate, 
+                    notes: notesWithDiag,
+                    caspa_level: parseInt(newCaspa),
+                    sebo_level: parseInt(newSebo),
+                    eritema_level: parseInt(newEritema)
+                });
                 closeModal();
                 showToast('Foto actualizada');
                 renderRoute();
@@ -2657,6 +2702,44 @@ if (analyzeBtn) {
         return { hydration, sebumLevel: sebumValue, sebumLabel };
     }
 
+    function detectErythemaLevel(img) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 100; canvas.height = 100;
+        ctx.drawImage(img, 0, 0, 100, 100);
+        const data = ctx.getImageData(0, 0, 100, 100).data;
+        
+        let erythemaPixels = 0;
+        let skinPixels = 0;
+        const totalPixels = data.length / 4;
+        
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i+1], b = data[i+2];
+            const brightness = (r + g + b) / 3;
+            
+            // Detectar tono de piel (rojo > verde y rojo > azul, saturación moderada)
+            const hasRedTone = r > g && r > b;
+            const isSkinTone = r > 100 && g > 80 && b > 50 && brightness > 80 && brightness < 220;
+            
+            if (isSkinTone) {
+                skinPixels++;
+                // Eritema: rojez intensa (rojo dominante con saturación alta)
+                const maxChannel = Math.max(r, g, b);
+                const minChannel = Math.min(r, g, b);
+                const saturation = maxChannel === 0 ? 0 : (maxChannel - minChannel) / maxChannel;
+                
+                if (r > 150 && r > g * 1.3 && r > b * 1.3 && saturation > 0.3) {
+                    erythemaPixels++;
+                }
+            }
+        }
+        
+        if (skinPixels === 0) return 0;
+        const erythemaRatio = erythemaPixels / skinPixels;
+        let erythemaValue = Math.round(erythemaRatio * 10);
+        return Math.min(10, Math.max(0, erythemaValue));
+    }
+
     function detectDandruffLevel(img) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -2839,11 +2922,15 @@ window.addEventListener('message', async (event) => {
                 let html = '';
                 sessionPhotos.forEach((p, idx) => {
                     const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
+                    const diagInfo = (p.caspa_level !== null || p.sebo_level !== null || p.eritema_level !== null) 
+                        ? `<div style="font-size:0.55rem;color:var(--text-secondary)">C:${p.caspa_level||0} S:${p.sebo_level||0} E:${p.eritema_level||0}</div>`
+                        : '';
                     html += `
                         <div class="client-mini-photo" data-photo-id="${p.id}" style="position:relative;text-align:center">
                             <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                             <div style="font-size:0.65rem;color:var(--text-secondary)">${photoType}</div>
                             <div style="font-size:0.6rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
+                            ${diagInfo}
                             <div style="display:flex;gap:2px;justify-content:center">
                                 <button type="button" class="client-photo-edit-btn" data-photo-id="${p.id}" title="Editar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">✏️</button>
                                 <button type="button" class="delete-btn" data-id="${p.id}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">🗑️</button>
@@ -2857,6 +2944,9 @@ window.addEventListener('message', async (event) => {
                             <img src="${pf.preview}" style="width:60px;height:60px;object-fit:cover;border-radius:8px">
                             <div style="font-size:0.65rem;color:var(--text-secondary)">Antes</div>
                             <div style="font-size:0.6rem;color:var(--text-secondary)">${toLocalDateStr(new Date())}</div>
+                            <div style="font-size:0.55rem;color:var(--text-secondary)">
+                                C:${pf.caspa||0} S:${pf.sebo||0} E:${pf.eritema||0}
+                            </div>
                             <div style="display:flex;gap:2px;justify-content:center">
                                 <button type="button" class="delete-pending-btn" data-idx="${idx}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">🗑️</button>
                             </div>
@@ -2963,9 +3053,24 @@ window.addEventListener('message', async (event) => {
                     if (!file) return;
                     
                     const reader = new FileReader();
-                    reader.onload = ev => {
-                        pendingFiles.push({ file, preview: ev.target.result });
-                        renderPhotos();
+                    reader.onload = async ev => {
+                        // Run diagnosis on the image
+                        const img = new Image();
+                        img.onload = async () => {
+                            const dandruffResult = detectDandruffLevel(img);
+                            const { sebumLevel } = detectHydrationAndSebum(img);
+                            const erythemaResult = detectErythemaLevel(img);
+                            
+                            pendingFiles.push({ 
+                                file, 
+                                preview: ev.target.result,
+                                caspa: dandruffResult,
+                                sebo: sebumLevel,
+                                eritema: erythemaResult
+                            });
+                            renderPhotos();
+                        };
+                        img.src = ev.target.result;
                     };
                     reader.readAsDataURL(file);
                     photoInput.value = '';
@@ -3045,15 +3150,19 @@ window.addEventListener('message', async (event) => {
 
                 if (success && pendingFiles.length > 0) {
                     for (const pf of pendingFiles) {
-                        const typeSelect = document.querySelector(`.pending-type[data-idx="${pendingFiles.indexOf(pf)}"]`);
-                        const dateInput = document.querySelector(`.pending-date[data-idx="${pendingFiles.indexOf(pf)}"]`);
-                        const notesInput = document.querySelector(`.pending-notes[data-idx="${pendingFiles.indexOf(pf)}"]`);
+                        const idx = pendingFiles.indexOf(pf);
+                        const typeSelect = document.querySelector(`.pending-type[data-idx="${idx}"]`);
+                        const dateInput = document.querySelector(`.pending-date[data-idx="${idx}"]`);
+                        const notesInput = document.querySelector(`.pending-notes[data-idx="${idx}"]`);
                         await uploadClientPhoto(
                             pf.file, 
                             currentClientId, 
                             dateInput?.value || toLocalDateStr(new Date()),
                             typeSelect?.value || 'before',
-                            notesInput?.value || ''
+                            notesInput?.value || '',
+                            pf.caspa || null,
+                            pf.sebo || null,
+                            pf.eritema || null
                         );
                     }
                     showToast('Fotos guardadas');
