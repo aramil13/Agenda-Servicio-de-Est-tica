@@ -627,11 +627,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
+    async function calculateFileHash(file) {
+        const buffer = await file.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
     async function uploadClientPhoto(file, clientId, photoDate, photoType, photoNotes) {
         console.log('uploadClientPhoto called:', { clientId, photoDate, photoType });
         const fileExt = file.name.split('.').pop();
         const photoId = generateId();
         const fileName = `${clientId}/${photoId}.${fileExt}`;
+        const photoHash = await calculateFileHash(file);
         
         const { data, error } = await supabase.storage
             .from('client-photos')
@@ -654,6 +662,7 @@ document.addEventListener('DOMContentLoaded', () => {
             photo_date: photoDate,
             photo_type: photoType,
             notes: photoNotes,
+            photo_hash: photoHash,
             created_at: new Date().toISOString()
         };
         
@@ -2804,10 +2813,12 @@ window.addEventListener('message', async (event) => {
                 <div class="form-group">
                     <label>Fotos del Cliente</label>
                     <div id="client-photos-list" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px"></div>
-                    <button type="button" class="btn btn-sm btn-secondary" id="btn-add-client-photo">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                        Añadir Foto
-                    </button>
+                    <div style="display:flex;gap:8px;margin-bottom:8px" id="photos-buttons-container">
+                        <button type="button" class="btn btn-sm btn-secondary" id="btn-add-client-photo">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                            Añadir Foto
+                        </button>
+                    </div>
                     <input type="file" id="client-photo-input" accept="image/*" style="display:none">
                 </div>
                 ` : ''}
@@ -2861,6 +2872,54 @@ window.addEventListener('message', async (event) => {
                 sessionPhotos = await loadClientPhotos(info.id) || [];
                 console.log('sessionPhotos loaded:', sessionPhotos);
                 renderPhotos();
+            }
+
+            // Agregar botón de borrar duplicados dinámicamente
+            if (isEdit) {
+                const buttonsContainer = document.getElementById('photos-buttons-container');
+                if (buttonsContainer && !document.getElementById('btn-dedup-photos')) {
+                    const dedupBtn = document.createElement('button');
+                    dedupBtn.type = 'button';
+                    dedupBtn.id = 'btn-dedup-photos';
+                    dedupBtn.className = 'btn btn-sm';
+                    dedupBtn.style.cssText = 'background:#dc3545;color:white;border:none;padding:5px 10px;border-radius:4px;margin-left:8px';
+                    dedupBtn.innerHTML = '🗑️ Borrar Duplicados';
+                    buttonsContainer.appendChild(dedupBtn);
+                    
+                    dedupBtn.addEventListener('click', async () => {
+                        if (!sessionPhotos.length) {
+                            showToast('No hay fotos para revisar', 'warning');
+                            return;
+                        }
+                        
+                        const seen = new Map();
+                        const toDelete = [];
+                        
+                        sessionPhotos.forEach(p => {
+                            const key = p.photo_hash || p.photo_url;
+                            if (seen.has(key)) {
+                                toDelete.push(p.id);
+                            } else {
+                                seen.set(key, p);
+                            }
+                        });
+                        
+                        if (!toDelete.length) {
+                            showToast('No se encontraron fotos duplicadas', 'info');
+                            return;
+                        }
+                        
+                        if (!confirm(`Se encontraron ${toDelete.length} foto(s) duplicada(s). ¿Eliminarlas?`)) return;
+                        
+                        for (const photoId of toDelete) {
+                            await deleteClientPhoto(photoId, currentClientId);
+                        }
+                        
+                        sessionPhotos = sessionPhotos.filter(p => !toDelete.includes(p.id));
+                        renderPhotos();
+                        showToast(`${toDelete.length} foto(s) duplicada(s) eliminada(s)`);
+                    });
+                }
             }
 
             const btnAddPhoto = document.getElementById('btn-add-client-photo');
