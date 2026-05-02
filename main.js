@@ -2892,17 +2892,47 @@ window.addEventListener('message', async (event) => {
                             return;
                         }
                         
-                        const seen = new Map();
+                        showToast('Buscando fotos duplicadas...', 'info');
+                        console.log('Processing photos for duplicates:', sessionPhotos);
+                        
+                        // Calcular hash para cada foto existente
+                        const photoHashes = new Map(); // hash -> photo
                         const toDelete = [];
                         
-                        sessionPhotos.forEach(p => {
-                            const key = p.photo_hash || p.photo_url;
-                            if (seen.has(key)) {
+                        for (const p of sessionPhotos) {
+                            let hash = p.photo_hash;
+                            
+                            // Si no tiene hash, calcularlo descargando la imagen
+                            if (!hash && p.photo_url) {
+                                try {
+                                    showToast(`Calculando hash para foto ${p.id}...`, 'info');
+                                    const response = await fetch(p.photo_url);
+                                    const blob = await response.blob();
+                                    const buffer = await blob.arrayBuffer();
+                                    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+                                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                                    hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                                    
+                                    // Guardar el hash en la BD para futuras comparaciones
+                                    await updateClientPhoto(p.id, currentClientId, { photo_hash: hash });
+                                    console.log(`Hash calculated and saved for ${p.id}:`, hash);
+                                } catch (err) {
+                                    console.error('Error calculating hash for photo:', p.id, err);
+                                    continue;
+                                }
+                            }
+                            
+                            if (!hash) continue;
+                            
+                            if (photoHashes.has(hash)) {
+                                console.log('Duplicate found:', p.id, 'matches:', photoHashes.get(hash).id);
                                 toDelete.push(p.id);
                             } else {
-                                seen.set(key, p);
+                                photoHashes.set(hash, p);
                             }
-                        });
+                        }
+                        
+                        console.log('To delete:', toDelete);
                         
                         if (!toDelete.length) {
                             showToast('No se encontraron fotos duplicadas', 'info');
