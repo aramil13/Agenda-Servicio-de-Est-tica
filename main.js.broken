@@ -1,116 +1,20 @@
-// Base de datos de productos Maria Nila
+﻿// Base de datos de productos Maria Nila
 const MARIA_NILA_PRODUCTS = {
-    // ==================== HEAD & HAIR HEAL (Cuero cabelludo sensible) ====================
+    // Champús
     headHairHealShampoo: { name: "Head & Hair Heal Shampoo", desc: "Calma cuero cabelludo sensible con aloe vera y piroctona olamina.", img: "https://marianila.com/cdn/shop/files/13650-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-shampoo-350-ml", category: "scalp" },
-    headHairHealConditioner: { name: "Head & Hair Heal Conditioner", desc: "Acondicionador calmante para el cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/13651-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-conditioner-300-ml", category: "scalp" },
-    headHairHealMasque: { name: "Head & Hair Heal Masque", desc: "Mascarilla calmante con aloe vera para cuero cabelludo sensible.", img: "https://marianila.com/cdn/shop/files/13652-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-masque-250-ml", category: "scalp" },
-    headHairHealSoothingSerum: { name: "Head & Hair Heal Serum", desc: "Serum calmante para el cuero cabelludo con aloe vera.", img: "https://marianila.com/cdn/shop/files/13653-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-soothing-serum-150-ml", category: "scalp" },
-    headHairHealScalpScrub: { name: "Head & Hair Heal Scalp Scrub", desc: "Exfoliante fisico para cuero cabelludo sensible con sales marinas.", img: "https://marianila.com/cdn/shop/files/13655-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-scalp-scrub-200-ml", category: "scalp" },
-    headHairHealScalpTonic: { name: "Head & Hair Heal Scalp Tonic", desc: "Tonico calmante para reducir irritacion y picazon del cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/13656-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-scalp-tonic-150-ml", category: "scalp" },
-    headHairHealDuo: { name: "Head & Hair Heal Care Duo", desc: "Pack ahorro champu + acondicionador para cuero cabelludo sensible.", img: "https://marianila.com/cdn/shop/files/13654-packshot.jpg", url: "https://marianila.com/products/care-duo-head-hair-heal", category: "scalp" },
-    
-    // ==================== TRUE SOFT (Cabello seco) ====================
-    trueSoftShampoo: { name: "True Soft Shampoo", desc: "Hidratacion profunda con aceite de argan para cabello seco.", img: "https://marianila.com/cdn/shop/files/3630-packshot.jpg", url: "https://marianila.com/products/true-soft-shampoo-350-ml", category: "dry" },
-    trueSoftConditioner: { name: "True Soft Conditioner", desc: "Acondicionador hidratante con aceite de argan.", img: "https://marianila.com/cdn/shop/files/3631-packshot.jpg", url: "https://marianila.com/products/true-soft-conditioner-300-ml", category: "dry" },
-    trueSoftMasque: { name: "True Soft Masque", desc: "Mascarilla nutritiva para cabello seco con aceite de argan.", img: "https://marianila.com/cdn/shop/files/3632-packshot.jpg", url: "https://marianila.com/products/true-soft-masque-250-ml", category: "dry" },
-    trueSoftArganOil: { name: "True Soft Argan Oil", desc: "Aceite de argan para hidratacion.", img: "https://marianila.com/cdn/shop/files/3637-packshot.jpg", url: "https://marianila.com/products/true-soft-argan-oil-100-ml", category: "dry" },
-    trueSoftBoosterMasque: { name: "True Soft Booster Masque", desc: "Mascarilla intensiva para cabello muy seco.", img: "https://marianila.com/cdn/shop/files/3633-packshot.jpg", url: "https://marianila.com/products/true-soft-booster-masque-250-ml", category: "dry" },
-    trueSoftLeaveInCream: { name: "True Soft Leave In Cream", desc: "Crema sin enjuague hidratante con aceite de argan para cabello seco.", img: "https://marianila.com/cdn/shop/files/3635-packshot.jpg", url: "https://marianila.com/products/true-soft-leave-in-cream-100-ml", category: "dry" },
-    trueSoftHairPrimer: { name: "True Soft Hair Primer", desc: "Pre-shampoo hidratante que facilita el desenredado y protege.", img: "https://marianila.com/cdn/shop/files/3636-packshot.jpg", url: "https://marianila.com/products/true-soft-hair-primer-150-ml", category: "dry" },
-    trueSoftDuo: { name: "True Soft Care Duo", desc: "Pack ahorro champu + acondicionador True Soft.", img: "https://marianila.com/cdn/shop/files/3634-packshot.jpg", url: "https://marianila.com/products/care-duo-true-soft", category: "dry" },
-    
-    // ==================== PURE VOLUME (Cabello fino) ====================
+    trueSoftShampoo: { name: "True Soft Shampoo", desc: "Hidratación profunda con aceite de argán para cabello seco.", img: "https://marianila.com/cdn/shop/files/3630-packshot.jpg", url: "https://marianila.com/products/true-soft-shampoo-350-ml", category: "dry" },
     pureVolumeShampoo: { name: "Pure Volume Shampoo", desc: "Voluminizador con provitamina B5 para cabello fino.", img: "https://marianila.com/cdn/shop/files/3610-packshot.jpg", url: "https://marianila.com/products/pure-volume-shampoo-350-ml", category: "fine" },
-    pureVolumeConditioner: { name: "Pure Volume Conditioner", desc: "Acondicionador voluminizador ligero.", img: "https://marianila.com/cdn/shop/files/3611-packshot.jpg", url: "https://marianila.com/products/pure-volume-conditioner-300-ml", category: "fine" },
-    pureVolumeMasque: { name: "Pure Volume Masque", desc: "Mascarilla voluminizadora con provitamina B5.", img: "https://marianila.com/cdn/shop/files/3612-packshot.jpg", url: "https://marianila.com/products/pure-volume-masque-250-ml", category: "fine" },
-    pureVolumeMousse: { name: "Pure Volume Mousse", desc: "Espuma nutritiva y voluminizadora para cabello fino.", img: "https://marianila.com/cdn/shop/files/3613-packshot.jpg", url: "https://marianila.com/products/pure-volume-mousse-300-ml", category: "fine" },
-    pureVolumeLeaveInCream: { name: "Pure Volume Leave In Cream", desc: "Crema ligera sin enjuague para dar cuerpo al cabello fino.", img: "https://marianila.com/cdn/shop/files/3614-packshot.jpg", url: "https://marianila.com/products/pure-volume-leave-in-cream-100-ml", category: "fine" },
-
-    // ==================== LUMINOUS COLOUR (Cabello teñido) ====================
     luminousColourShampoo: { name: "Luminous Colour Shampoo", desc: "Preserva color con extracto de Granada.", img: "https://marianila.com/cdn/shop/files/3625-packshot.jpg", url: "https://marianila.com/products/luminous-colour-shampoo-350-ml", category: "colored" },
-    luminousColourConditioner: { name: "Luminous Colour Conditioner", desc: "Acondicionador preservador de color.", img: "https://marianila.com/cdn/shop/files/3626-packshot.jpg", url: "https://marianila.com/products/luminous-colour-conditioner-300-ml", category: "colored" },
-    luminousColourMasque: { name: "Luminous Colour Masque", desc: "Mascarilla protectora del color con extracto de granada.", img: "https://marianila.com/cdn/shop/files/3627-packshot.jpg", url: "https://marianila.com/products/luminous-colour-masque-250-ml", category: "colored" },
-    luminousColourLeaveInCream: { name: "Luminous Colour Leave In Cream", desc: "Crema sin enjuague que sella el color y aporta brillo.", img: "https://marianila.com/cdn/shop/files/3628-packshot.jpg", url: "https://marianila.com/products/luminous-colour-leave-in-cream-100-ml", category: "colored" },
-    luminousColourToneFinishSpray: { name: "Luminous Colour Tone Finish Spray", desc: "Spray fijador que mantiene el color vibrante y aporta brillo.", img: "https://marianila.com/cdn/shop/files/3629-packshot.jpg", url: "https://marianila.com/products/luminous-colour-tone-finish-spray-150-ml", category: "colored" },
-
-    // ==================== PURIFYING CLEANSE (Cuero cabelludo graso) ====================
-    purifyingCleanseShampoo: { name: "Purifying Cleanse Shampoo", desc: "Champu purificante para cuero cabelludo graso.", img: "https://marianila.com/cdn/shop/files/3615-packshot.jpg", url: "https://marianila.com/products/purifying-cleanse-shampoo-350-ml", category: "oily" },
-    purifyingCleanseExfoliatingSerum: { name: "Purifying Cleansing Serum", desc: "Serum exfoliante detox para el cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/3616-packshot.jpg", url: "https://marianila.com/products/purifying-cleanse-exfoliating-serum-150-ml", category: "oily" },
-    purifyingCleanseDetoxMasque: { name: "Purifying Cleanse Detox Masque", desc: "Mascarilla detox purificante para cuero cabelludo graso.", img: "https://marianila.com/cdn/shop/files/3617-packshot.jpg", url: "https://marianila.com/products/purifying-cleanse-detox-masque-250-ml", category: "oily" },
-
-    // ==================== STRUCTURE REPAIR (Cabello dañado) ====================
+    purifyingCleanseShampoo: { name: "Purifying Cleanse Shampoo", desc: "Champú purificante para cuero cabelludo graso.", img: "https://marianila.com/cdn/shop/files/3615-packshot.jpg", url: "https://marianila.com/products/purifying-cleanse-shampoo-350-ml", category: "oily" },
     structureRepairShampoo: { name: "Structure Repair Shampoo", desc: "Repara cabello dañado con keratina.", img: "https://marianila.com/cdn/shop/files/3600-packshot.jpg", url: "https://marianila.com/products/structure-repair-shampoo-350-ml", category: "damaged" },
-    structureRepairConditioner: { name: "Structure Repair Conditioner", desc: "Acondicionador reparador con keratina.", img: "https://marianila.com/cdn/shop/files/3601-packshot.jpg", url: "https://marianila.com/products/structure-repair-conditioner-300-ml", category: "damaged" },
-    structureRepairMasque: { name: "Structure Repair Masque", desc: "Mascarilla reparadora intensiva con keratina.", img: "https://marianila.com/cdn/shop/files/3602-packshot.jpg", url: "https://marianila.com/products/structure-repair-masque-250-ml", category: "damaged" },
-    structureRepairLeaveInCream: { name: "Structure Repair Leave In Cream", desc: "Crema sin enjuague reparadora para cabello dañado.", img: "https://marianila.com/cdn/shop/files/3603-packshot.jpg", url: "https://marianila.com/products/structure-repair-leave-in-cream-100-ml", category: "damaged" },
-    bondBuilder: { name: "Bond Builder", desc: "Reparador de enlaces capilares intensivo.", img: "https://marianila.com/cdn/shop/files/3604-packshot.jpg", url: "https://marianila.com/products/bond-builder-100-ml", category: "damaged" },
-    structureRepairBondingBooster: { name: "Structure Repair Bonding Booster", desc: "Potenciador de union que refuerza enlaces capilares en tratamientos quimicos.", img: "https://marianila.com/cdn/shop/files/3605-packshot.jpg", url: "https://marianila.com/products/structure-repair-bonding-booster-100-ml", category: "damaged" },
-
-    // ==================== SHEER SILVER (Cabello rubio/canoso) ====================
-    sheerSilverShampoo: { name: "Sheer Silver Shampoo", desc: "Pigmentos violeta que neutralizan tonos dorados en rubios.", img: "https://marianila.com/cdn/shop/files/3640-packshot.jpg", url: "https://marianila.com/products/sheer-silver-shampoo-350-ml", category: "blonde" },
-    sheerSilverConditioner: { name: "Sheer Silver Conditioner", desc: "Acondicionador con pigmentos violeta para rubios.", img: "https://marianila.com/cdn/shop/files/3641-packshot.jpg", url: "https://marianila.com/products/sheer-silver-conditioner-300-ml", category: "blonde" },
-    sheerSilverMasque: { name: "Sheer Silver Masque", desc: "Mascarilla con pigmentos violeta para neutralizar tonos.", img: "https://marianila.com/cdn/shop/files/3642-packshot.jpg", url: "https://marianila.com/products/sheer-silver-masque-250-ml", category: "blonde" },
-    sheerSilverBoosterMasque: { name: "Sheer Silver Booster Masque", desc: "Mascarilla intensiva con pigmentos violeta.", img: "https://marianila.com/cdn/shop/files/3643-packshot.jpg", url: "https://marianila.com/products/sheer-silver-booster-masque-250-ml", category: "blonde" },
-    sheerSilverToneFixerSpray: { name: "Sheer Silver Tone Fixer Spray", desc: "Spray fijador con pigmentos violeta para neutralizar tonos amarillos entre lavados.", img: "https://marianila.com/cdn/shop/files/3645-packshot.jpg", url: "https://marianila.com/products/sheer-silver-tone-fixer-spray-150-ml", category: "blonde" },
-    sheerSilverDuo: { name: "Sheer Silver Shampoo + Conditioner Duo", desc: "Pack champu y acondicionador con pigmentos violeta para rubios.", img: "https://marianila.com/cdn/shop/files/3644-packshot.jpg", url: "https://marianila.com/products/sheer-silver-shampoo-conditioner-duo", category: "blonde" },
-    
-    // ==================== COLOUR REFRESH (Máscaras de color) ====================
-    colourRefreshAutumnRed: { name: "Colour Refresh Autumn Red", desc: "Mascara de color rojo intenso con aceite de argan.", img: "https://marianila.com/cdn/shop/files/3650-packshot.jpg", url: "https://marianila.com/products/colour-refresh-autumn-red-100-ml", category: "color-mask" },
-    colourRefreshCacao: { name: "Colour Refresh Cacao", desc: "Mascara de color marron oscuro con aceite de argan.", img: "https://marianila.com/cdn/shop/files/3651-packshot.jpg", url: "https://marianila.com/products/colour-refresh-cacao-100-ml", category: "color-mask" },
-    colourRefreshCacaoIntense: { name: "Colour Refresh Cacao Intense", desc: "Mascara de color marron muy oscuro.", img: "https://marianila.com/cdn/shop/files/3652-packshot.jpg", url: "https://marianila.com/products/colour-refresh-cacao-intense-100-ml", category: "color-mask" },
-    colourRefreshPearlSilver: { name: "Colour Refresh Pearl Silver", desc: "Mascara de color plata con pigmentos violeta.", img: "https://marianila.com/cdn/shop/files/3653-packshot.jpg", url: "https://marianila.com/products/colour-refresh-pearl-silver-100-ml", category: "color-mask" },
-    colourRefreshBrightCopper: { name: "Colour Refresh Bright Copper", desc: "Mascara de color cobre brillante.", img: "https://marianila.com/cdn/shop/files/3666-packshot.jpg", url: "https://marianila.com/products/colour-refresh-bright-copper-300-ml", category: "color-mask" },
-    colourRefreshBrightRed: { name: "Colour Refresh Bright Red", desc: "Mascara de color rojo brillante intenso.", img: "https://marianila.com/cdn/shop/files/3655-packshot.jpg", url: "https://marianila.com/products/colour-refresh-bright-red-100-ml", category: "color-mask" },
-    colourRefreshCoolCream: { name: "Colour Refresh Cool Cream", desc: "Mascara de color beige frio para rubios.", img: "https://marianila.com/cdn/shop/files/3656-packshot.jpg", url: "https://marianila.com/products/colour-refresh-cool-cream-100-ml", category: "color-mask" },
-    colourRefreshPinkPeach: { name: "Colour Refresh Pink Peach", desc: "Mascara de color rosa melocoton.", img: "https://marianila.com/cdn/shop/files/3657-packshot.jpg", url: "https://marianila.com/products/colour-refresh-pink-peach-100-ml", category: "color-mask" },
-    colourRefreshLavender: { name: "Colour Refresh Lavender", desc: "Mascara de color lavanda suave.", img: "https://marianila.com/cdn/shop/files/3658-packshot.jpg", url: "https://marianila.com/products/colour-refresh-lavender-100-ml", category: "color-mask" },
-    colourRefreshBeigeBlonde: { name: "Colour Refresh Beige Blonde", desc: "Mascara de color rubio beige.", img: "https://marianila.com/cdn/shop/files/3659-packshot.jpg", url: "https://marianila.com/products/colour-refresh-beige-blonde-100-ml", category: "color-mask" },
-    colourRefreshCaramelBrown: { name: "Colour Refresh Caramel Brown", desc: "Mascara de color marron caramelo.", img: "https://marianila.com/cdn/shop/files/3660-packshot.jpg", url: "https://marianila.com/products/colour-refresh-caramel-brown-100-ml", category: "color-mask" },
-    colourRefreshPearlRose: { name: "Colour Refresh Pearl Rose", desc: "Mascara de color rosa perla.", img: "https://marianila.com/cdn/shop/files/3661-packshot.jpg", url: "https://marianila.com/products/colour-refresh-pearl-rose-100-ml", category: "color-mask" },
-    colourRefreshWhiteMix: { name: "Colour Refresh White Mix", desc: "Base blanca para diluir y crear tonos pastel.", img: "https://marianila.com/cdn/shop/files/3662-packshot.jpg", url: "https://marianila.com/products/colour-refresh-white-mix-100-ml", category: "color-mask" },
-    colourRefreshHoneyBlonde: { name: "Colour Refresh Honey Blonde", desc: "Mascara de color rubio miel.", img: "https://marianila.com/cdn/shop/files/3663-packshot.jpg", url: "https://marianila.com/products/colour-refresh-honey-blonde-100-ml", category: "color-mask" },
-    colourRefreshBlack: { name: "Colour Refresh Black", desc: "Mascara de color negro intenso.", img: "https://marianila.com/cdn/shop/files/3664-packshot.jpg", url: "https://marianila.com/products/colour-refresh-black-100-ml", category: "color-mask" },
-    colourRefreshVividViolet: { name: "Colour Refresh Vivid Violet", desc: "Mascara de color violeta vivo.", img: "https://marianila.com/cdn/shop/files/3665-packshot.jpg", url: "https://marianila.com/products/colour-refresh-vivid-violet-100-ml", category: "color-mask" },
-
-    // ==================== COILS & CURLS (Cabello rizado) ====================
-    coilsCurlsCoWash: { name: "Coils & Curls Co-Wash", desc: "Limpieza suave sin sulfatos para rizos.", img: "https://marianila.com/cdn/shop/files/3670-packshot.jpg", url: "https://marianila.com/products/coils-curls-co-wash", category: "curly" },
-    coilsCurlsOilInCream: { name: "Coils & Curls Oil In Cream", desc: "Crema leave-in definidora de rizos con manteca de karite.", img: "https://marianila.com/cdn/shop/files/3671-packshot.jpg", url: "https://marianila.com/products/coils-curls-oil-in-cream", category: "curly" },
-    coilsCurlsFinishingTreatmentMasque: { name: "Coils & Curls Finishing Masque", desc: "Mascarilla nutritiva para definir y suavizar rizos.", img: "https://marianila.com/cdn/shop/files/3672-packshot.jpg", url: "https://marianila.com/products/coils-curls-finishing-treatment-masque", category: "curly" },
-    coilsCurlsWeightlessCurlDefiner: { name: "Weightless Curl Definer", desc: "Gel definidor de rizos sin peso con aloe vera.", img: "https://marianila.com/cdn/shop/files/3673-packshot.jpg", url: "https://marianila.com/products/coils-curls-weightless-curl-definer", category: "curly" },
-    coilsCurlsLusciousCurlDefiner: { name: "Luscious Curl Definer", desc: "Gel rico que define rizos con medio agarre.", img: "https://marianila.com/cdn/shop/files/3674-packshot.jpg", url: "https://marianila.com/products/coils-curls-luscious-curl-definer", category: "curly" },
-    coilsCurlsPrimer: { name: "Coils & Curls Primer", desc: "Pre-shampoo y acondicionador sin enjuague para rizos definidos.", img: "https://marianila.com/cdn/shop/files/3675-packshot.jpg", url: "https://marianila.com/products/coils-curls-primer", category: "curly" },
-    coilsCurlsCurlCream: { name: "Coils & Curls Curl Cream", desc: "Crema definidora de rizos con medio agarre y brillo.", img: "https://marianila.com/cdn/shop/files/3676-packshot.jpg", url: "https://marianila.com/products/coils-curls-curl-cream", category: "curly" },
-
-    // ==================== STYLING (Productos para peinar) ====================
-    oceanSpray: { name: "Ocean Spray", desc: "Spray de agua salada con extra agarre para beach waves.", img: "https://marianila.com/cdn/shop/files/3680-packshot.jpg", url: "https://marianila.com/products/ocean-spray-150-ml", category: "styling" },
-    saltyMist: { name: "Salty Mist", desc: "Bruma salina ligera para textura natural.", img: "https://marianila.com/cdn/shop/files/3681-packshot.jpg", url: "https://marianila.com/products/salty-mist-150-ml", category: "styling" },
-    stylingMousse: { name: "Styling Mousse", desc: "Espuma de peinado con agarre flexible.", img: "https://marianila.com/cdn/shop/files/3682-packshot.jpg", url: "https://marianila.com/products/styling-mousse-300-ml", category: "styling" },
-    stylingSpray: { name: "Styling Spray", desc: "Spray de peinado con agarre ligero.", img: "https://marianila.com/cdn/shop/files/3683-packshot.jpg", url: "https://marianila.com/products/styling-spray-300-ml", category: "styling" },
-    finishingSpray: { name: "Finishing Spray", desc: "Laca de fijacion fuerte y brillo.", img: "https://marianila.com/cdn/shop/files/3684-packshot.jpg", url: "https://marianila.com/products/finishing-spray-300-ml", category: "styling" },
-    shapingHeatSpray: { name: "Shaping Heat Spray", desc: "Protector termico para plancha y secador.", img: "https://marianila.com/cdn/shop/files/3685-packshot.jpg", url: "https://marianila.com/products/shaping-heat-spray-150-ml", category: "styling" },
-    creamHeatSpray: { name: "Cream Heat Spray", desc: "Protector termico en crema para peinado.", img: "https://marianila.com/cdn/shop/files/3686-packshot.jpg", url: "https://marianila.com/products/cream-heat-spray-150-ml", category: "styling" },
-    quickDryHeatSpray: { name: "Quick Dry Heat Spray", desc: "Protector termico de secado rapido.", img: "https://marianila.com/cdn/shop/files/3687-packshot.jpg", url: "https://marianila.com/products/quick-dry-heat-spray-150-ml", category: "styling" },
-    glossCoat: { name: "Gloss Coat", desc: "Spray alisador termoactivado para brillo.", img: "https://marianila.com/cdn/shop/files/3688-packshot.jpg", url: "https://marianila.com/products/gloss-coat-200-ml", category: "styling" },
-    stylingCream: { name: "Styling Cream", desc: "Crema moldeadora flexible para definicion.", img: "https://marianila.com/cdn/shop/files/3689-packshot.jpg", url: "https://marianila.com/products/styling-cream-100-ml", category: "styling" },
-    volumeSpray: { name: "Volume Spray", desc: "Spray voluminizador ligero para raiz.", img: "https://marianila.com/cdn/shop/files/3690-packshot.jpg", url: "https://marianila.com/products/volume-spray-100-ml", category: "styling" },
-    powerPowder: { name: "Power Powder", desc: "Polvo texturizador para volumen extra en raiz.", img: "https://marianila.com/cdn/shop/files/3691-packshot.jpg", url: "https://marianila.com/products/power-powder-20-g", category: "styling" },
-    cleansingPowder: { name: "Cleansing Powder", desc: "Polvo limpiador para peinar y texturizar.", img: "https://marianila.com/cdn/shop/files/3692-packshot.jpg", url: "https://marianila.com/products/cleansing-powder-60-g", category: "styling" },
-    sprayWax: { name: "Spray Wax", desc: "Cera en aerosol para textura y definicion.", img: "https://marianila.com/cdn/shop/files/3693-packshot.jpg", url: "https://marianila.com/products/spray-wax-200-ml", category: "styling" },
-    stylingPaste: { name: "Styling Paste", desc: "Pasta moldeadora flexible con mate.", img: "https://marianila.com/cdn/shop/files/3694-packshot.jpg", url: "https://marianila.com/products/styling-paste-100-ml", category: "styling" },
-    extremeWax: { name: "Extreme Wax", desc: "Cera de fijacion extrema y brillo medio.", img: "https://marianila.com/cdn/shop/files/3695-packshot.jpg", url: "https://marianila.com/products/extreme-wax-100-ml", category: "styling" },
-    fixatingWax: { name: "Fixating Wax", desc: "Cera fijadora de acabado mate.", img: "https://marianila.com/cdn/shop/files/3696-packshot.jpg", url: "https://marianila.com/products/fixating-wax-100-ml", category: "styling" },
-    veganSculptingWax: { name: "Vegan Sculpting Wax", desc: "Cera moldeadora vegana para estilismo.", img: "https://marianila.com/cdn/shop/files/3697-packshot.jpg", url: "https://marianila.com/products/vegan-sculpting-wax-100-ml", category: "styling" },
-    dryShampoo: { name: "Dry Shampoo", desc: "Champu seco refrescante para lavados entre lavados.", img: "https://marianila.com/cdn/shop/files/3698-packshot.jpg", url: "https://marianila.com/products/dry-shampoo-250-ml", category: "styling" },
-    soothingDryShampoo: { name: "Soothing Dry Shampoo", desc: "Champu seco calmante para cuero cabelludo sensible.", img: "https://marianila.com/cdn/shop/files/3699-packshot.jpg", url: "https://marianila.com/products/soothing-dry-shampoo-250-ml", category: "styling" },
-    hairPrimer: { name: "Hair Primer", desc: "Pre-shampoo protector que facilita el desenredado y protege del calor.", img: "https://marianila.com/cdn/shop/files/3702-packshot.jpg", url: "https://marianila.com/products/hair-primer-150-ml", category: "styling" },
-    shineCream: { name: "Shine Cream", desc: "Crema brillante para aportar luz y suavidad sin peso.", img: "https://marianila.com/cdn/shop/files/3703-packshot.jpg", url: "https://marianila.com/products/shine-cream-100-ml", category: "styling" },
-    textureCream: { name: "Texture Cream", desc: "Crema texturizadora para definicion y separacion de mechas.", img: "https://marianila.com/cdn/shop/files/3704-packshot.jpg", url: "https://marianila.com/products/texture-cream-100-ml", category: "styling" },
-
-    // ==================== OTROS ====================
-    healingCicaOil: { name: "Healing Cica Oil", desc: "Aceite reparador con Cica para barrera cutanea.", img: "https://marianila.com/cdn/shop/files/3700-packshot.jpg", url: "https://marianila.com/products/healing-cica-oil-100-ml", category: "treatment" },
-    floralDriftHairMist: { name: "Floral Drift Hair Mist", desc: "Bruma capilar floral con fragancia suave.", img: "https://marianila.com/cdn/shop/files/3701-packshot.jpg", url: "https://marianila.com/products/floral-drift-fine-fragrance-hair-mist-100-ml", category: "treatment" },
-    hairButter: { name: "Hair Butter", desc: "Manteca nutritiva intensiva con manteca de karite para cabello muy seco.", img: "https://marianila.com/cdn/shop/files/3705-packshot.jpg", url: "https://marianila.com/products/hair-butter-100-ml", category: "treatment" },
-    scalpTreatment: { name: "Scalp Treatment", desc: "Tratamiento intensivo para equilibrar y calmar el cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/3706-packshot.jpg", url: "https://marianila.com/products/scalp-treatment-100-ml", category: "treatment" }
+    // Acondicionadores
+    headHairHealConditioner: { name: "Head & Hair Heal Conditioner", desc: "Acondicionador calmante para el cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/13651-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-conditioner-300-ml", category: "scalp" },
+    trueSoftConditioner: { name: "True Soft Conditioner", desc: "Acondicionador hidratante con aceite de argán.", img: "https://marianila.com/cdn/shop/files/3631-packshot.jpg", url: "https://marianila.com/products/true-soft-conditioner-300-ml", category: "dry" },
+    pureVolumeConditioner: { name: "Pure Volume Conditioner", desc: "Acondicionador voluminizador ligero.", img: "https://marianila.com/cdn/shop/files/3611-packshot.jpg", url: "https://marianila.com/products/pure-volume-conditioner-300-ml", category: "fine" },
+    luminousColourConditioner: { name: "Luminous Colour Conditioner", desc: "Acondicionador preservador de color.", img: "https://marianila.com/cdn/shop/files/3626-packshot.jpg", url: "https://marianila.com/products/luminous-colour-conditioner-300-ml", category: "colored" },
+    // Tratamientos
+    bondBuilder: { name: "Bond Builder", desc: "Reparador de enlaces capilares intensivo.", img: "https://marianila.com/cdn/shop/files/mnproductpage1200x1500px1.jpg", url: "https://marianila.com/products/bond-builder", category: "damaged" },
+    trueSoftArganOil: { name: "True Soft Argan Oil", desc: "Aceite de argán para hidratación.", img: "https://marianila.com/cdn/shop/files/IMG_c_s_3637_soft_argan_oil_100_ml.jpg", url: "https://marianila.com/products/true-soft-argan-oil-100-ml", category: "dry" }
 };
 
 // Tratamiento Premium Olaplex del Salón
@@ -127,96 +31,33 @@ const OLAPLEX_TREATMENTS = {
 
 function getMariaNilaRecommendations(diagnosis) {
     const recommendations = [];
-    const { density, thickness, hydration, sebum, isColored, isBlonde, isCurly, isDamaged } = diagnosis;
+    const { density, thickness, hydration, sebum, isColored } = diagnosis;
     
-    // Cabello seco (hidratación baja)
+    // Lógica de recomendaciones según resultados
     if (hydration < 50) {
         recommendations.push(MARIA_NILA_PRODUCTS.trueSoftShampoo);
         recommendations.push(MARIA_NILA_PRODUCTS.trueSoftConditioner);
-        recommendations.push(MARIA_NILA_PRODUCTS.trueSoftMasque);
-        recommendations.push(MARIA_NILA_PRODUCTS.trueSoftArganOil);
-        recommendations.push(MARIA_NILA_PRODUCTS.trueSoftLeaveInCream);
     }
-    
-    // Cabello fino (densidad baja)
     if (density < 150) {
         recommendations.push(MARIA_NILA_PRODUCTS.pureVolumeShampoo);
         recommendations.push(MARIA_NILA_PRODUCTS.pureVolumeConditioner);
-        recommendations.push(MARIA_NILA_PRODUCTS.pureVolumeMousse);
-        recommendations.push(MARIA_NILA_PRODUCTS.pureVolumeLeaveInCream);
-        recommendations.push(MARIA_NILA_PRODUCTS.volumeSpray);
     }
-    
-    // Cuero cabelludo graso
     if (sebum > 65 || sebum === 'Alto') {
         recommendations.push(MARIA_NILA_PRODUCTS.purifyingCleanseShampoo);
-        recommendations.push(MARIA_NILA_PRODUCTS.purifyingCleanseExfoliatingSerum);
-        recommendations.push(MARIA_NILA_PRODUCTS.purifyingCleanseDetoxMasque);
     }
-    
-    // Cabello teñido
     if (isColored) {
         recommendations.push(MARIA_NILA_PRODUCTS.luminousColourShampoo);
         recommendations.push(MARIA_NILA_PRODUCTS.luminousColourConditioner);
-        recommendations.push(MARIA_NILA_PRODUCTS.luminousColourMasque);
-        recommendations.push(MARIA_NILA_PRODUCTS.luminousColourLeaveInCream);
-        recommendations.push(MARIA_NILA_PRODUCTS.colourRefreshCacao);
-        recommendations.push(MARIA_NILA_PRODUCTS.colourRefreshHoneyBlonde);
     }
-    
-    // Rubios / Canas
-    if (isBlonde) {
-        recommendations.push(MARIA_NILA_PRODUCTS.sheerSilverShampoo);
-        recommendations.push(MARIA_NILA_PRODUCTS.sheerSilverConditioner);
-        recommendations.push(MARIA_NILA_PRODUCTS.sheerSilverMasque);
-        recommendations.push(MARIA_NILA_PRODUCTS.sheerSilverToneFixerSpray);
-        recommendations.push(MARIA_NILA_PRODUCTS.colourRefreshPearlSilver);
-    }
-    
-    // Cabello rizado
-    if (isCurly) {
-        recommendations.push(MARIA_NILA_PRODUCTS.coilsCurlsCoWash);
-        recommendations.push(MARIA_NILA_PRODUCTS.coilsCurlsOilInCream);
-        recommendations.push(MARIA_NILA_PRODUCTS.coilsCurlsFinishingTreatmentMasque);
-        recommendations.push(MARIA_NILA_PRODUCTS.coilsCurlsWeightlessCurlDefiner);
-        recommendations.push(MARIA_NILA_PRODUCTS.coilsCurlsCurlCream);
-    }
-    
-    // Cabello dañado
-    if (isDamaged || thickness < 65) {
-        recommendations.push(MARIA_NILA_PRODUCTS.structureRepairShampoo);
-        recommendations.push(MARIA_NILA_PRODUCTS.structureRepairConditioner);
-        recommendations.push(MARIA_NILA_PRODUCTS.structureRepairMasque);
+    if (thickness < 65) {
         recommendations.push(MARIA_NILA_PRODUCTS.bondBuilder);
-        recommendations.push(MARIA_NILA_PRODUCTS.structureRepairBondingBooster);
     }
-    
-    // Cuero cabelludo sensible
-    if (hydration < 40 || sebum < 30) {
+    // Default si no hay recomendaciones específicas
+    if (recommendations.length === 0) {
         recommendations.push(MARIA_NILA_PRODUCTS.headHairHealShampoo);
         recommendations.push(MARIA_NILA_PRODUCTS.headHairHealConditioner);
-        recommendations.push(MARIA_NILA_PRODUCTS.headHairHealSoothingSerum);
-        recommendations.push(MARIA_NILA_PRODUCTS.headHairHealScalpTonic);
     }
-    
-    // Protectores térmicos (siempre útiles)
-    recommendations.push(MARIA_NILA_PRODUCTS.shapingHeatSpray);
-    recommendations.push(MARIA_NILA_PRODUCTS.creamHeatSpray);
-    
-    // Styling para textura
-    recommendations.push(MARIA_NILA_PRODUCTS.oceanSpray);
-    recommendations.push(MARIA_NILA_PRODUCTS.stylingMousse);
-    recommendations.push(MARIA_NILA_PRODUCTS.textureCream);
-    
-    // Eliminar duplicados por nombre
-    const seen = new Set();
-    const unique = recommendations.filter(p => {
-        if (!p || seen.has(p.name)) return false;
-        seen.add(p.name);
-        return true;
-    });
-    
-    return unique.slice(0, 12);
+    return recommendations.slice(0, 4);
 }
 
 function getOlaplexRecommendations(diagnosis) {
@@ -286,18 +127,15 @@ document.addEventListener('DOMContentLoaded', () => {
         clients: [],
         services: [],
         appointments: [],
-        salons: [],
         clientPhotos: {},
         // Calendar state
         calYear: new Date().getFullYear(),
         calMonth: new Date().getMonth(),
         selectedDate: null,
-        selectedSalonId: null,
         isLoading: false,
         // Monthly listing state
         monthlyYear: new Date().getFullYear(),
         monthlyMonth: new Date().getMonth(),
-        activeSalonId: localStorage.getItem('nymara_agenda_salon'),
         // Auth state
         session: null,
         currentUserEmail: null,
@@ -438,22 +276,15 @@ document.addEventListener('DOMContentLoaded', () => {
         renderRoute();
 
         try {
-            const [clientsRes, servicesRes, appointmentsRes, salonsRes] = await Promise.all([
+            const [clientsRes, servicesRes, appointmentsRes] = await Promise.all([
                 supabase.from('clients').select('*').order('name'),
                 supabase.from('services').select('*').order('name'),
                 supabase.from('appointments').select('*').order('date').order('time'),
-                supabase.from('salons').select('*').order('name')
             ]);
 
             if (clientsRes.error) throw clientsRes.error;
             if (servicesRes.error) throw servicesRes.error;
             if (appointmentsRes.error) throw appointmentsRes.error;
-            if (salonsRes.error) {
-                console.warn('Tabla salons no existe aún:', salonsRes.error.message);
-                State.salons = [];
-            } else {
-                State.salons = salonsRes.data;
-            }
 
             State.clients = clientsRes.data;
             State.services = servicesRes.data;
@@ -462,7 +293,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 id: a.id,
                 clientId: a.client_id,
                 serviceId: a.service_id,
-                salonId: a.salon_id || null,
                 date: a.date,
                 time: a.time.substring(0, 5), // "HH:MM:SS" → "HH:MM"
                 notes: a.notes || '',
@@ -629,19 +459,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
-    async function calculateFileHash(file) {
-        const buffer = await file.arrayBuffer();
-        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
-    async function uploadClientPhoto(file, clientId, photoDate, photoType, photoNotes, caspaLevel = null, seboLevel = null, eritemaLevel = null) {
+    async function uploadClientPhoto(file, clientId, photoDate, photoType, photoNotes) {
         console.log('uploadClientPhoto called:', { clientId, photoDate, photoType });
         const fileExt = file.name.split('.').pop();
         const photoId = generateId();
         const fileName = `${clientId}/${photoId}.${fileExt}`;
-        const photoHash = await calculateFileHash(file);
+        
+        // Calcular hash para evitar duplicados
+        const buffer = await file.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        const photoHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
         
         const { data, error } = await supabase.storage
             .from('client-photos')
@@ -661,10 +488,10 @@ document.addEventListener('DOMContentLoaded', () => {
             id: photoId,
             client_id: clientId,
             photo_url: publicUrl,
+            photo_hash: photoHash,
             photo_date: photoDate,
             photo_type: photoType,
             notes: photoNotes,
-            photo_hash: photoHash,
             created_at: new Date().toISOString()
         };
         
@@ -800,61 +627,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
-    // ── Salons CRUD ──
-
-    async function addSalon(data) {
-        console.log('Adding salon:', data);
-        const { data: result, error } = await supabase.from('salons').insert([{
-            id: data.id,
-            name: data.name,
-            address: data.address || null,
-            phone: data.phone || null,
-            email: data.email || null
-        }]).select().single();
-        
-        if (error) { 
-            console.error('Error adding salon:', error);
-            showToast('Error al añadir salón: ' + error.message, 'error'); 
-            return false; 
-        }
-        console.log('Salon added:', result);
-        State.salons.push(result || data);
-        showToast('Salón añadido correctamente');
-        return true;
-    }
-
-    async function updateSalon(data) {
-        console.log('Updating salon:', data);
-        const { error } = await supabase.from('salons').update({
-            name: data.name,
-            address: data.address || null,
-            phone: data.phone || null,
-            email: data.email || null
-        }).eq('id', data.id);
-        
-        if (error) { 
-            console.error('Error updating salon:', error);
-            showToast('Error al actualizar salón: ' + error.message, 'error'); 
-            return false; 
-        }
-        State.salons = State.salons.map(s => s.id === data.id ? data : s);
-        showToast('Salón actualizado correctamente');
-        return true;
-    }
-
-    async function deleteSalon(id) {
-        console.log('Deleting salon:', id);
-        const { error } = await supabase.from('salons').delete().eq('id', id);
-        if (error) { 
-            console.error('Error deleting salon:', error);
-            showToast('Error al eliminar salón: ' + error.message, 'error'); 
-            return false; 
-        }
-        State.salons = State.salons.filter(s => s.id !== id);
-        showToast('Salón eliminado');
-        return true;
-    }
-
     // ── Appointments CRUD ──
 
     async function addAppointment(data) {
@@ -863,7 +635,6 @@ document.addEventListener('DOMContentLoaded', () => {
             id: data.id,
             client_id: data.clientId,
             service_id: data.serviceId,
-            salon_id: data.salonId || null,
             date: data.date,
             time: data.time,
             notes: data.notes,
@@ -879,9 +650,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function updateAppointment(id, data) {
         const dbRow = {
-            client_id: data.client_id,
-            service_id: data.service_id,
-            salon_id: data.salon_id || null,
+            client_id: data.clientId,
+            service_id: data.serviceId,
             date: data.date,
             time: data.time,
             notes: data.notes,
@@ -896,20 +666,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.editClientPhoto = async function(photoId, clientId, currentDate, currentNotes, currentType) {
-        // Obtener la foto actual para extraer valores de diagnóstico
-        const { data: photoData } = await supabase.from('client_photos').select('*').eq('id', photoId).single();
-        
-        // Extraer valores de diagnóstico de las notas o usar valores por defecto
-        let caspaVal = 0, seboVal = 5, eritemaVal = 0;
-        if (photoData?.notes) {
-            const caspaMatch = photoData.notes.match(/Caspa:\s*(\d+)/i);
-            const seboMatch = photoData.notes.match(/Sebo:\s*(\d+)/i);
-            const eritemaMatch = photoData.notes.match(/Eritema:\s*(\d+)/i);
-            if (caspaMatch) caspaVal = parseInt(caspaMatch[1]) || 0;
-            if (seboMatch) seboVal = parseInt(seboMatch[1]) || 5;
-            if (eritemaMatch) eritemaVal = parseInt(eritemaMatch[1]) || 0;
-        }
-        
         openModal('Editar Foto', `
             <form id="edit-client-photo-form">
                 <div class="form-group">
@@ -922,21 +678,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="form-group">
                     <label>Fecha</label>
                     <input type="date" class="form-control" id="edit-client-photo-date" value="${currentDate}">
-                </div>
-                <div class="form-group">
-                    <label>Caspa (0-10)</label>
-                    <input type="range" class="form-control" id="edit-client-photo-caspa" min="0" max="10" value="${caspaVal}" oninput="this.nextElementSibling.textContent = this.value">
-                    <span style="font-size:0.85rem;color:var(--text-secondary)">${caspaVal}</span>
-                </div>
-                <div class="form-group">
-                    <label>Sebo (0-10)</label>
-                    <input type="range" class="form-control" id="edit-client-photo-sebo" min="0" max="10" value="${seboVal}" oninput="this.nextElementSibling.textContent = this.value">
-                    <span style="font-size:0.85rem;color:var(--text-secondary)">${seboVal}</span>
-                </div>
-                <div class="form-group">
-                    <label>Eritema (0-10)</label>
-                    <input type="range" class="form-control" id="edit-client-photo-eritema" min="0" max="10" value="${eritemaVal}" oninput="this.nextElementSibling.textContent = this.value">
-                    <span style="font-size:0.85rem;color:var(--text-secondary)">${eritemaVal}</span>
                 </div>
                 <div class="form-group">
                     <label>Notas</label>
@@ -952,19 +693,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 const newType = document.getElementById('edit-client-photo-type').value;
                 const newDate = document.getElementById('edit-client-photo-date').value;
-                const newCaspa = document.getElementById('edit-client-photo-caspa').value;
-                const newSebo = document.getElementById('edit-client-photo-sebo').value;
-                const newEritema = document.getElementById('edit-client-photo-eritema').value;
                 const newNotes = document.getElementById('edit-client-photo-notes').value;
                 
-                // Incluir diagnósticos en las notas
-                const notesWithDiag = `${newNotes ? newNotes + ' | ' : ''}Caspa: ${newCaspa}, Sebo: ${newSebo}, Eritema: ${newEritema}`;
-                
-                await updateClientPhoto(photoId, clientId, { 
-                    photo_type: newType, 
-                    photo_date: newDate, 
-                    notes: notesWithDiag
-                });
+                await updateClientPhoto(photoId, clientId, { photo_type: newType, photo_date: newDate, notes: newNotes });
                 closeModal();
                 showToast('Foto actualizada');
                 renderRoute();
@@ -1112,7 +843,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         else if (currentRoute === 'services') content = getServicesView();
         else if (currentRoute === 'monthly') content = getMonthlyView();
-        else if (currentRoute === 'salons') content = getSalonsView();
         else if (currentRoute === 'whatsapp') content = getWhatsAppView();
         else if (currentRoute === 'diagnosis') content = getDiagnosisView();
 
@@ -1126,11 +856,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         attachEvents();
-
-        // Cargar lista de clientes para diagnóstico
-        if (currentRoute === 'diagnosis') {
-            loadDiagnosisClients();
-        }
     }
 
     /* ═══════════════════════════════════════
@@ -1170,19 +895,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getAppointmentsForDate(dateStr) {
-<<<<<<< HEAD
-        let salonId = State.activeSalonId;
-        if (!salonId && State.salons.length > 0) salonId = State.salons[0].id;
-
         return State.appointments
-            .filter(a => a.date === dateStr && a.salonId === salonId)
-=======
-        if (!State.selectedSalonId && State.salons.length > 0) {
-            State.selectedSalonId = State.salons[0].id;
-        }
-        return State.appointments
-            .filter(a => a.date === dateStr && a.salonId === State.selectedSalonId)
->>>>>>> 73988dbd9c31af936ac5e711e599d0ed6e6876a9
+            .filter(a => {
+                if (a.date !== dateStr) return false;
+                if (State.selectedSalonId && a.salonId !== State.selectedSalonId) return false;
+                return true;
+            })
             .sort((a, b) => a.time.localeCompare(b.time));
     }
 
@@ -1190,15 +908,27 @@ document.addEventListener('DOMContentLoaded', () => {
        AGENDA VIEW  (Calendar + Day Detail)
        ═══════════════════════════════════════ */
     function getAgendaView() {
-        const todayStr = toLocalDateStr(new Date());
-        const todaysAppointments = getAppointmentsForDate(todayStr);
+        // Auto-select first salon if none selected and salons exist
+        if (!State.selectedSalonId && State.salons.length > 0) {
+            State.selectedSalonId = State.salons[0].id;
+        }
 
+        const todayStr = toLocalDateStr(new Date());
+        const todayAppointments = getAppointmentsForDate(todayStr);
+        
+        // If no salons exist, show message
+        if (State.salons.length === 0) {
+            return `
+                <div class="empty-state data-card">
+                    <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    <h3>No hay salones registrados</h3>
+                    <p>Añade un salón primero para poder ver la agenda.</p>
+                </div>`;
+        }
+        
         // Calendar grid
         const days = getCalendarDays(State.calYear, State.calMonth);
         const monthLabel = `${MONTH_NAMES[State.calMonth]} ${State.calYear}`;
-
-        let calCells = '';
-        days.forEach(day => {
             const apts = getAppointmentsForDate(day.dateStr);
             const isToday = day.dateStr === todayStr;
             const isSelected = day.dateStr === State.selectedDate;
@@ -1274,7 +1004,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     });
                     photosHtml += '</div>';
                 }
-                 
+                
                 detailHtml += `
                     <div class="day-detail-item">
                         <div class="day-detail-time" style="color:${userColor}">${apt.time} – ${endStr}</div>
@@ -1286,7 +1016,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             </div>
                         </div>
                         <div class="day-detail-actions">
-                            <button class="edit-apt-btn" data-id="${apt.id}" title="Editar cita" style="background:none;border:none;cursor:pointer;margin-right:8px;">
+                            <button class="edit-apt-btn" data-id="${apt.id}" title="Editar cita">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                             </button>
                             <button class="delete-btn" data-id="${apt.id}" title="Eliminar cita">
@@ -1342,7 +1072,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     const [stH_str, stM_str] = [Math.floor(clippedStart / 60).toString().padStart(2, '0'), (clippedStart % 60).toString().padStart(2, '0')];
                     const [endH_str, endM_str] = [Math.floor(clippedEnd / 60).toString().padStart(2, '0'), (clippedEnd % 60).toString().padStart(2, '0')];
                     const bgOption = bgPalette[idx % bgPalette.length];
-                    timelineHtml += `<div class="timeline-segment booked" style="width:${pct}%; background: ${bgOption}; border-left: 1px solid rgba(255,255,255,0.4); border-right: 1px solid rgba(255,255,255,0.4);" title="Ocupado: ${stH_str}:${stM_str} - ${endH_str}:${endM_str}"><span class="segment-time">${stH_str}:${stM_str}-${endH_str}:${endM_str}</span></div>`;
+                    timelineHtml += `<div class="timeline-segment booked" style="width:${pct}%; background: ${bgOption}; border-left: 1px solid rgba(255,255,255,0.4); border-right: 1px solid rgba(255,255,255,0.4);" title="Ocupado: ${stH_str}:${stM_str} - ${endH_str}:${endM_str}"></div>`;
                 }
 
                 cursorMins = Math.max(cursorMins, clippedEnd);
@@ -1358,21 +1088,6 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             }
         }
         timelineHtml += '</div>';
-
-        // Time ruler with all time slots
-        const slotInterval = 60; // minutes per slot, show hourly marks
-        const numSlots = Math.floor(totalMinutes / slotInterval);
-        timelineHtml += '<div class="timeline-ruler">';
-        for (let i = 0; i <= numSlots; i++) {
-            const mins = startDayMins + i * slotInterval;
-            if (mins > endDayMins) break;
-            const h = Math.floor(mins / 60).toString().padStart(2, '0');
-            const m = (mins % 60).toString().padStart(2, '0');
-            const pct = (i / numSlots) * 100;
-            timelineHtml += `<span class="timeline-tick" style="left:${pct}%">${h}:${m}</span>`;
-        }
-        timelineHtml += '</div>';
-
         timelineHtml += `
             <div class="timeline-legend">
                 <div class="legend-item"><span class="legend-color free-color"></span> Libre</div>
@@ -1381,56 +1096,29 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         </div>`;
 
         return `
-            ${State.salons.length > 0 ? `
-            <div style="text-align:center; margin-bottom: 2rem;">
-                <select id="agenda-salon-select" style="font-size:2.5rem; font-weight:800; border:none; background:transparent; color:var(--text-primary); text-align:center; text-align-last:center; cursor:pointer; padding:0; appearance:none; letter-spacing:-1px;">
-                    ${State.salons.map(s => `<option value="${s.id}" ${(State.activeSalonId || State.salons[0].id) === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
-                </select>
-                <div style="font-size:0.85rem; color:var(--accent-color); font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-top:0.25rem;">Cambiar Salón ▾</div>
-            </div>
-            ` : ''}
-            <div class="section-header" style="margin-top:-1rem;">
+            <div class="section-header">
                 <div>
                     <h1 class="section-title">Agenda</h1>
                     <p style="color:var(--text-secondary)">Calendario de citas · <span class="supabase-badge">⚡ Supabase</span></p>
                 </div>
-                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
                     <button class="btn btn-secondary" id="btn-settings" title="Configurar Horario">
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         Horas
                     </button>
-                    <button class="btn btn-primary" id="btn-add-appointment" onclick="showAppointmentForm()">
+                    <button class="btn btn-primary" id="btn-add-appointment">
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                         Nueva Cita
                     </button>
                 </div>
             </div>
 
-            <!-- Stats -->
-            <div class="stats-row">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    </div>
-                    <div class="stat-content"><h3>Citas Hoy</h3><p>${todaysAppointments.length}</p></div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    </div>
-                    <div class="stat-content"><h3>Clientes</h3><p>${State.clients.length}</p></div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
-                    </div>
-                    <div class="stat-content"><h3>Servicios</h3><p>${State.services.length}</p></div>
-                </div>
-            </div>
-
             <!-- Salon Selector -->
             <div class="salon-selector" style="margin-bottom:20px;padding:16px;background:var(--bg-card);border-radius:12px;border:2px solid var(--border-color);">
-                <label style="display:block;margin-bottom:8px;font-weight:600;color:var(--text-primary)">Seleccionar Salón</label>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <div style="font-size:0.85rem;color:var(--text-secondary);">SALÓN SELECCIONADO</div>
+                    <button class="btn btn-sm btn-secondary" onclick="showSalonForm()" style="font-size:0.75rem;padding:4px 8px;">+ Añadir Salón</button>
+                </div>
                 <select id="agenda-salon-select" style="width:100%;padding:12px 16px;border-radius:8px;border:2px solid var(--accent-color);background:var(--bg-dark);color:var(--text-primary);font-size:1.1rem;font-weight:bold;">
                     ${State.salons.map(s => `<option value="${s.id}" ${State.selectedSalonId === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
                 </select>
@@ -1482,21 +1170,21 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                                 ${c.email ? `<span>✉️ ${c.email}</span>` : ''}
                                 <span class="${c.enviar_was ? 'status-success' : 'status-danger'}" style="font-size:0.75rem">WA: ${c.enviar_was ? 'Sí' : 'No'}</span>
                             </div>
-                             ${c.observations ? `<p style="font-size:0.8rem;color:var(--text-secondary);margin:4px 0 0;font-style:italic">"${c.observations}"</p>` : ''}
-                             ${State.clientPhotos && State.clientPhotos[c.id] && State.clientPhotos[c.id].length > 0 ? `
-                                 <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
-                                     ${State.clientPhotos[c.id].slice(0, 4).map(p => {
-                                         const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
-                                         return `<div style="position:relative;text-align:center">
-                                             <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid var(--border-color)" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
-                                             <div style="font-size:0.6rem;color:var(--text-secondary);margin-top:2px">${photoType}</div>
-                                             <div style="font-size:0.55rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
-                                         </div>`;
-                                     }).join('')}
-                                     ${State.clientPhotos[c.id].length > 4 ? `<button style="font-size:0.75rem;color:var(--primary-color);align-self:center;cursor:pointer;background:none;border:none;padding:0" onclick="showClientForm(State.clients.find(c => c.id === '${c.id}'))">+${State.clientPhotos[c.id].length - 4} más</button>` : ''}
-                                 </div>
-                             ` : ''}
-                         </div>
+                            ${c.observations ? `<p style="font-size:0.8rem;color:var(--text-secondary);margin:4px 0 0;font-style:italic">"${c.observations}"</p>` : ''}
+${State.clientPhotos && State.clientPhotos[c.id] && State.clientPhotos[c.id].length > 0 ? `
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+        ${State.clientPhotos[c.id].slice(0, 4).map(p => {
+            const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
+            return `<div style="position:relative;text-align:center">
+                <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid var(--border-color)" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                <div style="font-size:0.6rem;color:var(--text-secondary);margin-top:2px">${photoType}</div>
+                <div style="font-size:0.55rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
+            </div>`;
+        }).join('')}
+        ${State.clientPhotos[c.id].length > 4 ? `<button style="font-size:0.75rem;color:var(--primary-color);align-self:center;cursor:pointer;background:none;border:none;padding:0" onclick="showClientForm(State.clients.find(c => c.id === ${c.id}))">+${State.clientPhotos[c.id].length - 4} más</button>` : ''}
+    </div>
+` : ''}
+                        </div>
                         <div class="client-actions">
                             <button class="edit-btn" data-id="${c.id}" data-type="client" title="Editar">
                                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
@@ -1582,12 +1270,8 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         // Filter appointments for the selected month
         const monthStr = String(month + 1).padStart(2, '0');
         const prefix = `${year}-${monthStr}`;
-        
-        let salonId = State.activeSalonId;
-        if (!salonId && State.salons.length > 0) salonId = State.salons[0].id;
-
         const monthAppointments = State.appointments
-            .filter(a => a.date.startsWith(prefix) && a.salonId === salonId)
+            .filter(a => a.date.startsWith(prefix))
             .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
 
         // Summary stats
@@ -1634,7 +1318,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     const dayCount = monthAppointments.filter(a => a.date === apt.date).length;
                     tableRows += `
                         <tr class="monthly-date-row">
-                            <td colspan="7">
+                            <td colspan="6">
                                 <span class="monthly-date-label">${dayLabel}</span>
                                 <span class="monthly-date-count">${dayCount} cita${dayCount !== 1 ? 's' : ''}</span>
                             </td>
@@ -1675,25 +1359,15 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         }
 
         return `
-            ${State.salons.length > 0 ? `
-            <div style="text-align:center; margin-bottom: 2rem;">
-                <select id="monthly-salon-select" style="font-size:2.5rem; font-weight:800; border:none; background:transparent; color:var(--text-primary); text-align:center; text-align-last:center; cursor:pointer; padding:0; appearance:none; letter-spacing:-1px;">
-                    ${State.salons.map(s => `<option value="${s.id}" ${(State.activeSalonId || State.salons[0].id) === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
-                </select>
-                <div style="font-size:0.85rem; color:var(--accent-color); font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-top:0.25rem;">Cambiar Salón ▾</div>
-            </div>
-            ` : ''}
-            <div class="section-header" style="margin-top:-1rem;">
+            <div class="section-header">
                 <div>
                     <h1 class="section-title">Listado Mensual</h1>
                     <p style="color:var(--text-secondary)">Detalle de citas por mes · <span class="supabase-badge">⚡ Supabase</span></p>
                 </div>
-                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
-                    <button class="btn btn-primary" id="btn-print-monthly">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                        Imprimir
-                    </button>
-                </div>
+                <button class="btn btn-primary" id="btn-print-monthly">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    Imprimir
+                </button>
             </div>
 
             <!-- Month/Year Selector -->
@@ -1904,188 +1578,24 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
     let currentDiagnosisImage = null;
 
     function getDiagnosisView() {
-        const hasClient = sessionStorage.getItem('nymara_diagnosis_client_id');
-        const clientName = sessionStorage.getItem('nymara_diagnosis_client_name') || '';
-        const clientPhone = sessionStorage.getItem('nymara_diagnosis_client_phone') || '';
-        
         return `
             <div class="section-header">
                 <div>
                     <h1 class="section-title">Diagnóstico Capilar</h1>
                     <p style="color:var(--text-secondary)">Análisis avanzado del cuero cabelludo · <span class="supabase-badge">⚡ IA Vision</span></p>
                 </div>
-             </div>
-             
-            <div id="diagnosis-client-selection" style="display: ${hasClient ? 'none' : 'block'};">
-                <div style="max-width:700px;margin:60px auto;padding:40px;background:var(--bg-card);border:2px solid var(--accent-color);border-radius:16px;box-shadow:0 0 30px rgba(167,139,250,0.3);">
-                    <h2 style="margin-top:0;color:#fff;font-size:28px;text-align:center;margin-bottom:10px;">SELECCIONAR CLIENTE</h2>
-                    <p style="color:var(--text-secondary);text-align:center;margin-bottom:30px;font-size:16px;">Elija un cliente de la lista para realizar el diagnóstico capilar</p>
-                    <div id="diagnosis-clients-list"></div>
-                </div>
             </div>
             
-            <div id="diagnosis-main" style="display: ${hasClient ? 'block' : 'none'};">
-                <div style="background:var(--bg-card);padding:20px;border-radius:12px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;border:2px solid var(--accent-color);">
-                    <div>
-                        <div style="color:#fff;font-size:14px;margin-bottom:4px;">CLIENTE SELECCIONADO</div>
-                        <div style="display:flex;align-items:center;gap:12px;">
-                            <span id="selected-client-name" style="color:#fff;font-size:22px;font-weight:bold;">${clientName}</span>
-                            <span id="selected-client-phone" style="color:var(--accent-color);font-size:16px;font-weight:600;">${clientPhone}</span>
-                        </div>
-                    </div>
-                    <button id="btn-change-client" class="secondary-btn" style="font-size:14px;padding:8px 16px;">Cambiar Cliente</button>
-                </div>
-                <iframe src="diagnosis/index.html" class="diagnosis-iframe" style="width:100%;height:calc(100vh - 300px);border:none;border-radius:12px;background:var(--bg-card);"></iframe>
-            </div>
+            <iframe src="diagnosis/index.html" class="diagnosis-iframe" style="width:100%;height:calc(100vh - 200px);border:none;border-radius:12px;background:var(--bg-card);"></iframe>
         `;
-    }
-
-    function loadDiagnosisClients() {
-        const list = document.getElementById('diagnosis-clients-list');
-        if (!list) return;
-
-        if (!State.clients || !Array.isArray(State.clients) || State.clients.length === 0) {
-            list.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:20px;">No hay clientes registrados.</p>';
-            return;
-        }
-
-        list.innerHTML = State.clients.map(client => `
-            <div class="diagnosis-client-card" data-client-id="${client.id}" style="display:flex;justify-content:space-between;align-items:center;padding:16px;margin-bottom:12px;background:var(--bg-dark);border:1px solid var(--border-color);border-radius:12px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent-color)'" onmouseout="this.style.borderColor='var(--border-color)'">
-                <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="width:40px;height:40px;background:var(--accent-color);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#000;font-weight:bold;font-size:16px;">${client.name.charAt(0).toUpperCase()}</div>
-                    <div>
-                        <strong style="color:#fff;font-size:16px;">${client.name}</strong>
-                        <span style="color:var(--text-secondary);font-size:14px;display:block;">${client.phone || 'Sin teléfono'}</span>
-                    </div>
-                </div>
-                <span style="padding:8px 16px;background:var(--accent-color);color:#000;border-radius:8px;font-weight:600;">Seleccionar</span>
-            </div>
-        `).join('');
-
-        // Limpiar evento anterior y agregar delegación
-        list.onclick = null;
-        list.onclick = (e) => {
-            const card = e.target.closest('.diagnosis-client-card');
-            if (!card) return;
-            
-            const clientId = card.dataset.clientId;
-            if (!clientId) return;
-            
-            const client = State.clients.find(c => c.id === clientId);
-            if (client) {
-                selectClientForDiagnosis(client);
-            }
-        };
-    }
-
-    /* ═════════════════════════════════════
-        SALONS VIEW
-        ═════════════════════════════════════ */
-    function getSalonsView() {
-        let rows = '';
-        if (State.salons.length === 0) {
-            rows = `
-            <div class="empty-state data-card">
-                <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                <h3>No hay salones registrados</h3>
-                <p>Añade los salones donde trabajas.</p>
-            </div>`;
-        } else {
-            rows = `
-            <div class="data-card">
-                <table class="table">
-                    <thead><tr><th>Nombre</th><th>Dirección</th><th>Teléfono</th><th>Email</th><th>Acciones</th></tr></thead>
-                    <tbody>
-                    ${State.salons.map(s => `
-                        <tr>
-                            <td style="font-weight:600">${s.name}</td>
-                            <td>${s.address || '—'}</td>
-                            <td>${s.phone ? `<a href="https://wa.me/${s.phone.replace(/\D/g, '')}" target="_blank" style="color:var(--text-secondary)">${s.phone}</a>` : '—'}</td>
-                            <td>${s.email || '—'}</td>
-                            <td>
-                                <div class="actions">
-                                    <button class="edit-btn" data-id="${s.id}" data-type="salon" title="Editar">
-                                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                    </button>
-                                    <button class="delete-btn" data-id="${s.id}" data-type="salon" title="Eliminar">
-                                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>`).join('')}
-                    </tbody>
-                </table>
-            </div>`;
-        }
-
-        return `
-            <div class="section-header">
-                <div><h1 class="section-title">Salones</h1><p style="color:var(--text-secondary)">Gestión de salones · <span class="supabase-badge">⚡ Supabase</span></p></div>
-                <button class="btn btn-primary" id="btn-add-salon">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                    Añadir Salón
-                </button>
-            </div>
-            ${rows}`;
-    }
-
-    function showSalonForm(info = null) {
-        const isEdit = !!info;
-        const html = `
-            <form id="salon-form">
-                <div class="form-group">
-                    <label>Nombre del Salón</label>
-                    <input type="text" class="form-control" name="name" required value="${isEdit ? info.name : ''}">
-                </div>
-                <div class="form-group">
-                    <label>Dirección</label>
-                    <input type="text" class="form-control" name="address" value="${isEdit ? (info.address || '') : ''}" placeholder="Calle, número, ciudad...">
-                </div>
-                <div class="form-group">
-                    <label>Teléfono</label>
-                    <input type="tel" class="form-control" name="phone" value="${isEdit ? (info.phone || '') : ''}" placeholder="+34 600 000 000">
-                </div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" class="form-control" name="email" value="${isEdit ? (info.email || '') : ''}" placeholder="salon@ejemplo.com">
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">${isEdit ? 'Guardar' : 'Añadir'}</button>
-                </div>
-            </form>`;
-
-        openModal(isEdit ? 'Editar Salón' : 'Nuevo Salón', html, () => {
-            document.getElementById('salon-form').addEventListener('submit', async e => {
-                e.preventDefault();
-                const submitBtn = e.target.querySelector('[type="submit"]');
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Guardando…';
-
-                const fd = new FormData(e.target);
-                const data = {
-                    id: isEdit ? info.id : generateId(),
-                    name: fd.get('name'),
-                    address: fd.get('address'),
-                    phone: fd.get('phone'),
-                    email: fd.get('email')
-                };
-
-                let success;
-                if (isEdit) success = await updateSalon(data);
-                else success = await addSalon(data);
-
-                if (success) { closeModal(); renderRoute(); }
-                else { submitBtn.disabled = false; submitBtn.textContent = isEdit ? 'Guardar' : 'Añadir'; }
-            });
-        });
-    }
-
-    /* ═════════════════════════════════════
-        MONTHLY LISTING VIEW
-        ═════════════════════════════════════ */
+    }    /* ═══════════════════════════════════════
+       EVENT BINDING
+       ═══════════════════════════════════════ */
     function attachEvents() {
         // Add buttons
+        const btnAddAppt = document.getElementById('btn-add-appointment');
+        if (btnAddAppt) btnAddAppt.addEventListener('click', showAppointmentForm);
+
         const btnSettings = document.getElementById('btn-settings');
         if (btnSettings) btnSettings.addEventListener('click', showSettingsForm);
 
@@ -2094,10 +1604,6 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
 
         const btnAddService = document.getElementById('btn-add-service');
         if (btnAddService) btnAddService.addEventListener('click', () => showServiceForm());
-
-        // Salons
-        const btnAddSalon = document.getElementById('btn-add-salon');
-        if (btnAddSalon) btnAddSalon.addEventListener('click', () => showSalonForm());
 
         // Monthly listing controls
         const monthlyPrev = document.getElementById('monthly-prev');
@@ -2144,30 +1650,6 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             renderRoute();
         });
 
-<<<<<<< HEAD
-        // Salon filter
-        const salonSelects = [document.getElementById('agenda-salon-select'), document.getElementById('monthly-salon-select')];
-        salonSelects.forEach(select => {
-            if (select) {
-                select.addEventListener('change', e => {
-                    State.activeSalonId = e.target.value;
-                    localStorage.setItem('nymara_agenda_salon', e.target.value);
-                    renderRoute();
-                });
-            }
-        });
-=======
-        // Salon selector
-        const salonSelect = document.getElementById('agenda-salon-select');
-        if (salonSelect) {
-            salonSelect.addEventListener('change', e => {
-                State.selectedSalonId = e.target.value;
-                State.selectedDate = null; // Reset selected date when changing salon
-                renderRoute();
-            });
-        }
->>>>>>> 73988dbd9c31af936ac5e711e599d0ed6e6876a9
-
         // Calendar day click
         document.querySelectorAll('.cal-day').forEach(dayEl => {
             dayEl.addEventListener('click', () => {
@@ -2175,6 +1657,17 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 renderRoute();
             });
         });
+
+        // Salon selector change
+        const salonSelect = document.getElementById('agenda-salon-select');
+        if (salonSelect) {
+            salonSelect.value = State.selectedSalonId || '';
+            salonSelect.addEventListener('change', e => {
+                State.selectedSalonId = e.target.value;
+                State.selectedDate = null; // Reset selected date when changing salon
+                renderRoute();
+            });
+        }
 
         // Edit appointment buttons
         document.querySelectorAll('.edit-apt-btn').forEach(btn => {
@@ -2196,10 +1689,6 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 } else if (type === 'service') {
                     if (confirm('¿Eliminar este servicio? Se eliminarán también las citas asociadas.')) {
                         if (await deleteService(id)) renderRoute();
-                    }
-                } else if (type === 'salon') {
-                    if (confirm('¿Eliminar este salón?')) {
-                        if (await deleteSalon(id)) renderRoute();
                     }
                 } else {
                     if (confirm('¿Cancelar esta cita?')) {
@@ -2262,7 +1751,6 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 const type = e.currentTarget.dataset.type;
                 if (type === 'client') showClientForm(State.clients.find(c => c.id === id));
                 else if (type === 'service') showServiceForm(State.services.find(s => s.id === id));
-                else if (type === 'salon') showSalonForm(State.salons.find(s => s.id === id));
             });
         });
 
@@ -2398,25 +1886,19 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
     }
 
     async function selectClientForDiagnosis(client) {
-        const selClient = document.getElementById('diagnosis-client-selection');
-        const mainDiag = document.getElementById('diagnosis-main');
-        if (!selClient || !mainDiag) {
-            console.error('Elementos de diagnóstico no encontrados');
-            return;
-        }
-        selClient.style.display = 'none';
-        mainDiag.style.display = 'block';
-        const nameEl = document.getElementById('selected-client-name');
-        const phoneEl = document.getElementById('selected-client-phone');
-        if (nameEl) nameEl.textContent = client.name;
-        if (phoneEl) phoneEl.textContent = client.phone || '';
+        document.getElementById('diagnosis-client-selection').style.display = 'none';
+        document.getElementById('diagnosis-main').style.display = 'block';
+        document.getElementById('selected-client-name').textContent = client.name;
+        document.getElementById('selected-client-phone').textContent = client.phone || '';
         diagnosisClientId = client.id;
         diagnosisClientName = client.name;
 
         sessionStorage.setItem('nymara_diagnosis_client_id', client.id);
         sessionStorage.setItem('nymara_diagnosis_client_name', client.name);
+        sessionStorage.setItem('nymara_uploaded_hashes', '[]');
         
-        showToast('Cliente ' + client.name + ' seleccionado para diagnóstico');
+        // Inicializar eventos de diagnóstico integrado
+        initDiagnosisEvents();
     }
 
     function initDiagnosisEvents() {
@@ -2731,9 +2213,9 @@ if (analyzeBtn) {
         
         // Calcular nivel de sebo de 0 a 10
         let sebumValue = 5; // Normal base
-        if (shinyRatio > 0.28) { // +30% sensibilidad
+        if (shinyRatio > 0.15) {
             sebumValue = 8 + Math.floor(shinyRatio * 10); // 8-10 Alto
-        } else if (dryRatio > 0.35) { // +30% sensibilidad
+        } else if (dryRatio > 0.2) {
             sebumValue = 2 + Math.floor(dryRatio * 10); // 0-3 Normal bajo
         } else {
             sebumValue = 4 + Math.floor(Math.random() * 3); // 4-6 Normal medio
@@ -2753,36 +2235,6 @@ if (analyzeBtn) {
         else hydration = Math.floor(50 + Math.random() * 20);
         
         return { hydration, sebumLevel: sebumValue, sebumLabel };
-    }
-
-    function detectErythemaLevel(img) {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = 100; canvas.height = 100;
-        ctx.drawImage(img, 0, 0, 100, 100);
-        const data = ctx.getImageData(0, 0, 100, 100).data;
-        
-        let erythemaPixels = 0;
-        let skinPixels = 0;
-        
-        for (let i = 0; i < data.length; i += 4) {
-            const r = data[i], g = data[i+1], b = data[i+2];
-            
-            // Detectar piel (tonos rojizos/amarillentos típicos de piel)
-            const isSkinTone = r > 95 && g > 40 && b > 20 && r > b && r > g * 0.8;
-            if (isSkinTone) skinPixels++;
-            
-            // Eritema: rojez (rojo significativamente mayor que verde y azul)
-            if (r > g + 30 && r > b + 30 && r > 120) {
-                erythemaPixels++;
-            }
-        }
-        
-        if (skinPixels === 0) return 0;
-        const erythemaRatio = erythemaPixels / skinPixels;
-        let erythemaValue = Math.round(erythemaRatio * 10);
-        console.log('Eritema detection:', { erythemaPixels, skinPixels, erythemaRatio, erythemaValue });
-        return Math.min(10, Math.max(0, erythemaValue));
     }
 
     function detectDandruffLevel(img) {
@@ -2808,12 +2260,12 @@ if (analyzeBtn) {
             
             if (isSkinTone) skinPixels++;
             
-            const isDandruff = brightness > 252 && saturation < 0.03 && (maxChannel - minChannel) > 100 && !isSkinTone; // -80% sensibilidad total
+            const isDandruff = brightness > 220 && saturation < 0.15 && (maxChannel - minChannel) > 30 && !isSkinTone;
             if (isDandruff) dandruffPixels++;
         }
         
         const dandruffRatio = (dandruffPixels / totalPixels) * 100;
-        let dandruffValue = Math.round(dandruffRatio * 0.14); // -93% sensibilidad total
+        let dandruffValue = Math.round(dandruffRatio * 10);
         dandruffValue = Math.min(10, Math.max(0, dandruffValue));
         
         // Determinar etiqueta según rango
@@ -2826,66 +2278,121 @@ if (analyzeBtn) {
     }
 
 window.addEventListener('message', async (event) => {
+        if (event.data && event.data.type === 'get_diagnosis_client_id') {
+            // Respond with client ID
+            const clientId = sessionStorage.getItem('nymara_diagnosis_client_id');
+            const clientName = sessionStorage.getItem('nymara_diagnosis_client_name');
+            console.log('DEBUG: Sending client ID response:', { clientId, clientName });
+            
+            const diagnosisFrame = document.querySelector('iframe[src*="diagnosis"]');
+            if (diagnosisFrame && diagnosisFrame.contentWindow) {
+                diagnosisFrame.contentWindow.postMessage({
+                    type: 'diagnosis_client_id_response',
+                    clientId: clientId,
+                    clientName: clientName
+                }, '*');
+            }
+        }
+        
         if (event.data && event.data.type === 'diagnosis_photo') {
             try {
-                const clientId = sessionStorage.getItem('nymara_diagnosis_client_id');
-                const clientName = sessionStorage.getItem('nymara_diagnosis_client_name');
+                // Use clientId from message or fallback to sessionStorage
+                const clientId = event.data.clientId || sessionStorage.getItem('nymara_diagnosis_client_id');
+                const clientName = event.data.clientName || sessionStorage.getItem('nymara_diagnosis_client_name');
                 const results = event.data.results;
                 const photoData = event.data.photoData;
                 
                 console.log('DEBUG: Parent received diagnosis_photo message:', { clientId, clientName, results, hasPhoto: !!photoData });
                 showToast(`Análisis completado para ${clientName || 'Cliente'}`);
-                
+                 
                 // Guardar foto si existe
-                if (photoData && clientId) {
-                    try {
-                        const base64Data = photoData.replace(/^data:image\/\w+;base64,/, '');
-                        const binaryString = atob(base64Data);
-                        const bytes = new Uint8Array(binaryString.length);
-                        for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
-                        const blob = new Blob([bytes], { type: 'image/jpeg' });
-                        
-                        const fileName = `${clientId}/diagnosis_${Date.now()}.jpg`;
-                        const { data, error } = await supabase.storage
-                            .from('client-photos')
-                            .upload(fileName, blob);
-                        
-                        if (error) {
-                            console.error('Error uploading diagnosis photo:', error);
-                        } else {
-                            const { data: { publicUrl } } = supabase.storage
-                                .from('client-photos')
-                                .getPublicUrl(fileName);
-                            
-                            const photoId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-                                const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-                                return v.toString(16);
-                            });
-                            
-                            await supabase.from('client_photos').insert({
-                                id: photoId,
-                                client_id: clientId,
-                                photo_url: publicUrl,
-                                photo_date: new Date().toISOString().split('T')[0],
-                                photo_type: 'antes',
-                                notes: `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'}, Caspa: ${results?.dandruff || '--'}`
-                            });
-                            
-                            console.log('Diagnosis photo saved:', publicUrl);
-                            showToast('✓ Foto de diagnóstico guardada');
-                              
-                            // Notify diagnosis iframe that photo was saved
-                            const diagnosisFrame = document.querySelector('iframe[src*="diagnosis"]');
-                            if (diagnosisFrame) {
-                                diagnosisFrame.contentWindow.postMessage({
-                                    type: 'diagnosis_photo_saved'
-                                }, '*');
-                            }
-                        }
-                    } catch (e) {
-                        console.error('Error saving diagnosis photo:', e);
-                    }
-                }
+                 if (photoData && clientId) {
+                     try {
+                         console.log('Saving diagnosis photo for client:', clientId);
+                         const base64Data = photoData.replace(/^data:image\/\w+;base64,/, '');
+                         const binaryString = atob(base64Data);
+                         const bytes = new Uint8Array(binaryString.length);
+                         for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+                         const blob = new Blob([bytes], { type: 'image/jpeg' });
+                         
+                         const fileName = `${clientId}/diagnosis_${Date.now()}.jpg`;
+                         console.log('Uploading to storage:', fileName);
+                         const { data: uploadData, error: uploadError } = await supabase.storage
+                             .from('client-photos')
+                             .upload(fileName, blob);
+                         
+                         if (uploadError) {
+                             console.error('Error uploading diagnosis photo:', uploadError);
+                             showToast('❌ Error al subir la foto');
+                             // Notify iframe of error
+                             const diagnosisFrame = document.querySelector('iframe[src*="diagnosis"]');
+                             if (diagnosisFrame && diagnosisFrame.contentWindow) {
+                                 diagnosisFrame.contentWindow.postMessage({
+                                     type: 'diagnosis_photo_error',
+                                     error: uploadError.message
+                                 }, '*');
+                             }
+                         } else {
+                             console.log('Upload successful:', uploadData);
+                             const { data: { publicUrl } } = supabase.storage
+                                 .from('client-photos')
+                                 .getPublicUrl(fileName);
+                             
+                             const photoId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                                 const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                                 return v.toString(16);
+                             });
+                             
+                             console.log('Inserting into client_photos table...');
+                              const { data: insertData, error: insertError } = await supabase.from('client_photos').insert({
+                                  id: photoId,
+                                  client_id: clientId,
+                                  photo_url: publicUrl,
+                                  photo_date: new Date().toISOString().split('T')[0],
+                                  photo_type: 'antes',
+                                  notes: `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'} (${results?.sebumLabel || ''}), Caspa: ${results?.dandruff || '--'} (${results?.dandruffLabel || ''})`
+                              }).select();
+                             
+                             if (insertError) {
+                                 console.error('Error inserting into client_photos:', insertError);
+                                 showToast('❌ Error al guardar en base de datos');
+                                 // Notify iframe of error
+                                 const diagnosisFrame = document.querySelector('iframe[src*="diagnosis"]');
+                                 if (diagnosisFrame && diagnosisFrame.contentWindow) {
+                                     diagnosisFrame.contentWindow.postMessage({
+                                         type: 'diagnosis_photo_error',
+                                         error: insertError.message
+                                     }, '*');
+                                 }
+                             } else {
+                                 console.log('Diagnosis photo saved successfully:', insertData);
+                                  showToast('✓ Foto de diagnóstico guardada');
+                                  
+                                  // Notify diagnosis iframe that photo was saved
+                                  const diagnosisFrame = document.querySelector('iframe[src*="diagnosis"]');
+                                  if (diagnosisFrame && diagnosisFrame.contentWindow) {
+                                      diagnosisFrame.contentWindow.postMessage({
+                                          type: 'diagnosis_photo_saved'
+                                      }, '*');
+                                  }
+                             }
+                          }
+                     } catch (e) {
+                         console.error('Error saving diagnosis photo:', e);
+                         showToast('❌ Error inesperado al guardar');
+                         // Notify iframe of error
+                         const diagnosisFrame = document.querySelector('iframe[src*="diagnosis"]');
+                         if (diagnosisFrame && diagnosisFrame.contentWindow) {
+                             diagnosisFrame.contentWindow.postMessage({
+                                 type: 'diagnosis_photo_error',
+                                 error: e.message
+                             }, '*');
+                         }
+                     }
+                 } else {
+                     console.error('Missing photoData or clientId:', { hasPhoto: !!photoData, clientId });
+                     showToast('❌ Faltan datos para guardar');
+                 }
                 
                 // Mostrar recomendaciones en la app principal
                 if (results) {
@@ -2941,12 +2448,10 @@ window.addEventListener('message', async (event) => {
                 <div class="form-group">
                     <label>Fotos del Cliente</label>
                     <div id="client-photos-list" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px"></div>
-                    <div style="display:flex;gap:8px;margin-bottom:8px" id="photos-buttons-container">
-                        <button type="button" class="btn btn-sm btn-secondary" id="btn-add-client-photo">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                            Añadir Foto
-                        </button>
-                    </div>
+                    <button type="button" class="btn btn-sm btn-secondary" id="btn-add-client-photo">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                        Añadir Foto
+                    </button>
                     <input type="file" id="client-photo-input" accept="image/*" style="display:none">
                 </div>
                 ` : ''}
@@ -2960,6 +2465,8 @@ window.addEventListener('message', async (event) => {
             let currentClientId = isEdit ? info.id : generateId();
             let sessionPhotos = [];
             let pendingFiles = [];
+            let uploadedHashes = [];
+
             const renderPhotos = () => {
                 const container = document.getElementById('client-photos-list');
                 if (!container) return;
@@ -2967,15 +2474,11 @@ window.addEventListener('message', async (event) => {
                 let html = '';
                 sessionPhotos.forEach((p, idx) => {
                     const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
-                    const diagInfo = (p.caspa_level !== null || p.sebo_level !== null || p.eritema_level !== null) 
-                        ? `<div style="font-size:0.55rem;color:var(--text-secondary)">C:${p.caspa_level||0} S:${p.sebo_level||0} E:${p.eritema_level||0}</div>`
-                        : '';
                     html += `
                         <div class="client-mini-photo" data-photo-id="${p.id}" style="position:relative;text-align:center">
                             <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                             <div style="font-size:0.65rem;color:var(--text-secondary)">${photoType}</div>
                             <div style="font-size:0.6rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
-                            ${diagInfo}
                             <div style="display:flex;gap:2px;justify-content:center">
                                 <button type="button" class="client-photo-edit-btn" data-photo-id="${p.id}" title="Editar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">✏️</button>
                                 <button type="button" class="delete-btn" data-id="${p.id}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">🗑️</button>
@@ -2989,9 +2492,6 @@ window.addEventListener('message', async (event) => {
                             <img src="${pf.preview}" style="width:60px;height:60px;object-fit:cover;border-radius:8px">
                             <div style="font-size:0.65rem;color:var(--text-secondary)">Antes</div>
                             <div style="font-size:0.6rem;color:var(--text-secondary)">${toLocalDateStr(new Date())}</div>
-                             <div style="font-size:0.6rem;color:#e74c3c;font-weight:bold">
-                                 C:${pf.caspa||0} S:${pf.sebo||0} E:${pf.eritema||0}
-                             </div>
                             <div style="display:flex;gap:2px;justify-content:center">
                                 <button type="button" class="delete-pending-btn" data-idx="${idx}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">🗑️</button>
                             </div>
@@ -3009,84 +2509,6 @@ window.addEventListener('message', async (event) => {
                 renderPhotos();
             }
 
-            // Agregar botón de borrar duplicados dinámicamente
-            if (isEdit) {
-                const buttonsContainer = document.getElementById('photos-buttons-container');
-                if (buttonsContainer && !document.getElementById('btn-dedup-photos')) {
-                    const dedupBtn = document.createElement('button');
-                    dedupBtn.type = 'button';
-                    dedupBtn.id = 'btn-dedup-photos';
-                    dedupBtn.className = 'btn btn-sm';
-                    dedupBtn.style.cssText = 'background:#dc3545;color:white;border:none;padding:5px 10px;border-radius:4px;margin-left:8px';
-                    dedupBtn.innerHTML = '🗑️ Borrar Duplicados';
-                    buttonsContainer.appendChild(dedupBtn);
-                    
-                    dedupBtn.addEventListener('click', async () => {
-                        if (!sessionPhotos.length) {
-                            showToast('No hay fotos para revisar', 'warning');
-                            return;
-                        }
-                        
-                        showToast('Buscando fotos duplicadas...', 'info');
-                        console.log('Processing photos for duplicates:', sessionPhotos);
-                        
-                        // Calcular hash para cada foto existente
-                        const photoHashes = new Map(); // hash -> photo
-                        const toDelete = [];
-                        
-                        for (const p of sessionPhotos) {
-                            let hash = p.photo_hash;
-                            
-                            // Si no tiene hash, calcularlo descargando la imagen
-                            if (!hash && p.photo_url) {
-                                try {
-                                    showToast(`Calculando hash para foto ${p.id}...`, 'info');
-                                    const response = await fetch(p.photo_url);
-                                    const blob = await response.blob();
-                                    const buffer = await blob.arrayBuffer();
-                                    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-                                    const hashArray = Array.from(new Uint8Array(hashBuffer));
-                                    hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-                                    
-                                    // Guardar el hash en la BD para futuras comparaciones
-                                    await updateClientPhoto(p.id, currentClientId, { photo_hash: hash });
-                                    console.log(`Hash calculated and saved for ${p.id}:`, hash);
-                                } catch (err) {
-                                    console.error('Error calculating hash for photo:', p.id, err);
-                                    continue;
-                                }
-                            }
-                            
-                            if (!hash) continue;
-                            
-                            if (photoHashes.has(hash)) {
-                                console.log('Duplicate found:', p.id, 'matches:', photoHashes.get(hash).id);
-                                toDelete.push(p.id);
-                            } else {
-                                photoHashes.set(hash, p);
-                            }
-                        }
-                        
-                        console.log('To delete:', toDelete);
-                        
-                        if (!toDelete.length) {
-                            showToast('No se encontraron fotos duplicadas', 'info');
-                            return;
-                        }
-                        
-                        if (!confirm(`Se encontraron ${toDelete.length} foto(s) duplicada(s). ¿Eliminarlas?`)) return;
-                        
-                        for (const photoId of toDelete) {
-                            await deleteClientPhoto(photoId, currentClientId);
-                        }
-                        
-                        sessionPhotos = sessionPhotos.filter(p => !toDelete.includes(p.id));
-                        renderPhotos();
-                        showToast(`${toDelete.length} foto(s) duplicada(s) eliminada(s)`);
-                    });
-                }
-            }
-
             const btnAddPhoto = document.getElementById('btn-add-client-photo');
             const photoInput = document.getElementById('client-photo-input');
             
@@ -3097,27 +2519,22 @@ window.addEventListener('message', async (event) => {
                     const file = e.target.files[0];
                     if (!file) return;
                     
+                    const buffer = await file.arrayBuffer();
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+                    const hash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+                    
+                    const isDuplicate = sessionPhotos.some(p => p.photo_hash === hash) || uploadedHashes.includes(hash);
+                    if (isDuplicate) {
+                        showToast('Esta foto ya existe', 'error');
+                        photoInput.value = '';
+                        return;
+                    }
+                    
                     const reader = new FileReader();
                     reader.onload = ev => {
-                        const img = new Image();
-                        img.onload = () => {
-                            // Run diagnosis
-                            const dandruffResult = detectDandruffLevel(img);
-                            const { sebumLevel } = detectHydrationAndSebum(img);
-                            const erythemaResult = detectErythemaLevel(img);
-                            
-                            console.log('Diagnosis results:', { dandruffResult, sebumLevel, erythemaResult });
-                            
-                            pendingFiles.push({ 
-                                file, 
-                                preview: ev.target.result,
-                                caspa: dandruffResult,
-                                sebo: sebumLevel,
-                                eritema: erythemaResult
-                            });
-                            renderPhotos();
-                        };
-                        img.src = ev.target.result;
+                        pendingFiles.push({ file, hash, preview: ev.target.result });
+                        uploadedHashes.push(hash);
+                        renderPhotos();
                     };
                     reader.readAsDataURL(file);
                     photoInput.value = '';
@@ -3141,6 +2558,7 @@ window.addEventListener('message', async (event) => {
                     const delPending = e.target.closest('.delete-pending-btn');
                     if (delPending) {
                         const idx = parseInt(delPending.dataset.idx);
+                        uploadedHashes.splice(idx, 1);
                         pendingFiles.splice(idx, 1);
                         renderPhotos();
                         return;
@@ -3197,19 +2615,15 @@ window.addEventListener('message', async (event) => {
 
                 if (success && pendingFiles.length > 0) {
                     for (const pf of pendingFiles) {
-                        const idx = pendingFiles.indexOf(pf);
-                        const typeSelect = document.querySelector(`.pending-type[data-idx="${idx}"]`);
-                        const dateInput = document.querySelector(`.pending-date[data-idx="${idx}"]`);
-                        const notesInput = document.querySelector(`.pending-notes[data-idx="${idx}"]`);
+                        const typeSelect = document.querySelector(`.pending-type[data-idx="${pendingFiles.indexOf(pf)}"]`);
+                        const dateInput = document.querySelector(`.pending-date[data-idx="${pendingFiles.indexOf(pf)}"]`);
+                        const notesInput = document.querySelector(`.pending-notes[data-idx="${pendingFiles.indexOf(pf)}"]`);
                         await uploadClientPhoto(
                             pf.file, 
                             currentClientId, 
                             dateInput?.value || toLocalDateStr(new Date()),
                             typeSelect?.value || 'before',
-                            notesInput?.value || '',
-                            pf.caspa || null,
-                            pf.sebo || null,
-                            pf.eritema || null
+                            notesInput?.value || ''
                         );
                     }
                     showToast('Fotos guardadas');
@@ -3357,10 +2771,6 @@ window.addEventListener('message', async (event) => {
                     <select class="form-control" name="clientId" required>
                         ${State.clients.map(c => `<option value="${c.id}" ${isEdit && c.id === apt.clientId ? 'selected' : ''}>${c.name}</option>`).join('')}
                     </select>
-                    <div id="client-info" style="margin-top:6px;font-size:0.8rem;color:var(--text-secondary);display:none">
-                        <span id="client-phone"></span>
-                        <span id="client-email" style="margin-left:10px"></span>
-                    </div>
                 </div>
                 <div class="form-group">
                     <label>Servicio</label>
@@ -3406,6 +2816,7 @@ window.addEventListener('message', async (event) => {
             const serviceSelect = form.querySelector('[name="serviceId"]');
             
             let pendingFiles = [];
+            let uploadedHashes = [];
 
             const renderAptPhotos = () => {
                 const container = document.getElementById('apt-photos-list');
@@ -3434,9 +2845,21 @@ window.addEventListener('message', async (event) => {
                     const file = e.target.files[0];
                     if (!file) return;
                     
+                    const buffer = await file.arrayBuffer();
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+                    const hash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+                    
+                    const isDuplicate = uploadedHashes.includes(hash);
+                    if (isDuplicate) {
+                        showToast('Esta foto ya existe', 'error');
+                        photoInput.value = '';
+                        return;
+                    }
+                    
                     const reader = new FileReader();
                     reader.onload = ev => {
-                        pendingFiles.push({ file, preview: ev.target.result, type: 'before', date: toLocalDateStr(new Date()), notes: '' });
+                        pendingFiles.push({ file, hash, preview: ev.target.result, type: 'before', date: toLocalDateStr(new Date()), notes: '' });
+                        uploadedHashes.push(hash);
                         renderAptPhotos();
                     };
                     reader.readAsDataURL(file);
@@ -3450,6 +2873,7 @@ window.addEventListener('message', async (event) => {
                     const delPending = e.target.closest('.delete-apt-pending-btn');
                     if (delPending) {
                         const idx = parseInt(delPending.dataset.idx);
+                        uploadedHashes.splice(idx, 1);
                         pendingFiles.splice(idx, 1);
                         renderAptPhotos();
                     }
@@ -3460,28 +2884,6 @@ window.addEventListener('message', async (event) => {
                 input.style.borderColor = userColor;
                 input.style.setProperty('caret-color', userColor);
             });
-
-            const clientSelect = form.querySelector('[name="clientId"]');
-            const clientInfo = document.getElementById('client-info');
-            const clientPhone = document.getElementById('client-phone');
-            const clientEmail = document.getElementById('client-email');
-
-            function updateClientInfo() {
-                const clientId = clientSelect.value;
-                const client = State.clients.find(c => c.id === clientId);
-                if (client && clientInfo) {
-                    clientInfo.style.display = 'block';
-                    clientPhone.innerHTML = client.phone ? `📱 ${client.phone}` : '';
-                    clientEmail.innerHTML = client.email ? `✉️ ${client.email}` : '';
-                } else if (clientInfo) {
-                    clientInfo.style.display = 'none';
-                }
-            }
-
-            if (clientSelect) {
-                clientSelect.addEventListener('change', updateClientInfo);
-                updateClientInfo();
-            }
 
             function updateSuggestion() {
                 const selDate = dateInput.value;
@@ -3503,26 +2905,17 @@ window.addEventListener('message', async (event) => {
                 const data = {
                     clientId: fd.get('clientId'),
                     serviceId: fd.get('serviceId'),
-<<<<<<< HEAD
-                    salonId: isEdit && apt.salonId ? apt.salonId : (State.activeSalonId || (State.salons.length > 0 ? State.salons[0].id : null)),
-=======
->>>>>>> 73988dbd9c31af936ac5e711e599d0ed6e6876a9
                     date: fd.get('date'),
                     time: fd.get('time'),
-                    notes: fd.get('notes')
+                    notes: fd.get('notes'),
+                    userEmail: State.currentUserEmail || ''
                 };
 
-                // Guardar fotos de la cita (subir automáticamente al cliente)
+                // Guardar fotos de la cita
                 if (pendingFiles.length > 0) {
                     data.appointmentPhotos = [];
                     for (const pf of pendingFiles) {
-                        const photoRecord = await uploadClientPhoto(
-                            pf.file, 
-                            data.clientId, 
-                            pf.date || toLocalDateStr(new Date()), 
-                            pf.type || 'before', 
-                            pf.notes || ''
-                        );
+                        const photoRecord = await uploadClientPhoto(pf.file, data.clientId, pf.date, pf.type, pf.notes);
                         if (photoRecord) {
                             data.appointmentPhotos.push(photoRecord);
                         }
@@ -3587,8 +2980,6 @@ window.addEventListener('message', async (event) => {
             });
         });
     }
-
-    window.showAppointmentForm = showAppointmentForm;
 
     window.editAppointment = function(id) {
         const apt = State.appointments.find(a => a.id === id);
