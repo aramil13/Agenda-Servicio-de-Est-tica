@@ -1,4 +1,4 @@
-﻿// Base de datos de productos Maria Nila
+// Base de datos de productos Maria Nila
 const MARIA_NILA_PRODUCTS = {
     // ==================== HEAD & HAIR HEAL (Cuero cabelludo sensible) ====================
     headHairHealShampoo: { name: "Head & Hair Heal Shampoo", desc: "Calma cuero cabelludo sensible con aloe vera y piroctona olamina.", img: "https://marianila.com/cdn/shop/files/13650-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-shampoo-350-ml", category: "scalp" },
@@ -296,6 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Monthly listing state
         monthlyYear: new Date().getFullYear(),
         monthlyMonth: new Date().getMonth(),
+        activeSalonId: localStorage.getItem('nymara_agenda_salon'),
         // Auth state
         session: null,
         currentUserEmail: null,
@@ -1174,8 +1175,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getAppointmentsForDate(dateStr) {
+        let salonId = State.activeSalonId;
+        if (!salonId && State.salons.length > 0) salonId = State.salons[0].id;
+
         return State.appointments
-            .filter(a => a.date === dateStr)
+            .filter(a => a.date === dateStr && a.salonId === salonId)
             .sort((a, b) => a.time.localeCompare(b.time));
     }
 
@@ -1377,12 +1381,20 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         </div>`;
 
         return `
-            <div class="section-header">
+            ${State.salons.length > 0 ? `
+            <div style="text-align:center; margin-bottom: 2rem;">
+                <select id="agenda-salon-select" style="font-size:2.5rem; font-weight:800; border:none; background:transparent; color:var(--text-primary); text-align:center; text-align-last:center; cursor:pointer; padding:0; appearance:none; letter-spacing:-1px;">
+                    ${State.salons.map(s => `<option value="${s.id}" ${(State.activeSalonId || State.salons[0].id) === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
+                </select>
+                <div style="font-size:0.85rem; color:var(--accent-color); font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-top:0.25rem;">Cambiar Salón ▾</div>
+            </div>
+            ` : ''}
+            <div class="section-header" style="margin-top:-1rem;">
                 <div>
                     <h1 class="section-title">Agenda</h1>
                     <p style="color:var(--text-secondary)">Calendario de citas · <span class="supabase-badge">⚡ Supabase</span></p>
                 </div>
-                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
                     <button class="btn btn-secondary" id="btn-settings" title="Configurar Horario">
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         Horas
@@ -1562,8 +1574,12 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         // Filter appointments for the selected month
         const monthStr = String(month + 1).padStart(2, '0');
         const prefix = `${year}-${monthStr}`;
+        
+        let salonId = State.activeSalonId;
+        if (!salonId && State.salons.length > 0) salonId = State.salons[0].id;
+
         const monthAppointments = State.appointments
-            .filter(a => a.date.startsWith(prefix))
+            .filter(a => a.date.startsWith(prefix) && a.salonId === salonId)
             .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
 
         // Summary stats
@@ -1655,15 +1671,25 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         }
 
         return `
-            <div class="section-header">
+            ${State.salons.length > 0 ? `
+            <div style="text-align:center; margin-bottom: 2rem;">
+                <select id="monthly-salon-select" style="font-size:2.5rem; font-weight:800; border:none; background:transparent; color:var(--text-primary); text-align:center; text-align-last:center; cursor:pointer; padding:0; appearance:none; letter-spacing:-1px;">
+                    ${State.salons.map(s => `<option value="${s.id}" ${(State.activeSalonId || State.salons[0].id) === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
+                </select>
+                <div style="font-size:0.85rem; color:var(--accent-color); font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-top:0.25rem;">Cambiar Salón ▾</div>
+            </div>
+            ` : ''}
+            <div class="section-header" style="margin-top:-1rem;">
                 <div>
                     <h1 class="section-title">Listado Mensual</h1>
                     <p style="color:var(--text-secondary)">Detalle de citas por mes · <span class="supabase-badge">⚡ Supabase</span></p>
                 </div>
-                <button class="btn btn-primary" id="btn-print-monthly">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                    Imprimir
-                </button>
+                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+                    <button class="btn btn-primary" id="btn-print-monthly">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        Imprimir
+                    </button>
+                </div>
             </div>
 
             <!-- Month/Year Selector -->
@@ -2113,6 +2139,18 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             State.calMonth++;
             if (State.calMonth > 11) { State.calMonth = 0; State.calYear++; }
             renderRoute();
+        });
+
+        // Salon filter
+        const salonSelects = [document.getElementById('agenda-salon-select'), document.getElementById('monthly-salon-select')];
+        salonSelects.forEach(select => {
+            if (select) {
+                select.addEventListener('change', e => {
+                    State.activeSalonId = e.target.value;
+                    localStorage.setItem('nymara_agenda_salon', e.target.value);
+                    renderRoute();
+                });
+            }
         });
 
         // Calendar day click
@@ -3315,13 +3353,6 @@ window.addEventListener('message', async (event) => {
                         ${State.services.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.serviceId ? 'selected' : ''}>${s.name} (${s.duration} min · ${parseFloat(s.price).toFixed(2)}€)</option>`).join('')}
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Salón</label>
-                    <select class="form-control" name="salonId">
-                        <option value="">Sin salón asignado</option>
-                        ${State.salons.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.salonId ? 'selected' : ''}>${s.name}</option>`).join('')}
-                    </select>
-                </div>
                 <div style="display:flex;gap:1rem">
                     <div class="form-group" style="flex:1">
                         <label>Fecha</label>
@@ -3457,7 +3488,7 @@ window.addEventListener('message', async (event) => {
                 const data = {
                     clientId: fd.get('clientId'),
                     serviceId: fd.get('serviceId'),
-                    salonId: fd.get('salonId') || null,
+                    salonId: isEdit && apt.salonId ? apt.salonId : (State.activeSalonId || (State.salons.length > 0 ? State.salons[0].id : null)),
                     date: fd.get('date'),
                     time: fd.get('time'),
                     notes: fd.get('notes'),
