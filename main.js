@@ -664,9 +664,6 @@ document.addEventListener('DOMContentLoaded', () => {
             photo_type: photoType,
             notes: photoNotes,
             photo_hash: photoHash,
-            caspa_level: caspaLevel,
-            sebo_level: seboLevel,
-            eritema_level: eritemaLevel,
             created_at: new Date().toISOString()
         };
         
@@ -881,9 +878,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function updateAppointment(id, data) {
         const dbRow = {
-            client_id: data.clientId,
-            service_id: data.serviceId,
-            salon_id: data.salonId || null,
+            client_id: data.client_id,
+            service_id: data.service_id,
+            salon_id: data.salon_id || null,
             date: data.date,
             time: data.time,
             notes: data.notes,
@@ -965,10 +962,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await updateClientPhoto(photoId, clientId, { 
                     photo_type: newType, 
                     photo_date: newDate, 
-                    notes: notesWithDiag,
-                    caspa_level: parseInt(newCaspa),
-                    sebo_level: parseInt(newSebo),
-                    eritema_level: parseInt(newEritema)
+                    notes: notesWithDiag
                 });
                 closeModal();
                 showToast('Foto actualizada');
@@ -3466,15 +3460,20 @@ window.addEventListener('message', async (event) => {
                     serviceId: fd.get('serviceId'),
                     date: fd.get('date'),
                     time: fd.get('time'),
-                    notes: fd.get('notes'),
-                    userEmail: State.currentUserEmail || ''
+                    notes: fd.get('notes')
                 };
 
-                // Guardar fotos de la cita
+                // Guardar fotos de la cita (subir automáticamente al cliente)
                 if (pendingFiles.length > 0) {
                     data.appointmentPhotos = [];
                     for (const pf of pendingFiles) {
-                        const photoRecord = await uploadClientPhoto(pf.file, data.clientId, pf.date, pf.type, pf.notes);
+                        const photoRecord = await uploadClientPhoto(
+                            pf.file, 
+                            data.clientId, 
+                            pf.date || toLocalDateStr(new Date()), 
+                            pf.type || 'before', 
+                            pf.notes || ''
+                        );
                         if (photoRecord) {
                             data.appointmentPhotos.push(photoRecord);
                         }
