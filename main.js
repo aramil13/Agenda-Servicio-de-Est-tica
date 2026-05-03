@@ -439,10 +439,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const [clientsRes, servicesRes, appointmentsRes, salonsRes] = await Promise.all([
-                supabase.from('clients').select('*').order('name'),
-                supabase.from('services').select('*').order('name'),
-                supabase.from('appointments').select('*').order('date').order('time'),
-                supabase.from('salons').select('*').order('name')
+                supabase.from('clients').select('*').eq('user_email', State.currentUserEmail).order('name'),
+                supabase.from('services').select('*').eq('user_email', State.currentUserEmail).order('name'),
+                supabase.from('appointments').select('*').eq('user_email', State.currentUserEmail).order('date').order('time'),
+                supabase.from('salons').select('*').eq('user_email', State.currentUserEmail).order('name')
             ]);
 
             if (clientsRes.error) throw clientsRes.error;
@@ -510,9 +510,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Check existing session
     async function checkSession() {
-        // Always sign out on start to ensure we always ask for credentials
-        await supabase.auth.signOut();
-        
         // Listen for auth changes
         supabase.auth.onAuthStateChange(async (event, newSession) => {
             handleSessionUpdate(newSession);
@@ -576,12 +573,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (authLoginForm) {
         authLoginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            console.log('Form submitted!');
+            console.log('--- Login Attempt ---');
             
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
             
-            console.log('Email:', email, 'Password length:', password?.length);
+            console.log('Email to sign in:', email);
             
             // UI Loading state
             authSubmitText.style.opacity = '0';
@@ -590,16 +587,23 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = true;
 
             try {
-                const { error } = await supabase.auth.signInWithPassword({ email, password });
-                if (error) throw error;
+                console.log('Calling Supabase signInWithPassword...');
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) {
+                    console.error('Supabase Login Error:', error);
+                    throw error;
+                }
+                console.log('Supabase Login Success:', data);
                 // Supabase automatically updates the session via onAuthStateChange listener
             } catch (err) {
+                console.error('Caught Auth Error:', err);
                 authError.textContent = err.message || 'Error en la autenticación';
                 authError.style.display = 'block';
             } finally {
                 authSubmitText.style.opacity = '1';
                 authSpinner.style.display = 'none';
                 btn.disabled = false;
+                console.log('--- Login Attempt Finished ---');
             }
         });
     }
@@ -622,6 +626,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     async function addClient(data) {
+        data.user_email = State.currentUserEmail;
         const { error } = await supabase.from('clients').insert([data]);
         if (error) { showToast('Error al añadir cliente: ' + error.message, 'error'); return false; }
         State.clients.push(data);
@@ -665,6 +670,7 @@ document.addEventListener('DOMContentLoaded', () => {
             photo_type: photoType,
             notes: photoNotes,
             photo_hash: photoHash,
+            user_email: State.currentUserEmail,
             created_at: new Date().toISOString()
         };
         
@@ -711,6 +717,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const { data, error } = await supabase
                 .from('client_photos')
                 .select('*')
+                .eq('user_email', State.currentUserEmail)
                 .eq('client_id', clientId)
                 .order('created_at', { ascending: false });
             
@@ -728,6 +735,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const { data, error } = await supabase
                 .from('client_photos')
                 .select('*')
+                .eq('user_email', State.currentUserEmail)
                 .order('created_at', { ascending: false });
             
             if (error) throw error;
@@ -777,6 +785,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Services CRUD ──
 
     async function addService(data) {
+        data.user_email = State.currentUserEmail;
         const { error } = await supabase.from('services').insert([data]);
         if (error) { showToast('Error al añadir servicio: ' + error.message, 'error'); return false; }
         State.services.push(data);
@@ -803,13 +812,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Salons CRUD ──
 
     async function addSalon(data) {
+        data.user_email = State.currentUserEmail;
         console.log('Adding salon:', data);
         const { data: result, error } = await supabase.from('salons').insert([{
             id: data.id,
             name: data.name,
             address: data.address || null,
             phone: data.phone || null,
-            email: data.email || null
+            email: data.email || null,
+            user_email: data.user_email
         }]).select().single();
         
         if (error) { 
@@ -1170,19 +1181,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getAppointmentsForDate(dateStr) {
-<<<<<<< HEAD
-        let salonId = State.activeSalonId;
-        if (!salonId && State.salons.length > 0) salonId = State.salons[0].id;
-
+        let salonId = State.activeSalonId || (State.salons.length > 0 ? State.salons[0].id : null);
+        
         return State.appointments
             .filter(a => a.date === dateStr && a.salonId === salonId)
-=======
-        if (!State.selectedSalonId && State.salons.length > 0) {
-            State.selectedSalonId = State.salons[0].id;
-        }
-        return State.appointments
-            .filter(a => a.date === dateStr && a.salonId === State.selectedSalonId)
->>>>>>> 73988dbd9c31af936ac5e711e599d0ed6e6876a9
             .sort((a, b) => a.time.localeCompare(b.time));
     }
 
@@ -1982,51 +1984,68 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         SALONS VIEW
         ═════════════════════════════════════ */
     function getSalonsView() {
-        let rows = '';
         if (State.salons.length === 0) {
-            rows = `
-            <div class="empty-state data-card">
-                <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                <h3>No hay salones registrados</h3>
-                <p>Añade los salones donde trabajas.</p>
-            </div>`;
-        } else {
-            rows = `
-            <div class="data-card">
-                <table class="table">
-                    <thead><tr><th>Nombre</th><th>Dirección</th><th>Teléfono</th><th>Email</th><th>Acciones</th></tr></thead>
-                    <tbody>
-                    ${State.salons.map(s => `
-                        <tr>
-                            <td style="font-weight:600">${s.name}</td>
-                            <td>${s.address || '—'}</td>
-                            <td>${s.phone ? `<a href="https://wa.me/${s.phone.replace(/\D/g, '')}" target="_blank" style="color:var(--text-secondary)">${s.phone}</a>` : '—'}</td>
-                            <td>${s.email || '—'}</td>
-                            <td>
-                                <div class="actions">
-                                    <button class="edit-btn" data-id="${s.id}" data-type="salon" title="Editar">
-                                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                    </button>
-                                    <button class="delete-btn" data-id="${s.id}" data-type="salon" title="Eliminar">
-                                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>`).join('')}
-                    </tbody>
-                </table>
-            </div>`;
+            return `
+                <div class="section-header">
+                    <div>
+                        <h1 class="section-title">Salones</h1>
+                        <p style="color:var(--text-secondary)">Gestiona tus salones · <span class="supabase-badge">⚡ Supabase</span></p>
+                    </div>
+                    <button class="btn btn-primary" id="btn-add-salon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                        Añadir Salón
+                    </button>
+                </div>
+                <div class="empty-state data-card">
+                    <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    <h3>No hay salones registrados</h3>
+                    <p>Añade tu primer salón para comenzar.</p>
+                </div>`;
         }
+
+        const rows = State.salons.map(s => `
+            <div class="client-card" data-salon-id="${s.id}">
+                <div class="client-header">
+                    <div class="client-info">
+                        <h3 style="margin:0;font-weight:600">${s.name}</h3>
+                        <div style="display:flex;align-items:center;gap:12px;font-size:0.85rem;color:var(--text-secondary);margin-top:4px;">
+                            ${s.address ? `<span>📍 ${s.address}</span>` : ''}
+                            ${s.phone ? `<span>📱 ${s.phone}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="client-actions">
+                        <button class="btn btn-sm btn-secondary edit-btn" data-id="${s.id}" data-type="salon" title="Editar">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        </button>
+                        <button class="btn btn-sm btn-secondary delete-btn" data-id="${s.id}" data-type="salon" title="Eliminar">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
 
         return `
             <div class="section-header">
-                <div><h1 class="section-title">Salones</h1><p style="color:var(--text-secondary)">Gestión de salones · <span class="supabase-badge">⚡ Supabase</span></p></div>
+                <div>
+                    <h1 class="section-title">Salones</h1>
+                    <p style="color:var(--text-secondary)">Gestiona tus salones · <span class="supabase-badge">⚡ Supabase</span></p>
+                </div>
                 <button class="btn btn-primary" id="btn-add-salon">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                     Añadir Salón
                 </button>
             </div>
-            ${rows}`;
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    </div>
+                    <div class="stat-content"><h3>Salones</h3><p>${State.salons.length}</p></div>
+                </div>
+            </div>
+            <div class="clients-list">${rows}</div>
+        `;
     }
 
     function showSalonForm(info = null) {
@@ -2144,7 +2163,6 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             renderRoute();
         });
 
-<<<<<<< HEAD
         // Salon filter
         const salonSelects = [document.getElementById('agenda-salon-select'), document.getElementById('monthly-salon-select')];
         salonSelects.forEach(select => {
@@ -2152,21 +2170,11 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 select.addEventListener('change', e => {
                     State.activeSalonId = e.target.value;
                     localStorage.setItem('nymara_agenda_salon', e.target.value);
+                    State.selectedDate = null; // Reset selected date when changing salon
                     renderRoute();
                 });
             }
         });
-=======
-        // Salon selector
-        const salonSelect = document.getElementById('agenda-salon-select');
-        if (salonSelect) {
-            salonSelect.addEventListener('change', e => {
-                State.selectedSalonId = e.target.value;
-                State.selectedDate = null; // Reset selected date when changing salon
-                renderRoute();
-            });
-        }
->>>>>>> 73988dbd9c31af936ac5e711e599d0ed6e6876a9
 
         // Calendar day click
         document.querySelectorAll('.cal-day').forEach(dayEl => {
@@ -2596,48 +2604,57 @@ if (analyzeBtn) {
     function validateDiagnosisImage(img) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        canvas.width = 60; canvas.height = 60;
-        ctx.drawImage(img, 0, 0, 60, 60);
-        const data = ctx.getImageData(0, 0, 60, 60).data;
+        const size = 150; 
+        canvas.width = size; canvas.height = size;
+        ctx.drawImage(img, 0, 0, size, size);
+        const data = ctx.getImageData(0, 0, size, size).data;
         
-        let rSum = 0, gSum = 0, bSum = 0;
-        let rSqSum = 0, gSqSum = 0, bSqSum = 0;
-        let edges = 0;
         const n = data.length / 4;
+        const grays = new Float32Array(n);
+        let rSum = 0, gSum = 0, bSum = 0;
         
-        for (let i = 0; i < data.length; i += 4) {
-            const r = data[i], g = data[i+1], b = data[i+2];
+        for (let i = 0; i < n; i++) {
+            const r = data[i*4], g = data[i*4+1], b = data[i*4+2];
             rSum += r; gSum += g; bSum += b;
-            rSqSum += r*r; gSqSum += g*g; bSqSum += b*b;
-            
-            if (i < data.length - 4) {
-                const r2 = data[i+4], g2 = data[i+5], b2 = data[i+6];
-                const diff = Math.abs(r-r2) + Math.abs(g-g2) + Math.abs(b-b2);
-                if (diff > 25) edges++;
+            grays[i] = 0.299 * r + 0.587 * g + 0.114 * b;
+        }
+        
+        const avgGray = grays.reduce((a, b) => a + b, 0) / n;
+        let variance = 0;
+        for (let i = 0; i < n; i++) {
+            variance += (grays[i] - avgGray) * (grays[i] - avgGray);
+        }
+        variance /= n;
+        
+        let weakEdges = 0;
+        let strongEdges = 0;
+        
+        for (let y = 0; y < size - 1; y++) {
+            for (let x = 0; x < size - 1; x++) {
+                const idx = y * size + x;
+                const diffX = Math.abs(grays[idx] - grays[idx + 1]);
+                const diffY = Math.abs(grays[idx] - grays[idx + size]);
+                const maxDiff = Math.max(diffX, diffY);
+                if (maxDiff > 15) weakEdges++;
+                if (maxDiff > 40) strongEdges++;
             }
         }
         
-        const edgeDensity = edges / n;
+        const weakEdgeDensity = weakEdges / (size * size);
+        const strongEdgeDensity = strongEdges / (size * size);
         const rAvg = rSum / n, gAvg = gSum / n, bAvg = bSum / n;
-        const variance = ((rSqSum/n - (rAvg*rAvg)) + (gSqSum/n - (gAvg*gAvg)) + (bSqSum/n - (bAvg*bAvg))) / 3;
         
-        const r = rAvg/255, g = gAvg/255, b = bAvg/255;
-        const max = Math.max(r, g, b), min = Math.min(r, g, b);
-        const d = max - min;
-        let h = 0, s = 0, l = (max + min) / 2;
-        if (max !== min) {
-            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-            if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
-            else if (max === g) h = (b - r) / d + 2;
-            else h = (r - g) / d + 4;
-            h /= 6;
-        }
-        const hueDeg = h * 360;
-        const isBiological = (hueDeg < 50 || hueDeg > 340) && s < 0.6;
-        const isMicroscopic = edgeDensity > 0.05;
-        const hasTexture = variance > 150;
+        const isPerfectlyBlackOrWhite = (rAvg < 10 && gAvg < 10 && bAvg < 10) || (rAvg > 245 && gAvg > 245 && bAvg > 245);
+        const isUniform = variance < 100; 
+        const hasNoTexture = weakEdgeDensity < 0.03; 
         
-        return isBiological && isMicroscopic && hasTexture;
+        // Criterios específicos para fotos microscópicas:
+        // 1. Debe haber bordes fuertes (los cabellos crean alto contraste bajo el microscopio)
+        // 2. No debe haber demasiados bordes débiles (las fotos macroscópicas detalladas tienen demasiada densidad de bordes en todas partes)
+        const lacksStrongEdges = strongEdgeDensity < 0.01;
+        const tooManyEdges = weakEdgeDensity > 0.45;
+
+        return !isUniform && !hasNoTexture && !isPerfectlyBlackOrWhite && !lacksStrongEdges && !tooManyEdges;
     }
 
     function detectHairDensity(img) {
@@ -3452,6 +3469,13 @@ window.addEventListener('message', async (event) => {
                         const idx = parseInt(delPending.dataset.idx);
                         pendingFiles.splice(idx, 1);
                         renderAptPhotos();
+                        return;
+                    }
+                    const delExisting = e.target.closest('.delete-existing-apt-photo-btn');
+                    if (delExisting) {
+                        const idx = parseInt(delExisting.dataset.idx);
+                        existingPhotos.splice(idx, 1);
+                        renderAptPhotos();
                     }
                 });
             }
@@ -3460,28 +3484,6 @@ window.addEventListener('message', async (event) => {
                 input.style.borderColor = userColor;
                 input.style.setProperty('caret-color', userColor);
             });
-
-            const clientSelect = form.querySelector('[name="clientId"]');
-            const clientInfo = document.getElementById('client-info');
-            const clientPhone = document.getElementById('client-phone');
-            const clientEmail = document.getElementById('client-email');
-
-            function updateClientInfo() {
-                const clientId = clientSelect.value;
-                const client = State.clients.find(c => c.id === clientId);
-                if (client && clientInfo) {
-                    clientInfo.style.display = 'block';
-                    clientPhone.innerHTML = client.phone ? `📱 ${client.phone}` : '';
-                    clientEmail.innerHTML = client.email ? `✉️ ${client.email}` : '';
-                } else if (clientInfo) {
-                    clientInfo.style.display = 'none';
-                }
-            }
-
-            if (clientSelect) {
-                clientSelect.addEventListener('change', updateClientInfo);
-                updateClientInfo();
-            }
 
             function updateSuggestion() {
                 const selDate = dateInput.value;
@@ -3497,37 +3499,20 @@ window.addEventListener('message', async (event) => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
                 submitBtn.disabled = true;
-                submitBtn.textContent = isEdit ? 'Guardando…' : 'Agendando…';
+                submitBtn.textContent = info ? 'Guardando…' : 'Agendando…';
 
                 const fd = new FormData(e.target);
+                const appointmentId = info ? info.id : generateId();
                 const data = {
+                    id: appointmentId,
                     clientId: fd.get('clientId'),
                     serviceId: fd.get('serviceId'),
-<<<<<<< HEAD
-                    salonId: isEdit && apt.salonId ? apt.salonId : (State.activeSalonId || (State.salons.length > 0 ? State.salons[0].id : null)),
-=======
->>>>>>> 73988dbd9c31af936ac5e711e599d0ed6e6876a9
                     date: fd.get('date'),
                     time: fd.get('time'),
-                    notes: fd.get('notes')
+                    notes: fd.get('notes'),
+                    userEmail: State.currentUserEmail || ''
                 };
 
-                // Guardar fotos de la cita (subir automáticamente al cliente)
-                if (pendingFiles.length > 0) {
-                    data.appointmentPhotos = [];
-                    for (const pf of pendingFiles) {
-                        const photoRecord = await uploadClientPhoto(
-                            pf.file, 
-                            data.clientId, 
-                            pf.date || toLocalDateStr(new Date()), 
-                            pf.type || 'before', 
-                            pf.notes || ''
-                        );
-                        if (photoRecord) {
-                            data.appointmentPhotos.push(photoRecord);
-                        }
-                    }
-                }
 
                 // Validar que no se solape con otra cita existente en el mismo día
                 const [targetHour, targetMin] = data.time.split(':').map(Number);
