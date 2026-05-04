@@ -297,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Monthly listing state
         monthlyYear: new Date().getFullYear(),
         monthlyMonth: new Date().getMonth(),
-        activeSalonId: localStorage.getItem('nymara_agenda_salon'),
+        activeSalonId: localStorage.getItem('nymara_agenda_salon') || 'all',
         // Auth state
         session: null,
         currentUserEmail: null,
@@ -890,9 +890,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function updateAppointment(id, data) {
         const dbRow = {
-            client_id: data.client_id,
-            service_id: data.service_id,
-            salon_id: data.salon_id || null,
+            client_id: data.clientId,
+            service_id: data.serviceId,
+            salon_id: data.salonId || null,
             date: data.date,
             time: data.time,
             notes: data.notes,
@@ -1181,10 +1181,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getAppointmentsForDate(dateStr) {
-        let salonId = State.activeSalonId || (State.salons.length > 0 ? State.salons[0].id : null);
+        const salonId = State.activeSalonId || 'all';
         
         return State.appointments
-            .filter(a => a.date === dateStr && a.salonId === salonId)
+            .filter(a => a.date === dateStr && (salonId === 'all' || a.salonId === salonId))
             .sort((a, b) => a.time.localeCompare(b.time));
     }
 
@@ -1386,9 +1386,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             ${State.salons.length > 0 ? `
             <div style="text-align:center; margin-bottom: 2rem;">
                 <select id="agenda-salon-select" style="font-size:2.5rem; font-weight:800; border:none; background:transparent; color:var(--text-primary); text-align:center; text-align-last:center; cursor:pointer; padding:0; appearance:none; letter-spacing:-1px;">
-                    ${State.salons.map(s => `<option value="${s.id}" ${(State.activeSalonId || State.salons[0].id) === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
+                    <option value="all" ${State.activeSalonId === 'all' ? 'selected' : ''}>Todos los Salones</option>
+                    ${State.salons.map(s => `<option value="${s.id}" ${State.activeSalonId === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
                 </select>
-                <div style="font-size:0.85rem; color:var(--accent-color); font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-top:0.25rem;">Cambiar Salón ▾</div>
             </div>
             ` : ''}
             <div class="section-header" style="margin-top:-1rem;">
@@ -1430,13 +1430,6 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 </div>
             </div>
 
-            <!-- Salon Selector -->
-            <div class="salon-selector" style="margin-bottom:20px;padding:16px;background:var(--bg-card);border-radius:12px;border:2px solid var(--border-color);">
-                <label style="display:block;margin-bottom:8px;font-weight:600;color:var(--text-primary)">Seleccionar Salón</label>
-                <select id="agenda-salon-select" style="width:100%;padding:12px 16px;border-radius:8px;border:2px solid var(--accent-color);background:var(--bg-dark);color:var(--text-primary);font-size:1.1rem;font-weight:bold;">
-                    ${State.salons.map(s => `<option value="${s.id}" ${State.selectedSalonId === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
-                </select>
-            </div>
 
             <!-- Calendar -->
             <div class="calendar-wrapper">
@@ -1585,11 +1578,10 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         const monthStr = String(month + 1).padStart(2, '0');
         const prefix = `${year}-${monthStr}`;
         
-        let salonId = State.activeSalonId;
-        if (!salonId && State.salons.length > 0) salonId = State.salons[0].id;
+        let salonId = State.activeSalonId || 'all';
 
         const monthAppointments = State.appointments
-            .filter(a => a.date.startsWith(prefix) && a.salonId === salonId)
+            .filter(a => a.date.startsWith(prefix) && (salonId === 'all' || a.salonId === salonId))
             .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
 
         // Summary stats
@@ -1680,9 +1672,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             ${State.salons.length > 0 ? `
             <div style="text-align:center; margin-bottom: 2rem;">
                 <select id="monthly-salon-select" style="font-size:2.5rem; font-weight:800; border:none; background:transparent; color:var(--text-primary); text-align:center; text-align-last:center; cursor:pointer; padding:0; appearance:none; letter-spacing:-1px;">
-                    ${State.salons.map(s => `<option value="${s.id}" ${(State.activeSalonId || State.salons[0].id) === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
+                    <option value="all" ${State.activeSalonId === 'all' ? 'selected' : ''}>Todos los Salones</option>
+                    ${State.salons.map(s => `<option value="${s.id}" ${State.activeSalonId === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
                 </select>
-                <div style="font-size:0.85rem; color:var(--accent-color); font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-top:0.25rem;">Cambiar Salón ▾</div>
             </div>
             ` : ''}
             <div class="section-header" style="margin-top:-1rem;">
@@ -3423,17 +3415,30 @@ window.addEventListener('message', async (event) => {
             const serviceSelect = form.querySelector('[name="serviceId"]');
             
             let pendingFiles = [];
+            let existingPhotos = isEdit ? [...apt.appointmentPhotos] : [];
 
             const renderAptPhotos = () => {
                 const container = document.getElementById('apt-photos-list');
                 if (!container) return;
                 
                 let html = '';
+                // Existing photos
+                existingPhotos.forEach((p, idx) => {
+                    const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
+                    html += `
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                            <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid var(--accent-color)" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                            <span style="font-size:0.6rem;color:var(--text-secondary)">${photoType}</span>
+                            <button type="button" class="delete-existing-apt-photo-btn" data-idx="${idx}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">🗑️</button>
+                        </div>`;
+                });
+                
+                // Pending files
                 pendingFiles.forEach((pf, idx) => {
                     html += `
                         <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-                            <img src="${pf.preview}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${pf.preview} style=max-width:100%;max-height:70vh;border-radius:8px>')">
-                            <span style="font-size:0.7rem;color:var(--text-secondary)">${pf.date || toLocalDateStr(new Date())}</span>
+                            <img src="${pf.preview}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;opacity:0.7" onclick="openModal('Foto','<img src=${pf.preview} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                            <span style="font-size:0.6rem;color:var(--text-secondary)">Pendiente</span>
                             <button type="button" class="delete-apt-pending-btn" data-idx="${idx}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">🗑️</button>
                         </div>`;
                 });
@@ -3492,6 +3497,8 @@ window.addEventListener('message', async (event) => {
                 timeInput.value = findNextAvailableTime(selDate, dur);
             }
 
+            renderAptPhotos(); // Initial render
+
             dateInput.addEventListener('change', updateSuggestion);
             serviceSelect.addEventListener('change', updateSuggestion);
 
@@ -3499,18 +3506,20 @@ window.addEventListener('message', async (event) => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
                 submitBtn.disabled = true;
-                submitBtn.textContent = info ? 'Guardando…' : 'Agendando…';
+                submitBtn.textContent = apt ? 'Guardando…' : 'Agendando…';
 
                 const fd = new FormData(e.target);
-                const appointmentId = info ? info.id : generateId();
+                const appointmentId = apt ? apt.id : generateId();
                 const data = {
                     id: appointmentId,
                     clientId: fd.get('clientId'),
                     serviceId: fd.get('serviceId'),
+                    salonId: State.activeSalonId || (State.salons.length > 0 ? State.salons[0].id : null),
                     date: fd.get('date'),
                     time: fd.get('time'),
                     notes: fd.get('notes'),
-                    userEmail: State.currentUserEmail || ''
+                    userEmail: State.currentUserEmail || '',
+                    appointmentPhotos: existingPhotos
                 };
 
 
@@ -3533,8 +3542,9 @@ window.addEventListener('message', async (event) => {
                 }
 
                 const hasCollision = State.appointments.some(a => {
-                    if (isEdit && a.id === apt.id) return false; // Skip self when editing
+                    if (isEdit && apt && a.id === apt.id) return false; // Skip self when editing
                     if (a.date !== data.date) return false;
+                    if (a.salonId !== data.salonId) return false;
                     const [aptHour, aptMin] = a.time.split(':').map(Number);
                     const aptStartMinutes = aptHour * 60 + aptMin;
                     const aptService = State.services.find(s => s.id === a.serviceId);
@@ -3547,6 +3557,36 @@ window.addEventListener('message', async (event) => {
                     submitBtn.disabled = false;
                     submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Agendar Cita';
                     return;
+                }
+
+                // Upload pending photos
+                if (pendingFiles.length > 0) {
+                    submitBtn.textContent = 'Subiendo fotos…';
+                    for (const pf of pendingFiles) {
+                        try {
+                            const fileName = `appointments/${appointmentId}/${Date.now()}_${pf.file.name}`;
+                            const { data: uploadData, error: uploadError } = await supabase.storage
+                                .from('client-photos')
+                                .upload(fileName, pf.file);
+                            
+                            if (uploadError) throw uploadError;
+                            
+                            const { data: { publicUrl } } = supabase.storage
+                                .from('client-photos')
+                                .getPublicUrl(fileName);
+                            
+                            data.appointmentPhotos.push({
+                                id: generateId(),
+                                photo_url: publicUrl,
+                                photo_date: toLocalDateStr(new Date()),
+                                photo_type: pf.type || 'before',
+                                notes: pf.notes || ''
+                            });
+                        } catch (err) {
+                            console.error('Error uploading photo:', err);
+                            showToast('Error al subir una de las fotos', 'error');
+                        }
+                    }
                 }
 
                 if (isEdit) {
