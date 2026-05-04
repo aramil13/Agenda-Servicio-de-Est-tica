@@ -1021,6 +1021,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         apt.appointmentPhotos[photoIdx].photo_date = newDate;
                         apt.appointmentPhotos[photoIdx].notes = newNotes;
                         await supabase.from('appointments').update({ appointment_photos: apt.appointmentPhotos }).eq('id', aptId);
+                        
+                        // Sync with client_photos if clientPhotoId exists
+                        if (apt.appointmentPhotos[photoIdx].clientPhotoId) {
+                            await supabase.from('client_photos').update({
+                                photo_type: newType,
+                                photo_date: newDate,
+                                notes: `Cita ${apt.date}: ${newNotes}`
+                            }).eq('id', apt.appointmentPhotos[photoIdx].clientPhotoId);
+                        }
+
                         closeModal();
                         showToast('Foto actualizada');
                         renderRoute();
@@ -1283,6 +1293,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                         <div class="day-detail-info">
                             <strong>${client.name}</strong>
                             <span>${service.name} · ${service.duration} min${apt.notes ? ' · ' + apt.notes : ''}</span>
+                            ${State.activeSalonId === 'all' ? `<span style="font-size:0.75rem;color:var(--accent-color);display:block;margin-top:2px">📍 ${State.salons.find(s => s.id === apt.salonId)?.name || 'Salón desconocido'}</span>` : ''}
                             <span class="apt-user-key" style="color:${userColor}" title="${apt.userEmail}">${userDisplay}</span>
                             ${photosHtml}
                             </div>
@@ -2234,8 +2245,15 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 if (aptId && photoId && confirm('¿Eliminar esta foto?')) {
                     const apt = State.appointments.find(a => a.id === aptId);
                     if (apt && apt.appointmentPhotos) {
+                        const photoToDelete = apt.appointmentPhotos.find(p => p.id === photoId);
                         apt.appointmentPhotos = apt.appointmentPhotos.filter(p => p.id !== photoId);
                         await supabase.from('appointments').update({ appointment_photos: apt.appointmentPhotos }).eq('id', aptId);
+                        
+                        // Sync: delete from client_photos if clientPhotoId exists
+                        if (photoToDelete && photoToDelete.clientPhotoId) {
+                            await supabase.from('client_photos').delete().eq('id', photoToDelete.clientPhotoId);
+                        }
+
                         showToast('Foto eliminada');
                         renderRoute();
                     }
@@ -3377,6 +3395,14 @@ window.addEventListener('message', async (event) => {
                         ${State.services.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.serviceId ? 'selected' : ''}>${s.name} (${s.duration} min · ${parseFloat(s.price).toFixed(2)}€)</option>`).join('')}
                     </select>
                 </div>
+                ${(State.activeSalonId === 'all' || !State.activeSalonId) ? `
+                <div class="form-group">
+                    <label>Salón</label>
+                    <select class="form-control" name="salonId" required>
+                        ${State.salons.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.salonId ? 'selected' : ''}>${s.name}</option>`).join('')}
+                    </select>
+                </div>
+                ` : `<input type="hidden" name="salonId" value="${State.activeSalonId}">`}
                 <div style="display:flex;gap:1rem">
                     <div class="form-group" style="flex:1">
                         <label>Fecha</label>
@@ -3514,13 +3540,20 @@ window.addEventListener('message', async (event) => {
                     id: appointmentId,
                     clientId: fd.get('clientId'),
                     serviceId: fd.get('serviceId'),
-                    salonId: State.activeSalonId || (State.salons.length > 0 ? State.salons[0].id : null),
+                    salonId: fd.get('salonId') || State.activeSalonId || (State.salons.length > 0 ? State.salons[0].id : null),
                     date: fd.get('date'),
                     time: fd.get('time'),
                     notes: fd.get('notes'),
                     userEmail: State.currentUserEmail || '',
                     appointmentPhotos: existingPhotos
                 };
+                
+                if (data.salonId === 'all') {
+                    showToast('Por favor, selecciona un salón específico para la cita.', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Agendar Cita';
+                    return;
+                }
 
 
                 // Validar que no se solape con otra cita existente en el mismo día
@@ -3575,12 +3608,26 @@ window.addEventListener('message', async (event) => {
                                 .from('client-photos')
                                 .getPublicUrl(fileName);
                             
-                            data.appointmentPhotos.push({
+                            const clientPhotoId = generateId();
+                            const photoRecord = {
                                 id: generateId(),
+                                clientPhotoId: clientPhotoId, // Store the reference
                                 photo_url: publicUrl,
                                 photo_date: toLocalDateStr(new Date()),
                                 photo_type: pf.type || 'before',
                                 notes: pf.notes || ''
+                            };
+                            data.appointmentPhotos.push(photoRecord);
+
+                            // TAMBIÉN subir a la base de datos del cliente (client_photos)
+                            await supabase.from('client_photos').insert({
+                                id: clientPhotoId,
+                                client_id: data.clientId,
+                                photo_url: publicUrl,
+                                photo_date: photoRecord.photo_date,
+                                photo_type: photoRecord.photo_type,
+                                notes: `Cita ${data.date}: ${photoRecord.notes}`,
+                                user_email: State.currentUserEmail
                             });
                         } catch (err) {
                             console.error('Error uploading photo:', err);
