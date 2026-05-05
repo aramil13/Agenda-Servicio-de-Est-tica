@@ -246,15 +246,12 @@
 
     <script>
         const MARIA_NILA_PRODUCTS = {
-            // ==================== HEAD & HAIR HEAL (Cuero cabelludo sensible) ====================
             headHairHealShampoo: { name: "Head & Hair Heal Shampoo", desc: "Calma cuero cabelludo sensible con aloe vera y piroctona olamina.", img: "https://marianila.com/cdn/shop/files/13650-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-shampoo-350-ml", category: "scalp" },
             headHairHealConditioner: { name: "Head & Hair Heal Conditioner", desc: "Acondicionador calmante para el cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/13651-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-conditioner-300-ml", category: "scalp" },
             headHairHealMasque: { name: "Head & Hair Heal Masque", desc: "Mascarilla calmante con aloe vera para cuero cabelludo sensible.", img: "https://marianila.com/cdn/shop/files/13652-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-masque-250-ml", category: "scalp" },
             headHairHealSoothingSerum: { name: "Head & Hair Heal Serum", desc: "Serum calmante para el cuero cabelludo con aloe vera.", img: "https://marianila.com/cdn/shop/files/13653-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-soothing-serum-150-ml", category: "scalp" },
             headHairHealScalpScrub: { name: "Head & Hair Heal Scalp Scrub", desc: "Exfoliante fisico para cuero cabelludo sensible con sales marinas.", img: "https://marianila.com/cdn/shop/files/13655-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-scalp-scrub-200-ml", category: "scalp" },
             headHairHealScalpTonic: { name: "Head & Hair Heal Scalp Tonic", desc: "Tonico calmante para reducir irritacion y picazon del cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/13656-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-scalp-tonic-150-ml", category: "scalp" },
-
-            // ==================== TRUE SOFT (Cabello seco) ====================
             trueSoftShampoo: { name: "True Soft Shampoo", desc: "Hidratacion profunda con aceite de argan para cabello seco.", img: "https://marianila.com/cdn/shop/files/3630-packshot.jpg", url: "https://marianila.com/products/true-soft-shampoo-350-ml", category: "dry" },
             trueSoftConditioner: { name: "True Soft Conditioner", desc: "Acondicionador hidratante con aceite de argan.", img: "https://marianila.com/cdn/shop/files/3631-packshot.jpg", url: "https://marianila.com/products/true-soft-conditioner-300-ml", category: "dry" },
             trueSoftMasque: { name: "True Soft Masque", desc: "Mascarilla nutritiva para cabello seco con aceite de argan.", img: "https://marianila.com/cdn/shop/files/3632-packshot.jpg", url: "https://marianila.com/products/true-soft-masque-250-ml", category: "dry" },
@@ -262,80 +259,37 @@
             trueSoftBoosterMasque: { name: "True Soft Booster Masque", desc: "Mascarilla intensiva para cabello muy seco.", img: "https://marianila.com/cdn/shop/files/3633-packshot.jpg", url: "https://marianila.com/products/true-soft-booster-masque-250-ml", category: "dry" },
             trueSoftLeaveInCream: { name: "True Soft Leave In Cream", desc: "Crema sin enjuague hidratante con aceite de argan para cabello seco.", img: "https://marianila.com/cdn/shop/files/3635-packshot.jpg", url: "https://marianila.com/products/true-soft-leave-in-cream-100-ml", category: "dry" },
             trueSoftHairPrimer: { name: "True Soft Hair Primer", desc: "Pre-shampoo hidratante que facilita el desenredado y protege.", img: "https://marianila.com/cdn/shop/files/3636-packshot.jpg", url: "https://marianila.com/products/true-soft-hair-primer-150-ml", category: "dry" },
-
-            // ==================== PURE VOLUME (Cabello fino) ====================
             pureVolumeShampoo: { name: "Pure Volume Shampoo", desc: "Voluminizador con provitamina B5 para cabello fino.", img: "https://marianila.com/cdn/shop/files/3610-packshot.jpg", url: "https://marianila.com/products/pure-volume-shampoo-350-ml", category: "fine" },
             pureVolumeConditioner: { name: "Pure Volume Conditioner", desc: "Acondicionador voluminizador ligero.", img: "https://marianila.com/cdn/shop/files/3611-packshot.jpg", url: "https://marianila.com/products/pure-volume-conditioner-300-ml", category: "fine" },
             pureVolumeMasque: { name: "Pure Volume Masque", desc: "Mascarilla voluminizadora con provitamina B5.", img: "https://marianila.com/cdn/shop/files/3612-packshot.jpg", url: "https://marianila.com/products/pure-volume-masque-250-ml", category: "fine" },
             pureVolumeMousse: { name: "Pure Volume Mousse", desc: "Espuma nutritiva y voluminizadora para cabello fino.", img: "https://marianila.com/cdn/shop/files/3613-packshot.jpg", url: "https://marianila.com/products/pure-volume-mousse-300-ml", category: "fine" },
             pureVolumeLeaveInCream: { name: "Pure Volume Leave In Cream", desc: "Crema ligera sin enjuague para dar cuerpo al cabello fino.", img: "https://marianila.com/cdn/shop/files/3614-packshot.jpg", url: "https://marianila.com/products/pure-volume-leave-in-cream-100-ml", category: "fine" },
-
-            // ==================== LUMINOUS COLOUR (Cabello teñido) ====================
             luminousColourShampoo: { name: "Luminous Colour Shampoo", desc: "Preserva color con extracto de Granada.", img: "https://marianila.com/cdn/shop/files/3625-packshot.jpg", url: "https://marianila.com/products/luminous-colour-shampoo-350-ml", category: "colored" },
             luminousColourConditioner: { name: "Luminous Colour Conditioner", desc: "Acondicionador preservador de color.", img: "https://marianila.com/cdn/shop/files/3626-packshot.jpg", url: "https://marianila.com/products/luminous-colour-conditioner-300-ml", category: "colored" },
             luminousColourMasque: { name: "Luminous Colour Masque", desc: "Mascarilla protectora del color con extracto de granada.", img: "https://marianila.com/cdn/shop/files/3627-packshot.jpg", url: "https://marianila.com/products/luminous-colour-masque-250-ml", category: "colored" },
             luminousColourLeaveInCream: { name: "Luminous Colour Leave In Cream", desc: "Crema sin enjuague que sella el color y aporta brillo.", img: "https://marianila.com/cdn/shop/files/3628-packshot.jpg", url: "https://marianila.com/products/luminous-colour-leave-in-cream-100-ml", category: "colored" },
             luminousColourToneFinishSpray: { name: "Luminous Colour Tone Finish Spray", desc: "Spray fijador que mantiene el color vibrante y aporta brillo.", img: "https://marianila.com/cdn/shop/files/3629-packshot.jpg", url: "https://marianila.com/products/luminous-colour-tone-finish-spray-150-ml", category: "colored" },
-
-            // ==================== PURIFYING CLEANSE (Cuero cabelludo graso) ====================
             purifyingCleanseShampoo: { name: "Purifying Cleanse Shampoo", desc: "Champu purificante para cuero cabelludo graso.", img: "https://marianila.com/cdn/shop/files/3615-packshot.jpg", url: "https://marianila.com/products/purifying-cleanse-shampoo-350-ml", category: "oily" },
             purifyingCleanseExfoliatingSerum: { name: "Purifying Cleansing Serum", desc: "Serum exfoliante detox para el cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/3616-packshot.jpg", url: "https://marianila.com/products/purifying-cleanse-exfoliating-serum-150-ml", category: "oily" },
             purifyingCleanseDetoxMasque: { name: "Purifying Cleanse Detox Masque", desc: "Mascarilla detox purificante para cuero cabelludo graso.", img: "https://marianila.com/cdn/shop/files/3617-packshot.jpg", url: "https://marianila.com/products/purifying-cleanse-detox-masque-250-ml", category: "oily" },
-
-            // ==================== STRUCTURE REPAIR (Cabello dañado) ====================
             structureRepairShampoo: { name: "Structure Repair Shampoo", desc: "Repara cabello dañado con keratina.", img: "https://marianila.com/cdn/shop/files/3600-packshot.jpg", url: "https://marianila.com/products/structure-repair-shampoo-350-ml", category: "damaged" },
             structureRepairConditioner: { name: "Structure Repair Conditioner", desc: "Acondicionador reparador con keratina.", img: "https://marianila.com/cdn/shop/files/3601-packshot.jpg", url: "https://marianila.com/products/structure-repair-conditioner-300-ml", category: "damaged" },
             structureRepairMasque: { name: "Structure Repair Masque", desc: "Mascarilla reparadora intensiva con keratina.", img: "https://marianila.com/cdn/shop/files/3602-packshot.jpg", url: "https://marianila.com/products/structure-repair-masque-250-ml", category: "damaged" },
             structureRepairLeaveInCream: { name: "Structure Repair Leave In Cream", desc: "Crema sin enjuague reparadora para cabello dañado.", img: "https://marianila.com/cdn/shop/files/3603-packshot.jpg", url: "https://marianila.com/products/structure-repair-leave-in-cream-100-ml", category: "damaged" },
             bondBuilder: { name: "Bond Builder", desc: "Reparador de enlaces capilares intensivo.", img: "https://marianila.com/cdn/shop/files/3604-packshot.jpg", url: "https://marianila.com/products/bond-builder-100-ml", category: "damaged" },
             structureRepairBondingBooster: { name: "Structure Repair Bonding Booster", desc: "Potenciador de union que refuerza enlaces capilares en tratamientos quimicos.", img: "https://marianila.com/cdn/shop/files/3605-packshot.jpg", url: "https://marianila.com/products/structure-repair-bonding-booster-100-ml", category: "damaged" },
-
-            // ==================== SHEER SILVER (Cabello rubio/canoso) ====================
             sheerSilverShampoo: { name: "Sheer Silver Shampoo", desc: "Pigmentos violeta que neutralizan tonos dorados en rubios.", img: "https://marianila.com/cdn/shop/files/3640-packshot.jpg", url: "https://marianila.com/products/sheer-silver-shampoo-350-ml", category: "blonde" },
             sheerSilverConditioner: { name: "Sheer Silver Conditioner", desc: "Acondicionador con pigmentos violeta para rubios.", img: "https://marianila.com/cdn/shop/files/3641-packshot.jpg", url: "https://marianila.com/products/sheer-silver-conditioner-300-ml", category: "blonde" },
             sheerSilverMasque: { name: "Sheer Silver Masque", desc: "Mascarilla con pigmentos violeta para neutralizar tonos.", img: "https://marianila.com/cdn/shop/files/3642-packshot.jpg", url: "https://marianila.com/products/sheer-silver-masque-250-ml", category: "blonde" },
             sheerSilverBoosterMasque: { name: "Sheer Silver Booster Masque", desc: "Mascarilla intensiva con pigmentos violeta.", img: "https://marianila.com/cdn/shop/files/3643-packshot.jpg", url: "https://marianila.com/products/sheer-silver-booster-masque-250-ml", category: "blonde" },
             sheerSilverToneFixerSpray: { name: "Sheer Silver Tone Fixer Spray", desc: "Spray fijador con pigmentos violeta para neutralizar tonos amarillos entre lavados.", img: "https://marianila.com/cdn/shop/files/3645-packshot.jpg", url: "https://marianila.com/products/sheer-silver-tone-fixer-spray-150-ml", category: "blonde" },
-
-            // ==================== COILS & CURLS (Cabello rizado) ====================
             coilsCurlsCoWash: { name: "Coils & Curls Co-Wash", desc: "Limpieza suave sin sulfatos para rizos.", img: "https://marianila.com/cdn/shop/files/3670-packshot.jpg", url: "https://marianila.com/products/coils-curls-co-wash", category: "curly" },
             coilsCurlsOilInCream: { name: "Coils & Curls Oil In Cream", desc: "Crema leave-in definidora de rizos con manteca de karite.", img: "https://marianila.com/cdn/shop/files/3671-packshot.jpg", url: "https://marianila.com/products/coils-curls-oil-in-cream", category: "curly" },
             coilsCurlsFinishingTreatmentMasque: { name: "Coils & Curls Finishing Masque", desc: "Mascarilla nutritiva para definir y suavizar rizos.", img: "https://marianila.com/cdn/shop/files/3672-packshot.jpg", url: "https://marianila.com/products/coils-curls-finishing-treatment-masque", category: "curly" },
             coilsCurlsWeightlessCurlDefiner: { name: "Weightless Curl Definer", desc: "Gel definidor de rizos sin peso con aloe vera.", img: "https://marianila.com/cdn/shop/files/3673-packshot.jpg", url: "https://marianila.com/products/coils-curls-weightless-curl-definer", category: "curly" },
             coilsCurlsLusciousCurlDefiner: { name: "Luscious Curl Definer", desc: "Gel rico que define rizos con medio agarre.", img: "https://marianila.com/cdn/shop/files/3674-packshot.jpg", url: "https://marianila.com/products/coils-curls-luscious-curl-definer", category: "curly" },
             coilsCurlsPrimer: { name: "Coils & Curls Primer", desc: "Pre-shampoo y acondicionador sin enjuague para rizos definidos.", img: "https://marianila.com/cdn/shop/files/3675-packshot.jpg", url: "https://marianila.com/products/coils-curls-primer", category: "curly" },
-            coilsCurlsCurlCream: { name: "Coils & Curls Curl Cream", desc: "Crema definidora de rizos con medio agarre y brillo.", img: "https://marianila.com/cdn/shop/files/3676-packshot.jpg", url: "https://marianila.com/products/coils-curls-curl-cream", category: "curly" },
-
-            // ==================== STYLING (Productos para peinar) ====================
-            oceanSpray: { name: "Ocean Spray", desc: "Spray de agua salada con extra agarre para beach waves.", img: "https://marianila.com/cdn/shop/files/3680-packshot.jpg", url: "https://marianila.com/products/ocean-spray-150-ml", category: "styling" },
-            saltyMist: { name: "Salty Mist", desc: "Bruma salina ligera para textura natural.", img: "https://marianila.com/cdn/shop/files/3681-packshot.jpg", url: "https://marianila.com/products/salty-mist-150-ml", category: "styling" },
-            stylingMousse: { name: "Styling Mousse", desc: "Espuma de peinado con agarre flexible.", img: "https://marianila.com/cdn/shop/files/3682-packshot.jpg", url: "https://marianila.com/products/styling-mousse-300-ml", category: "styling" },
-            stylingSpray: { name: "Styling Spray", desc: "Spray de peinado con agarre ligero.", img: "https://marianila.com/cdn/shop/files/3683-packshot.jpg", url: "https://marianila.com/products/styling-spray-300-ml", category: "styling" },
-            finishingSpray: { name: "Finishing Spray", desc: "Laca de fijacion fuerte y brillo.", img: "https://marianila.com/cdn/shop/files/3684-packshot.jpg", url: "https://marianila.com/products/finishing-spray-300-ml", category: "styling" },
-            shapingHeatSpray: { name: "Shaping Heat Spray", desc: "Protector termico para plancha y secador.", img: "https://marianila.com/cdn/shop/files/3685-packshot.jpg", url: "https://marianila.com/products/shaping-heat-spray-150-ml", category: "styling" },
-            creamHeatSpray: { name: "Cream Heat Spray", desc: "Protector termico en crema para peinado.", img: "https://marianila.com/cdn/shop/files/3686-packshot.jpg", url: "https://marianila.com/products/cream-heat-spray-150-ml", category: "styling" },
-            quickDryHeatSpray: { name: "Quick Dry Heat Spray", desc: "Protector termico de secado rapido.", img: "https://marianila.com/cdn/shop/files/3687-packshot.jpg", url: "https://marianila.com/products/quick-dry-heat-spray-150-ml", category: "styling" },
-            glossCoat: { name: "Gloss Coat", desc: "Spray alisador termoactivado para brillo.", img: "https://marianila.com/cdn/shop/files/3688-packshot.jpg", url: "https://marianila.com/products/gloss-coat-200-ml", category: "styling" },
-            stylingCream: { name: "Styling Cream", desc: "Crema moldeadora flexible para definicion.", img: "https://marianila.com/cdn/shop/files/3689-packshot.jpg", url: "https://marianila.com/products/styling-cream-100-ml", category: "styling" },
-            volumeSpray: { name: "Volume Spray", desc: "Spray voluminizador ligero para raiz.", img: "https://marianila.com/cdn/shop/files/3690-packshot.jpg", url: "https://marianila.com/products/volume-spray-100-ml", category: "styling" },
-            powerPowder: { name: "Power Powder", desc: "Polvo texturizador para volumen extra en raiz.", img: "https://marianila.com/cdn/shop/files/3691-packshot.jpg", url: "https://marianila.com/products/power-powder-20-g", category: "styling" },
-            cleansingPowder: { name: "Cleansing Powder", desc: "Polvo limpiador para peinar y texturizar.", img: "https://marianila.com/cdn/shop/files/3692-packshot.jpg", url: "https://marianila.com/products/cleansing-powder-60-g", category: "styling" },
-            sprayWax: { name: "Spray Wax", desc: "Cera en aerosol para textura y definicion.", img: "https://marianila.com/cdn/shop/files/3693-packshot.jpg", url: "https://marianila.com/products/spray-wax-200-ml", category: "styling" },
-            stylingPaste: { name: "Styling Paste", desc: "Pasta moldeadora flexible con mate.", img: "https://marianila.com/cdn/shop/files/3694-packshot.jpg", url: "https://marianila.com/products/styling-paste-100-ml", category: "styling" },
-            extremeWax: { name: "Extreme Wax", desc: "Cera de fijacion extrema y brillo medio.", img: "https://marianila.com/cdn/shop/files/3695-packshot.jpg", url: "https://marianila.com/products/extreme-wax-100-ml", category: "styling" },
-            fixatingWax: { name: "Fixating Wax", desc: "Cera fijadora de acabado mate.", img: "https://marianila.com/cdn/shop/files/3696-packshot.jpg", url: "https://marianila.com/products/fixating-wax-100-ml", category: "styling" },
-            veganSculptingWax: { name: "Vegan Sculpting Wax", desc: "Cera moldeadora vegana para estilismo.", img: "https://marianila.com/cdn/shop/files/3697-packshot.jpg", url: "https://marianila.com/products/vegan-sculpting-wax-100-ml", category: "styling" },
-            dryShampoo: { name: "Dry Shampoo", desc: "Champu seco refrescante para lavados entre lavados.", img: "https://marianila.com/cdn/shop/files/3698-packshot.jpg", url: "https://marianila.com/products/dry-shampoo-250-ml", category: "styling" },
-            soothingDryShampoo: { name: "Soothing Dry Shampoo", desc: "Champu seco calmante para cuero cabelludo sensible.", img: "https://marianila.com/cdn/shop/files/3699-packshot.jpg", url: "https://marianila.com/products/soothing-dry-shampoo-250-ml", category: "styling" },
-            hairPrimer: { name: "Hair Primer", desc: "Pre-shampoo protector que facilita el desenredado y protege del calor.", img: "https://marianila.com/cdn/shop/files/3702-packshot.jpg", url: "https://marianila.com/products/hair-primer-150-ml", category: "styling" },
-            shineCream: { name: "Shine Cream", desc: "Crema brillante para aportar luz y suavidad sin peso.", img: "https://marianila.com/cdn/shop/files/3703-packshot.jpg", url: "https://marianila.com/products/shine-cream-100-ml", category: "styling" },
-            textureCream: { name: "Texture Cream", desc: "Crema texturizadora para definicion y separacion de mechas.", img: "https://marianila.com/cdn/shop/files/3704-packshot.jpg", url: "https://marianila.com/products/texture-cream-100-ml", category: "styling" },
-
-            // ==================== OTROS ====================
-            healingCicaOil: { name: "Healing Cica Oil", desc: "Aceite reparador con Cica para barrera cutanea.", img: "https://marianila.com/cdn/shop/files/3700-packshot.jpg", url: "https://marianila.com/products/healing-cica-oil-100-ml", category: "treatment" },
-            floralDriftHairMist: { name: "Floral Drift Hair Mist", desc: "Bruma capilar floral con fragancia suave.", img: "https://marianila.com/cdn/shop/files/3701-packshot.jpg", url: "https://marianila.com/products/floral-drift-fine-fragrance-hair-mist-100-ml", category: "treatment" },
-            hairButter: { name: "Hair Butter", desc: "Manteca nutritiva intensiva con manteca de karite para cabello muy seco.", img: "https://marianila.com/cdn/shop/files/3705-packshot.jpg", url: "https://marianila.com/products/hair-butter-100-ml", category: "treatment" },
-            scalpTreatment: { name: "Scalp Treatment", desc: "Tratamiento intensivo para equilibrar y calmar el cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/3706-packshot.jpg", url: "https://marianila.com/products/scalp-treatment-100-ml", category: "treatment" }
+            coilsCurlsCurlCream: { name: "Coils & Curls Curl Cream", desc: "Crema definidora de rizos con medio agarre y brillo.", img: "https://marianila.com/cdn/shop/files/3676-packshot.jpg", url: "https://marianila.com/products/coils-curls-curl-cream", category: "curly" }
         };
 
         const OLAPLEX_TREATMENTS = {
@@ -358,17 +312,9 @@
             coloredHair: document.getElementById('colored-hair-checkbox'),
         };
 
-        // El input ya cubre toda la zona de carga (ver CSS .upload-zone input)
-        // No agregamos onclick extra para evitar dobles clics
         elements.fileInput.onchange = function(e) {
-            console.log('File selected:', e.target.files);
             const file = e.target.files[0];
-            if (file) {
-                console.log('Processing file:', file.name, file.size);
-                handleFile(file);
-            } else {
-                console.warn('No file selected');
-            }
+            if (file) handleFile(file);
         };
 
         elements.cameraBtn.onclick = async () => {
@@ -410,10 +356,9 @@
             const img = new Image();
             img.onload = () => {
                 if (img.width < 100 || img.height < 100) {
-                    alert('La imagen es muy pequeña. Sube una foto de mayor resolución (mínimo 100x100 pixeles).');
+                    alert('La imagen es muy pequeña.');
                     return;
                 }
-                
                 currentImgData = data;
                 elements.previewImg.src = data;
                 elements.previewImg.style.display = 'block';
@@ -421,11 +366,26 @@
                 elements.cameraBtn.style.display = 'none';
                 elements.actionButtons.style.display = 'block';
             };
-            img.onerror = () => {
-                alert('No se pudo procesar la imagen. Sube una foto válida del microscopio.');
-            };
             img.src = data;
         }
+
+        document.getElementById('reset-btn').onclick = () => {
+            currentImgData = null;
+            elements.previewImg.src = '';
+            elements.previewImg.style.display = 'none';
+            elements.dropZone.style.display = 'block';
+            elements.cameraBtn.style.display = 'flex';
+            elements.actionButtons.style.display = 'none';
+            elements.statusBadge.style.display = 'none';
+            elements.fileInput.value = '';
+            
+            // Clear results
+            ['val-density', 'val-thickness', 'val-hydration', 'val-sebum', 'val-dandruff', 'val-erythema'].forEach(id => {
+                document.getElementById(id).textContent = '--';
+            });
+            document.getElementById('recommendations-section').style.display = 'none';
+            document.getElementById('treatments-section').style.display = 'none';
+        };
 
         elements.analyzeBtn.onclick = () => {
             elements.analyzeBtn.disabled = true;
@@ -443,10 +403,17 @@
                 
                 const img = new Image();
                 img.onload = () => {
-                    // Usar funciones reales de detección
+                    // VALIDACIÓN ESTRICTA
+                    if (!validateImageQuality(img)) {
+                        alert('⚠️ Imagen no válida.\n\nLa foto debe ser una toma microscópica real del cuero cabelludo (no fotos artificiales, ni paisajes, ni capturas).');
+                        elements.analyzeBtn.disabled = false;
+                        elements.statusBadge.style.display = 'none';
+                        return;
+                    }
+
                     const density = detectHairDensity(img);
                     const thickness = detectHairThickness(img);
-                    const { hydration: hydration, sebumLevel: sebumLevel, sebumLabel: sebumLabel } = detectHydrationAndSebum(img);
+                    const { hydration, sebumLevel, sebumLabel } = detectHydrationAndSebum(img);
                     const { value: dandruffValue, label: dandruffLabel } = detectDandruffLevel(img);
                     const erythemaRaw = detectErythemaLevel(img);
                     
@@ -455,91 +422,101 @@
                     if (erythemaRaw > 3 && erythemaRaw <= 7) erythemaLevel = 'Medio';
                     if (erythemaRaw > 7) erythemaLevel = 'Alto';
                     
-                    // Mostrar resultados
-                    document.getElementById('val-density').textContent = density + ' (160-190)';
-                    document.getElementById('val-thickness').textContent = thickness + ' μm (65-80)';
-                    document.getElementById('val-hydration').textContent = hydration + '% (55-75%)';
-                    document.getElementById('val-sebum').textContent = sebumLabel + ' (' + sebumLevel + '/10)';
-                    document.getElementById('val-dandruff').textContent = dandruffLabel + ' (' + dandruffValue + '/10)';
-                    document.getElementById('val-erythema').textContent = erythemaLevel + ' (' + erythemaRaw + '/10)';
+                    document.getElementById('val-density').textContent = density;
+                    document.getElementById('val-thickness').textContent = thickness + ' μm';
+                    document.getElementById('val-hydration').textContent = hydration + '%';
+                    document.getElementById('val-sebum').textContent = sebumLabel;
+                    document.getElementById('val-dandruff').textContent = dandruffLabel;
+                    document.getElementById('val-erythema').textContent = erythemaLevel;
                     
                     const results = {
                         density, thickness, hydration,
                         sebum: sebumLabel,
-                        sebumValue: sebumLevel,
                         dandruff: dandruffLabel,
-                        dandruffValue: dandruffValue,
                         erythema: erythemaLevel,
-                        erythemaValue: erythemaRaw,
                         isColored: elements.coloredHair.checked
                     };
                     
                     renderRecommendations(results);
-                    currentDiagnosisResults = results;
                     
                     elements.statusBadge.textContent = '✓ Análisis completado';
                     elements.statusBadge.style.background = '#10b981';
                     elements.analyzeBtn.disabled = false;
                     
+                    // AUTO-SYNC TO PARENT
                     if (window.parent !== window) {
-                        try {
-                            window.parent.postMessage({
-                                type: 'diagnosis_photo',
-                                photoData: currentImgData || null,
-                                results: results || null
-                            }, '*');
-                        } catch (e) {
-                            console.warn('Error sending message:', e);
-                        }
+                        window.parent.postMessage({
+                            type: 'diagnosis_photo',
+                            photoData: currentImgData,
+                            results: results
+                        }, '*');
                     }
                 };
                 img.src = currentImgData;
             }, 500);
         };
 
-        document.getElementById('reset-btn').onclick = () => location.reload();
+        function validateImageQuality(img) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const size = 150;
+            canvas.width = size; canvas.height = size;
+            ctx.drawImage(img, 0, 0, size, size);
+            const imageData = ctx.getImageData(0, 0, size, size).data;
+            
+            let rSum = 0, gSum = 0, bSum = 0;
+            const n = imageData.length / 4;
+            const grays = new Float32Array(n);
+            
+            for (let i = 0; i < n; i++) {
+                const r = imageData[i*4], g = imageData[i*4+1], b = imageData[i*4+2];
+                rSum += r; gSum += g; bSum += b;
+                grays[i] = 0.299 * r + 0.587 * g + 0.114 * b;
+            }
+            
+            const rAvg = rSum / n, gAvg = gSum / n, bAvg = bSum / n;
+            const avgGray = grays.reduce((a, b) => a + b, 0) / n;
 
-        let currentDiagnosisResults = null;
-        
+            // Filtro de Color: Solo tonos piel/cabello (predominancia cálida)
+            const isBiological = (rAvg > gAvg) && (rAvg > bAvg - 5) && (rAvg > 30);
+            if (!isBiological) return false;
+
+            // Filtro de Uniformidad: Rechazar capturas/planos
+            let variance = 0;
+            for (let i = 0; i < n; i++) {
+                variance += (grays[i] - avgGray) * (grays[i] - avgGray);
+            }
+            variance /= n;
+            if (variance < 150) return false; 
+
+            // Filtro de Textura: Requiere bordes microscópicos
+            let edges = 0;
+            for (let y = 0; y < size - 1; y++) {
+                for (let x = 0; x < size - 1; x++) {
+                    const idx = y * size + x;
+                    const diff = Math.abs(grays[idx] - grays[idx + 1]);
+                    if (diff > 25) edges++;
+                }
+            }
+            const edgeDensity = edges / (size * size);
+            if (edgeDensity < 0.02 || edgeDensity > 0.35) return false;
+
+            return true;
+        }
+
         function detectErythemaLevel(img) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = 100; canvas.height = 100;
             ctx.drawImage(img, 0, 0, 100, 100);
             const data = ctx.getImageData(0, 0, 100, 100).data;
-            
-            let erythemaPixels = 0;
-            let skinPixels = 0;
-            
+            let erythemaPixels = 0, skinPixels = 0;
             for (let i = 0; i < data.length; i += 4) {
                 const r = data[i], g = data[i+1], b = data[i+2];
-                
-                // Detectar piel (tonos rojizos/amarillentos típicos de piel)
-                const isSkinTone = r > 95 && g > 40 && b > 20 && r > b && r > g * 0.8;
-                if (isSkinTone) skinPixels++;
-                
-                // Eritema: rojez (rojo significativamente mayor que verde y azul)
-                if (r > g + 30 && r > b + 30 && r > 120) {
-                    erythemaPixels++;
-                }
+                if (r > 95 && g > 40 && b > 20 && r > b && r > g * 0.8) skinPixels++;
+                if (r > g + 30 && r > b + 30 && r > 120) erythemaPixels++;
             }
-            
-            if (skinPixels === 0) return 0;
-            const erythemaRatio = erythemaPixels / skinPixels;
-            let erythemaValue = Math.round(erythemaRatio * 10);
-            return Math.min(10, Math.max(0, erythemaValue));
-        }
-
-        function isHairPixel(r, g, b) {
-            const brightness = (r + g + b) / 3;
-            const saturation = Math.max(r, g, b) === 0 ? 0 : (Math.max(r, g, b) - Math.min(r, g, b)) / Math.max(r, g, b);
-            return brightness < 100 && saturation > 0.1 && saturation < 0.5;
-        }
-
-        function isMicroscopicHair(r, g, b) {
-            const brightness = (r + g + b) / 3;
-            const edgeDensity = Math.random() * 0.1;
-            return brightness < 100 && edgeDensity > 0.05;
+            return skinPixels === 0 ? 0 : Math.min(10, Math.round((erythemaPixels / skinPixels) * 10));
         }
 
         function detectHairDensity(img) {
@@ -548,17 +525,13 @@
             canvas.width = 100; canvas.height = 100;
             ctx.drawImage(img, 0, 0, 100, 100);
             const data = ctx.getImageData(0, 0, 100, 100).data;
-            
             let hairPixels = 0;
-            const totalPixels = data.length / 4;
-            
             for (let i = 0; i < data.length; i += 4) {
                 const r = data[i], g = data[i+1], b = data[i+2];
-                if (isHairPixel(r, g, b)) hairPixels++;
+                const br = (r + g + b) / 3;
+                if (br < 100) hairPixels++;
             }
-            
-            const density = Math.floor((hairPixels / totalPixels) * 300 + 100);
-            return Math.min(280, Math.max(80, density));
+            return Math.min(280, Math.max(80, Math.floor((hairPixels / 10000) * 300 + 100)));
         }
 
         function detectHairThickness(img) {
@@ -567,31 +540,15 @@
             canvas.width = 80; canvas.height = 80;
             ctx.drawImage(img, 0, 0, 80, 80);
             const data = ctx.getImageData(0, 0, 80, 80).data;
-            
-            let darkPixels = 0;
-            let totalDarkPixels = 0;
-            
+            let darkEdges = 0;
             for (let y = 0; y < 80; y++) {
-                for (let x = 0; x < 80; x++) {
+                for (let x = 1; x < 80; x++) {
                     const i = (y * 80 + x) * 4;
-                    const r = data[i], g = data[i+1], b = data[i+2];
-                    const brightness = (r + g + b) / 3;
-                    
-                    if (brightness < 80) {
-                        darkPixels++;
-                        if (x > 0) {
-                            const prevI = (y * 80 + (x-1)) * 4;
-                            const prevBright = (data[prevI] + data[prevI+1] + data[prevI+2]) / 3;
-                            if ((brightness < 80 && prevBright >= 80) || (brightness >= 80 && prevBright < 80)) {
-                                totalDarkPixels++;
-                            }
-                        }
-                    }
+                    const prevI = (y * 80 + (x-1)) * 4;
+                    if (Math.abs(data[i] - data[prevI]) > 50) darkEdges++;
                 }
             }
-            
-            const thickness = Math.floor(90 - (totalDarkPixels / 20));
-            return Math.min(120, Math.max(40, thickness));
+            return Math.min(120, Math.max(40, Math.floor(90 - (darkEdges / 20))));
         }
 
         function detectHydrationAndSebum(img) {
@@ -600,194 +557,53 @@
             canvas.width = 80; canvas.height = 80;
             ctx.drawImage(img, 0, 0, 80, 80);
             const data = ctx.getImageData(0, 0, 80, 80).data;
-            
-            let shinyPixels = 0;
-            let dryPixels = 0;
-            const totalPixels = data.length / 4;
-            
+            let shiny = 0, dry = 0;
             for (let i = 0; i < data.length; i += 4) {
                 const r = data[i], g = data[i+1], b = data[i+2];
-                const brightness = (r + g + b) / 3;
-                const saturation = Math.max(r, g, b) === 0 ? 0 : (Math.max(r, g, b) - Math.min(r, g, b)) / Math.max(r, g, b);
-                
-                // Bajar detección 30% adicional (aún más conservador: subir umbrales más)
-                if (brightness > 270 && saturation < 0.12 && r > 240 && g > 240 && b > 240) shinyPixels++;
-                if (brightness < 100 && saturation < 0.20) dryPixels++;
+                const br = (r + g + b) / 3;
+                if (br > 240 && r > 220) shiny++;
+                if (br < 100) dry++;
             }
-            
-            const shinyRatio = shinyPixels / totalPixels;
-            const dryRatio = dryPixels / totalPixels;
-            
-            // Bajar detección 30% adicional (umbrales aún más altos)
-            let sebumValue = 2; // Base más baja
-            if (shinyRatio > 0.65) sebumValue = 6 + Math.floor(shinyRatio * 10); // 0.5*1.3=0.65
-            else if (dryRatio > 0.78) sebumValue = 1 + Math.floor(dryRatio * 8); // 0.6*1.3=0.78
-            else sebumValue = 1 + Math.floor(Math.random() * 3); // 1-4 muy conservador
-            sebumValue = Math.min(10, Math.max(0, sebumValue));
-            
-            let sebumLabel;
-            if (sebumValue === 0) sebumLabel = 'Normal';
-            else if (sebumValue < 3) sebumLabel = 'Bajo';
-            else if (sebumValue < 7) sebumLabel = 'Medio';
-            else sebumLabel = 'Alto';
-            
-            let hydration;
-            if (sebumValue >= 7) hydration = Math.floor(55 + Math.random() * 10); // 55-65%
-            else if (sebumValue < 3) hydration = Math.floor(55 + Math.random() * 10); // 55-65%
-            else hydration = Math.floor(55 + Math.random() * 10); // 55-65% fijo para todos
-            
-            return { hydration: hydration, sebumLevel: sebumValue, sebumLabel: sebumLabel };
+            const sebum = Math.min(10, Math.floor((shiny / 6400) * 15 + 2));
+            return { hydration: 60, sebumLevel: sebum, sebumLabel: sebum > 7 ? 'Alto' : (sebum < 3 ? 'Bajo' : 'Medio') };
         }
-        
+
         function detectDandruffLevel(img) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = 100; canvas.height = 100;
             ctx.drawImage(img, 0, 0, 100, 100);
             const data = ctx.getImageData(0, 0, 100, 100).data;
-            
-            let dandruffPixels = 0;
-            let skinPixels = 0;
-            const totalPixels = data.length / 4;
-            
+            let dandruff = 0;
             for (let i = 0; i < data.length; i += 4) {
-                const r = data[i], g = data[i+1], b = data[i+2];
-                const brightness = (r + g + b) / 3;
-                const maxChannel = Math.max(r, g, b);
-                const minChannel = Math.min(r, g, b);
-                const saturation = maxChannel === 0 ? 0 : (maxChannel - minChannel) / maxChannel;
-                
-                const hasRed = r > g && r > b;
-                const isSkinTone = r > 100 && g > 80 && b > 50 && saturation < 0.4 && hasRed;
-                if (isSkinTone) skinPixels++;
-                
-                const isDandruff = brightness > 252 && saturation < 0.03 && (maxChannel - minChannel) > 100 && !isSkinTone;
-                if (isDandruff) dandruffPixels++;
+                if (data[i] > 250 && data[i+1] > 250 && data[i+2] > 250) dandruff++;
             }
-            
-            const dandruffRatio = (dandruffPixels / totalPixels) * 100;
-            let dandruffValue = Math.round(dandruffRatio * 0.14);
-            dandruffValue = Math.min(10, Math.max(0, dandruffValue));
-            
-            let dandruffLabel;
-            if (dandruffValue === 0) dandruffLabel = 'Normal';
-            else if (dandruffValue < 3) dandruffLabel = 'Bajo';
-            else if (dandruffValue < 7) dandruffLabel = 'Medio';
-            else dandruffLabel = 'Alto';
-            
-            return { value: dandruffValue, label: dandruffLabel };
-        }
-        
-        function showToast(msg) {
-            const toast = document.createElement('div');
-            toast.textContent = msg;
-            toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#10b981;color:white;padding:12px 24px;border-radius:8px;font-size:14px;z-index:9999;animation:fadeIn 0.3s';
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
+            const val = Math.min(10, Math.round((dandruff / 10000) * 100 * 0.14));
+            return { value: val, label: val > 7 ? 'Alto' : (val < 3 ? 'Normal' : 'Medio') };
         }
 
         function renderRecommendations(diagnosis) {
-            const products = [], treatments = [];
+            const grid = document.getElementById('products-grid');
+            const treatGrid = document.getElementById('treatments-grid');
             const { density, thickness, hydration, sebum, isColored } = diagnosis;
-            const categories = {};
             
-            // Función para agregar producto a su categoría
-            function addToCategory(product) {
-                if (!product) return;
-                const cat = product.category;
-                if (!categories[cat]) categories[cat] = [];
-                if (!categories[cat].find(p => p.name === product.name)) {
-                    categories[cat].push(product);
-                }
-            }
+            let html = '';
+            if (sebum === 'Alto') html += renderProd(MARIA_NILA_PRODUCTS.purifyingCleanseShampoo);
+            if (hydration < 50) html += renderProd(MARIA_NILA_PRODUCTS.trueSoftShampoo);
+            if (isColored) html += renderProd(MARIA_NILA_PRODUCTS.luminousColourShampoo);
             
-            // Head & Hair Heal (cuero cabelludo sensible)
-            if (hydration < 40 || sebum === 'Bajo') {
-                addToCategory(MARIA_NILA_PRODUCTS.headHairHealShampoo);
-                addToCategory(MARIA_NILA_PRODUCTS.headHairHealConditioner);
-                addToCategory(MARIA_NILA_PRODUCTS.headHairHealMasque);
-            }
-            
-            // True Soft (cabello seco)
-            if (hydration < 50) {
-                addToCategory(MARIA_NILA_PRODUCTS.trueSoftShampoo);
-                addToCategory(MARIA_NILA_PRODUCTS.trueSoftConditioner);
-                addToCategory(MARIA_NILA_PRODUCTS.trueSoftMasque);
-            }
-            
-            // Pure Volume (cabello fino)
-            if (density < 150) {
-                addToCategory(MARIA_NILA_PRODUCTS.pureVolumeShampoo);
-                addToCategory(MARIA_NILA_PRODUCTS.pureVolumeConditioner);
-                addToCategory(MARIA_NILA_PRODUCTS.pureVolumeMasque);
-            }
-            
-            // Luminous Colour (cabello teñido)
-            if (isColored) {
-                addToCategory(MARIA_NILA_PRODUCTS.luminousColourShampoo);
-                addToCategory(MARIA_NILA_PRODUCTS.luminousColourConditioner);
-                addToCategory(MARIA_NILA_PRODUCTS.luminousColourMasque);
-            }
-            
-            // Structure Repair (cabello dañado)
-            if (thickness < 65) {
-                addToCategory(MARIA_NILA_PRODUCTS.structureRepairShampoo);
-                addToCategory(MARIA_NILA_PRODUCTS.structureRepairConditioner);
-                addToCategory(MARIA_NILA_PRODUCTS.structureRepairMasque);
-            }
-            
-            // Purifying Cleanse (cuero cabelludo graso)
-            if (sebum === 'Alto') {
-                addToCategory(MARIA_NILA_PRODUCTS.purifyingCleanseShampoo);
-                addToCategory(MARIA_NILA_PRODUCTS.purifyingCleanseDetoxMasque);
-            }
-            
-            // Sheer Silver (rubio/cano)
-            if (diagnosis.dandruff === 'Alto') {
-                addToCategory(MARIA_NILA_PRODUCTS.sheerSilverShampoo);
-                addToCategory(MARIA_NILA_PRODUCTS.sheerSilverConditioner);
-                addToCategory(MARIA_NILA_PRODUCTS.sheerSilverMasque);
-            }
-            
-            // Coils & Curls (cabello rizado)
-            if (density > 180) {
-                addToCategory(MARIA_NILA_PRODUCTS.coilsCurlsCoWash);
-                addToCategory(MARIA_NILA_PRODUCTS.coilsCurlsFinishingTreatmentMasque);
-            }
-            
-            const categoryNames = {
-                'scalp': 'Head & Hair Heal (Cuero cabelludo sensible)',
-                'dry': 'True Soft (Cabello seco)',
-                'fine': 'Pure Volume (Cabello fino)',
-                'colored': 'Luminous Colour (Cabello teñido)',
-                'damaged': 'Structure Repair (Cabello dañado)',
-                'oily': 'Purifying Cleanse (Cuero cabelludo graso)',
-                'blonde': 'Sheer Silver (Rubio/Cano)',
-                'curly': 'Coils & Curls (Cabello rizado)'
-            };
-            
-            if (density < 130 || thickness < 60 || hydration < 45) treatments.push(OLAPLEX_TREATMENTS.treatmentPremium);
-            if (treatments.length < 2) treatments.push(OLAPLEX_TREATMENTS.treatmentExpress);
-            
+            grid.innerHTML = html || '<p>No hay recomendaciones específicas.</p>';
             document.getElementById('recommendations-section').style.display = 'block';
+            
+            treatGrid.innerHTML = renderTreat(OLAPLEX_TREATMENTS.treatmentPremium);
             document.getElementById('treatments-section').style.display = 'block';
-            
-            let productsHTML = '';
-            for (const [cat, prods] of Object.entries(categories)) {
-                if (prods.length === 0) continue;
-                const catName = categoryNames[cat] || cat;
-                productsHTML += '<div style="margin-bottom:20px;"><h4 style="color:var(--accent-color);margin:0 0 10px 0;font-size:0.95rem;">' + catName + '</h4>';
-                productsHTML += prods.map(p => 
-                    '<div class="product-card"><img src="' + p.img + '" class="product-img"><div class="product-info"><strong>' + p.name + '</strong><p>' + p.desc + '</p><a href="' + p.url + '" target="_blank">Ver producto →</a></div></div>'
-                ).join('');
-                productsHTML += '</div>';
-            }
-            
-            document.getElementById('products-grid').innerHTML = productsHTML;
-            
-            document.getElementById('treatments-grid').innerHTML = treatments.map(t => 
-                '<div class="product-card" style="border-left:3px solid #10b981"><div style="font-size:24px">💊</div><div class="product-info"><strong>' + t.name + '</strong><p>' + t.desc + '</p></div></div>'
-            ).join('');
+        }
+
+        function renderProd(p) {
+            return `<div class="product-card"><img src="${p.img}" class="product-img"><div class="product-info"><strong>${p.name}</strong><p>${p.desc}</p></div></div>`;
+        }
+        function renderTreat(t) {
+            return `<div class="product-card" style="border-left:3px solid #10b981"><div style="font-size:24px">💊</div><div class="product-info"><strong>${t.name}</strong><p>${t.desc}</p></div></div>`;
         }
     </script>
 </body>

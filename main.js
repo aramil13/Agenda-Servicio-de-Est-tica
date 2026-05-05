@@ -280,6 +280,199 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /* ═══════════════════════════════════════
+       GLOBAL EVENT DELEGATION
+       (Attached only once to document)
+       ═══════════════════════════════════════ */
+    document.addEventListener('click', async e => {
+        // 1. Generic Delete Buttons (.delete-btn) - Clients, Services, Salons, Appointments
+        const delBtn = e.target.closest('.delete-btn');
+        if (delBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (delBtn.dataset.confirming === 'true') {
+                const id = delBtn.dataset.id;
+                const type = delBtn.dataset.type;
+                delBtn.disabled = true;
+                
+                if (type === 'client') {
+                    if (await deleteClient(id)) renderRoute();
+                } else if (type === 'service') {
+                    if (await deleteService(id)) renderRoute();
+                } else if (type === 'salon') {
+                    if (await deleteSalon(id)) renderRoute();
+                } else {
+                    if (await deleteAppointment(id)) renderRoute();
+                }
+            } else {
+                delBtn.dataset.confirming = 'true';
+                const originalHtml = delBtn.innerHTML;
+                delBtn.innerHTML = '<span style="font-size:0.7rem">¿Borrar?</span>';
+                delBtn.style.background = '#e67e22';
+                delBtn.style.width = 'auto';
+                delBtn.style.padding = '0 6px';
+                
+                setTimeout(() => {
+                    if (delBtn && delBtn.dataset.confirming === 'true') {
+                        delBtn.dataset.confirming = 'false';
+                        delBtn.innerHTML = originalHtml;
+                        delBtn.style.background = '';
+                        delBtn.style.width = '';
+                        delBtn.style.padding = '';
+                    }
+                }, 3000);
+            }
+            return;
+        }
+
+        // 2. Appointment Photo Delete
+        const aptDelBtn = e.target.closest('.apt-photo-delete-btn');
+        if (aptDelBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (aptDelBtn.dataset.confirming === 'true') {
+                const photoId = aptDelBtn.dataset.photoId;
+                const aptItem = aptDelBtn.closest('.apt-mini-photo');
+                const aptId = aptItem?.dataset.aptId;
+                
+                if (aptId && photoId) {
+                    const apt = State.appointments.find(a => a.id === aptId);
+                    if (apt && apt.appointmentPhotos) {
+                        const photoToDelete = apt.appointmentPhotos.find(p => p.id === photoId);
+                        apt.appointmentPhotos = apt.appointmentPhotos.filter(p => p.id !== photoId);
+                        await supabase.from('appointments').update({ appointment_photos: apt.appointmentPhotos }).eq('id', aptId);
+                        
+                        if (photoToDelete && photoToDelete.clientPhotoId) {
+                            await deleteClientPhoto(photoToDelete.clientPhotoId);
+                        }
+                        showToast('Foto eliminada');
+                        renderRoute();
+                    }
+                }
+            } else {
+                aptDelBtn.dataset.confirming = 'true';
+                aptDelBtn.textContent = '¿X?';
+                aptDelBtn.style.background = '#e67e22';
+                setTimeout(() => {
+                    if (aptDelBtn && aptDelBtn.dataset.confirming === 'true') {
+                        aptDelBtn.dataset.confirming = 'false';
+                        aptDelBtn.textContent = '🗑️';
+                        aptDelBtn.style.background = 'rgba(0,0,0,0.6)';
+                    }
+                }, 3000);
+            }
+            return;
+        }
+
+        // 3. Appointment Photo Edit
+        const aptEditBtn = e.target.closest('.apt-photo-edit-btn');
+        if (aptEditBtn) {
+            e.stopPropagation();
+            const photoId = aptEditBtn.dataset.photoId;
+            const aptItem = aptEditBtn.closest('.apt-mini-photo');
+            const aptId = aptItem?.dataset.aptId;
+            const apt = State.appointments.find(a => a.id === aptId);
+            const photo = apt?.appointmentPhotos?.find(p => p.id === photoId);
+            if (photo && aptId) {
+                window.editAptPhoto(photoId, aptId, photo.photo_date || '', photo.notes || '', photo.photo_type || 'before');
+            }
+            return;
+        }
+
+        // 4. Client Photo Delete
+        const clientDelBtn = e.target.closest('.client-photo-remove-btn');
+        if (clientDelBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (clientDelBtn.dataset.confirming === 'true') {
+                const photoId = clientDelBtn.dataset.id;
+                clientDelBtn.disabled = true;
+                clientDelBtn.textContent = '...';
+                
+                const success = await deleteClientPhoto(photoId);
+                if (success) {
+                    renderRoute(); 
+                    if (typeof window.refreshCurrentClientPhotos === 'function') {
+                        window.refreshCurrentClientPhotos();
+                    }
+                } else {
+                    clientDelBtn.disabled = false;
+                    clientDelBtn.dataset.confirming = 'false';
+                    clientDelBtn.textContent = '🗑️';
+                    clientDelBtn.style.background = 'rgba(220,53,69,0.8)';
+                }
+            } else {
+                clientDelBtn.dataset.confirming = 'true';
+                clientDelBtn.textContent = '¿Borrar?';
+                clientDelBtn.style.background = '#e67e22';
+                clientDelBtn.style.width = 'auto';
+                
+                setTimeout(() => {
+                    if (clientDelBtn && clientDelBtn.dataset.confirming === 'true') {
+                        clientDelBtn.dataset.confirming = 'false';
+                        clientDelBtn.textContent = '🗑️';
+                        clientDelBtn.style.background = 'rgba(220,53,69,0.8)';
+                    }
+                }, 3000);
+            }
+            return;
+        }
+
+        // 5. Client Photo Edit
+        const clientEditBtn = e.target.closest('.client-photo-edit-btn');
+        if (clientEditBtn) {
+            e.stopPropagation();
+            const photoId = clientEditBtn.dataset.photoId;
+            const cid = window.currentModalClientId;
+            if (photoId) window.editClientPhoto(photoId, cid, '', '', '');
+            return;
+        }
+
+        // 6. Logout Buttons (Two-step)
+        const logoutTarget = e.target.closest('#btn-logout') || e.target.closest('.user-profile');
+        if (logoutTarget) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (logoutTarget.dataset.confirming === 'true') {
+                logoutTarget.disabled = true;
+                logoutTarget.innerHTML = '<span>Saliendo...</span>';
+                await supabase.auth.signOut();
+                State.clients = [];
+                State.services = [];
+                State.appointments = [];
+            } else {
+                logoutTarget.dataset.confirming = 'true';
+                const originalHtml = logoutTarget.innerHTML;
+                if (logoutTarget.id === 'btn-logout') {
+                    logoutTarget.innerHTML = '<span>¿Salir?</span>';
+                    logoutTarget.style.width = 'auto';
+                    logoutTarget.style.padding = '0 8px';
+                } else {
+                    const emailSpan = logoutTarget.querySelector('.user-email');
+                    if (emailSpan) emailSpan.textContent = '¿Cerrar sesión?';
+                }
+                
+                setTimeout(() => {
+                    if (logoutTarget.dataset.confirming === 'true') {
+                        logoutTarget.dataset.confirming = 'false';
+                        logoutTarget.innerHTML = originalHtml;
+                        if (logoutTarget.id === 'btn-logout') {
+                            logoutTarget.style.width = '';
+                            logoutTarget.style.padding = '';
+                        } else {
+                            const emailSpan = logoutTarget.querySelector('.user-email');
+                            if (emailSpan) emailSpan.textContent = State.currentUserEmail;
+                        }
+                    }
+                }, 3000);
+            }
+            return;
+        }
+    });
+
+    /* ═══════════════════════════════════════
        STATE
        ═══════════════════════════════════════ */
     const State = {
@@ -328,6 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const authError = document.getElementById('auth-error');
     const userEmailEl = document.getElementById('user-email');
     const userAvatarEl = document.getElementById('user-avatar');
+    const userProfileEl = document.querySelector('.user-profile');
     const btnLogout = document.getElementById('btn-logout');
 
 
@@ -610,17 +804,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    // Logout button
-    if (btnLogout) {
-        btnLogout.addEventListener('click', async () => {
-            if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-                await supabase.auth.signOut();
-                // State resetting data if necessary
-                State.clients = [];
-                State.services = [];
-                State.appointments = [];
+    // Logout logic with two-step confirmation
+    const handleLogoutClick = async (e) => {
+        const target = e.currentTarget;
+        if (target.dataset.confirming === 'true') {
+            target.disabled = true;
+            target.innerHTML = '<span>Saliendo...</span>';
+            await supabase.auth.signOut();
+            State.clients = [];
+            State.services = [];
+            State.appointments = [];
+            // handleSessionUpdate will take care of the rest
+        } else {
+            target.dataset.confirming = 'true';
+            const originalHtml = target.innerHTML;
+            if (target.id === 'btn-logout') {
+                target.innerHTML = '<span>¿Salir?</span>';
+                target.style.width = 'auto';
+                target.style.padding = '0 8px';
+            } else {
+                const emailSpan = target.querySelector('.user-email');
+                if (emailSpan) emailSpan.textContent = '¿Cerrar sesión?';
             }
-        });
+            
+            setTimeout(() => {
+                if (target.dataset.confirming === 'true') {
+                    target.dataset.confirming = 'false';
+                    target.innerHTML = originalHtml;
+                    if (target.id === 'btn-logout') {
+                        target.style.width = '';
+                        target.style.padding = '';
+                    } else {
+                        const emailSpan = target.querySelector('.user-email');
+                        if (emailSpan) emailSpan.textContent = State.currentUserEmail;
+                    }
+                }
+            }, 3000);
+        }
+    };
+
+    if (btnLogout) {
+        btnLogout.addEventListener('click', handleLogoutClick);
+    }
+    if (userProfileEl) {
+        userProfileEl.style.cursor = 'pointer';
+        userProfileEl.title = 'Cerrar sesión';
+        userProfileEl.addEventListener('click', handleLogoutClick);
     }
 
 
@@ -686,14 +915,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function deleteClientPhoto(photoId, clientId) {
-        await supabase.from('client_photos').delete().eq('id', photoId);
-        
-        if (State.clientPhotos[clientId]) {
-            State.clientPhotos[clientId] = State.clientPhotos[clientId].filter(p => p.id !== photoId);
+        try {
+            const { error } = await supabase.from('client_photos').delete().eq('id', photoId);
+            if (error) throw error;
+            
+            if (State.clientPhotos[clientId]) {
+                State.clientPhotos[clientId] = State.clientPhotos[clientId].filter(p => p.id !== photoId);
+            }
+            
+            showToast('Foto eliminada');
+            return true;
+        } catch (err) {
+            console.error('Error deleting photo:', err);
+            showToast('Error al eliminar foto: ' + err.message, 'error');
+            return false;
         }
-        
-        showToast('Foto eliminada');
-        return true;
     }
 
     async function updateClientPhoto(photoId, clientId, updates) {
@@ -933,21 +1169,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="form-group">
                     <label>Fecha</label>
                     <input type="date" class="form-control" id="edit-client-photo-date" value="${currentDate}">
-                </div>
-                <div class="form-group">
-                    <label>Caspa (0-10)</label>
-                    <input type="range" class="form-control" id="edit-client-photo-caspa" min="0" max="10" value="${caspaVal}" oninput="this.nextElementSibling.textContent = this.value">
-                    <span style="font-size:0.85rem;color:var(--text-secondary)">${caspaVal}</span>
-                </div>
-                <div class="form-group">
-                    <label>Sebo (0-10)</label>
-                    <input type="range" class="form-control" id="edit-client-photo-sebo" min="0" max="10" value="${seboVal}" oninput="this.nextElementSibling.textContent = this.value">
-                    <span style="font-size:0.85rem;color:var(--text-secondary)">${seboVal}</span>
-                </div>
-                <div class="form-group">
-                    <label>Eritema (0-10)</label>
-                    <input type="range" class="form-control" id="edit-client-photo-eritema" min="0" max="10" value="${eritemaVal}" oninput="this.nextElementSibling.textContent = this.value">
-                    <span style="font-size:0.85rem;color:var(--text-secondary)">${eritemaVal}</span>
                 </div>
                 <div class="form-group">
                     <label>Notas</label>
@@ -1293,7 +1514,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                         <div class="day-detail-info">
                             <strong>${client.name}</strong>
                             <span>${service.name} · ${service.duration} min${apt.notes ? ' · ' + apt.notes : ''}</span>
-                            ${State.activeSalonId === 'all' ? `<span style="font-size:0.75rem;color:var(--accent-color);display:block;margin-top:2px">📍 ${State.salons.find(s => s.id === apt.salonId)?.name || 'Salón desconocido'}</span>` : ''}
+                            <span style="font-size:0.75rem;color:var(--accent-color);display:block;margin-top:2px">📍 ${State.salons.find(s => s.id === apt.salonId)?.name || 'Salón desconocido'}</span>
                             <span class="apt-user-key" style="color:${userColor}" title="${apt.userEmail}">${userDisplay}</span>
                             ${photosHtml}
                             </div>
@@ -2121,6 +2342,78 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         const btnAddSalon = document.getElementById('btn-add-salon');
         if (btnAddSalon) btnAddSalon.addEventListener('click', () => showSalonForm());
 
+        // WhatsApp Reminder direct buttons
+        document.querySelectorAll('.send-reminder-btn').forEach(btn => {
+            btn.addEventListener('click', async e => {
+                const { name, phone, date, time } = e.currentTarget.dataset;
+                const id = e.currentTarget.closest('[data-id]') ? e.currentTarget.closest('[data-id]').dataset.id : null;
+                
+                // Si el botón está en la vista de recordatorios, intentamos sacar el ID de la cita
+                const aptId = e.currentTarget.closest('tr')?.dataset.aptid;
+
+                sendWASMessage(phone, name, date, time);
+                
+                if (aptId) {
+                    await markAppointmentReminded(aptId);
+                    renderRoute(); // Refrescar para que desaparezca
+                    showToast('Recordatorio marcado como enviado');
+                }
+            });
+        });
+
+        // Diagnosis - Nuevo Cliente
+        const btnNewClientDiagnosis = document.getElementById('btn-new-client-diagnosis');
+        if (btnNewClientDiagnosis) {
+            btnNewClientDiagnosis.addEventListener('click', () => {
+                showClientFormForDiagnosis();
+            });
+        }
+
+        // Diagnosis - Mostrar clientes existentes
+        const btnShowExistingClients = document.getElementById('btn-show-existing-clients');
+        if (btnShowExistingClients) {
+            btnShowExistingClients.addEventListener('click', () => {
+                const list = document.getElementById('existing-clients-list');
+                if (list) {
+                    list.style.display = list.style.display === 'none' ? 'block' : 'none';
+                }
+            });
+        }
+
+        // Diagnosis - Buscar cliente
+        const clientSearchInput = document.getElementById('client-search-input');
+        if (clientSearchInput) {
+            clientSearchInput.addEventListener('input', e => {
+                const searchTerm = e.target.value.toLowerCase();
+                document.querySelectorAll('.diagnosis-client-card').forEach(card => {
+                    const name = card.querySelector('strong')?.textContent.toLowerCase() || '';
+                    const phone = card.querySelector('span')?.textContent.toLowerCase() || '';
+                    card.style.display = (name.includes(searchTerm) || phone.includes(searchTerm)) ? 'flex' : 'none';
+                });
+            });
+        }
+
+        // Diagnosis - Seleccionar cliente existente
+        document.querySelectorAll('.select-client-btn').forEach(btn => {
+            btn.addEventListener('click', async e => {
+                const clientId = e.currentTarget.dataset.clientId;
+                const clientName = e.currentTarget.dataset.clientName;
+                const client = State.clients.find(c => c.id === clientId);
+                if (client) {
+                    await selectClientForDiagnosis(client);
+                }
+            });
+        });
+
+        // Diagnosis - Cambiar cliente
+        const btnChangeClient = document.getElementById('btn-change-client');
+        if (btnChangeClient) {
+            btnChangeClient.addEventListener('click', () => {
+                document.getElementById('diagnosis-client-selection').style.display = 'block';
+                document.getElementById('diagnosis-main').style.display = 'none';
+            });
+        }
+
         // Monthly listing controls
         const monthlyPrev = document.getElementById('monthly-prev');
         const monthlyNext = document.getElementById('monthly-next');
@@ -2194,168 +2487,159 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 if (id) editAppointment(id);
             });
         });
+    }
 
-        // Delete buttons (now async)
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', async e => {
-                const id = e.currentTarget.dataset.id;
-                const type = e.currentTarget.dataset.type;
+    /* ═══════════════════════════════════════
+       GLOBAL EVENT DELEGATION
+       (Attached only once to document)
+       ═══════════════════════════════════════ */
+    document.addEventListener('click', async e => {
+        // 1. Generic Delete Buttons (.delete-btn) - Clients, Services, Salons, Appointments
+        const delBtn = e.target.closest('.delete-btn');
+        if (delBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (delBtn.dataset.confirming === 'true') {
+                const id = delBtn.dataset.id;
+                const type = delBtn.dataset.type;
+                delBtn.disabled = true;
+                
                 if (type === 'client') {
-                    if (confirm('¿Eliminar este cliente? Se eliminarán también sus citas.')) {
-                        if (await deleteClient(id)) renderRoute();
-                    }
+                    if (await deleteClient(id)) renderRoute();
                 } else if (type === 'service') {
-                    if (confirm('¿Eliminar este servicio? Se eliminarán también las citas asociadas.')) {
-                        if (await deleteService(id)) renderRoute();
-                    }
+                    if (await deleteService(id)) renderRoute();
                 } else if (type === 'salon') {
-                    if (confirm('¿Eliminar este salón?')) {
-                        if (await deleteSalon(id)) renderRoute();
-                    }
+                    if (await deleteSalon(id)) renderRoute();
                 } else {
-                    if (confirm('¿Cancelar esta cita?')) {
-                        if (await deleteAppointment(id)) renderRoute();
+                    if (await deleteAppointment(id)) renderRoute();
+                }
+            } else {
+                delBtn.dataset.confirming = 'true';
+                const originalHtml = delBtn.innerHTML;
+                delBtn.innerHTML = '<span style="font-size:0.7rem">¿Borrar?</span>';
+                delBtn.style.background = '#e67e22';
+                delBtn.style.width = 'auto';
+                delBtn.style.padding = '0 6px';
+                
+                setTimeout(() => {
+                    if (delBtn && delBtn.dataset.confirming === 'true') {
+                        delBtn.dataset.confirming = 'false';
+                        delBtn.innerHTML = originalHtml;
+                        delBtn.style.background = '';
+                        delBtn.style.width = '';
+                        delBtn.style.padding = '';
                     }
-                }
-            });
-        });
+                }, 3000);
+            }
+            return;
+        }
 
-        // Photo edit buttons for appointments
-        document.querySelectorAll('.apt-photo-edit-btn').forEach(btn => {
-            btn.addEventListener('click', e => {
-                e.stopPropagation();
-                const photoId = e.currentTarget.dataset.photoId;
-                const aptItem = e.currentTarget.closest('.apt-mini-photo');
+        // 2. Appointment Photo Delete
+        const aptDelBtn = e.target.closest('.apt-photo-delete-btn');
+        if (aptDelBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (aptDelBtn.dataset.confirming === 'true') {
+                const photoId = aptDelBtn.dataset.photoId;
+                const aptItem = aptDelBtn.closest('.apt-mini-photo');
                 const aptId = aptItem?.dataset.aptId;
-                const apt = State.appointments.find(a => a.id === aptId);
-                const photo = apt?.appointmentPhotos?.find(p => p.id === photoId);
-                if (photo && aptId) {
-                    window.editAptPhoto(photoId, aptId, photo.photo_date || '', photo.notes || '', photo.photo_type || 'before');
-                }
-            });
-        });
-
-        // Photo delete buttons for appointments
-        document.querySelectorAll('.apt-photo-delete-btn').forEach(btn => {
-            btn.addEventListener('click', async e => {
-                e.stopPropagation();
-                const photoId = e.currentTarget.dataset.photoId;
-                const aptItem = e.currentTarget.closest('.apt-mini-photo');
-                const aptId = aptItem?.dataset.aptId;
-                if (aptId && photoId && confirm('¿Eliminar esta foto?')) {
+                
+                if (aptId && photoId) {
                     const apt = State.appointments.find(a => a.id === aptId);
                     if (apt && apt.appointmentPhotos) {
                         const photoToDelete = apt.appointmentPhotos.find(p => p.id === photoId);
                         apt.appointmentPhotos = apt.appointmentPhotos.filter(p => p.id !== photoId);
                         await supabase.from('appointments').update({ appointment_photos: apt.appointmentPhotos }).eq('id', aptId);
                         
-                        // Sync: delete from client_photos if clientPhotoId exists
                         if (photoToDelete && photoToDelete.clientPhotoId) {
-                            await supabase.from('client_photos').delete().eq('id', photoToDelete.clientPhotoId);
+                            await deleteClientPhoto(photoToDelete.clientPhotoId);
                         }
-
                         showToast('Foto eliminada');
                         renderRoute();
                     }
                 }
-            });
-        });
+            } else {
+                aptDelBtn.dataset.confirming = 'true';
+                aptDelBtn.textContent = '¿X?';
+                aptDelBtn.style.background = '#e67e22';
+                setTimeout(() => {
+                    if (aptDelBtn && aptDelBtn.dataset.confirming === 'true') {
+                        aptDelBtn.dataset.confirming = 'false';
+                        aptDelBtn.textContent = '🗑️';
+                        aptDelBtn.style.background = 'rgba(0,0,0,0.6)';
+                    }
+                }, 3000);
+            }
+            return;
+        }
 
-        // Hover show photo buttons
-        document.querySelectorAll('.apt-mini-photo').forEach(el => {
-            el.addEventListener('mouseenter', () => {
-                const btns = el.querySelector('div[style*="position:absolute"]');
-                if (btns) btns.style.opacity = '1';
-            });
-            el.addEventListener('mouseleave', () => {
-                const btns = el.querySelector('div[style*="position:absolute"]');
-                if (btns) btns.style.opacity = '0.8';
-            });
-        });
+        // 3. Appointment Photo Edit
+        const aptEditBtn = e.target.closest('.apt-photo-edit-btn');
+        if (aptEditBtn) {
+            e.stopPropagation();
+            const photoId = aptEditBtn.dataset.photoId;
+            const aptItem = aptEditBtn.closest('.apt-mini-photo');
+            const aptId = aptItem?.dataset.aptId;
+            const apt = State.appointments.find(a => a.id === aptId);
+            const photo = apt?.appointmentPhotos?.find(p => p.id === photoId);
+            if (photo && aptId) {
+                window.editAptPhoto(photoId, aptId, photo.photo_date || '', photo.notes || '', photo.photo_type || 'before');
+            }
+            return;
+        }
 
-        // Edit buttons
-        document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', e => {
-                const id = e.currentTarget.dataset.id;
-                const type = e.currentTarget.dataset.type;
-                if (type === 'client') showClientForm(State.clients.find(c => c.id === id));
-                else if (type === 'service') showServiceForm(State.services.find(s => s.id === id));
-                else if (type === 'salon') showSalonForm(State.salons.find(s => s.id === id));
-            });
-        });
-
-        // WhatsApp Reminder direct buttons
-        document.querySelectorAll('.send-reminder-btn').forEach(btn => {
-            btn.addEventListener('click', async e => {
-                const { name, phone, date, time } = e.currentTarget.dataset;
-                const id = e.currentTarget.closest('[data-id]') ? e.currentTarget.closest('[data-id]').dataset.id : null;
+        // 4. Client Photo Delete (The one user reported)
+        const clientDelBtn = e.target.closest('.client-photo-remove-btn');
+        if (clientDelBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (clientDelBtn.dataset.confirming === 'true') {
+                const photoId = clientDelBtn.dataset.id;
+                clientDelBtn.disabled = true;
+                clientDelBtn.textContent = '...';
                 
-                // Si el botón está en la vista de recordatorios, intentamos sacar el ID de la cita
-                const aptId = e.currentTarget.closest('tr')?.dataset.aptid;
-
-                sendWASMessage(phone, name, date, time);
+                const success = await deleteClientPhoto(photoId);
+                if (success) {
+                    renderRoute(); 
+                    if (typeof window.refreshCurrentClientPhotos === 'function') {
+                        window.refreshCurrentClientPhotos();
+                    }
+                } else {
+                    clientDelBtn.disabled = false;
+                    clientDelBtn.dataset.confirming = 'false';
+                    clientDelBtn.textContent = '🗑️';
+                    clientDelBtn.style.background = 'rgba(220,53,69,0.8)';
+                }
+            } else {
+                clientDelBtn.dataset.confirming = 'true';
+                clientDelBtn.textContent = '¿Borrar?';
+                clientDelBtn.style.background = '#e67e22';
+                clientDelBtn.style.width = 'auto';
                 
-                if (aptId) {
-                    await markAppointmentReminded(aptId);
-                    renderRoute(); // Refrescar para que desaparezca
-                    showToast('Recordatorio marcado como enviado');
-                }
-            });
-        });
-
-        // Diagnosis - Nuevo Cliente
-        const btnNewClientDiagnosis = document.getElementById('btn-new-client-diagnosis');
-        if (btnNewClientDiagnosis) {
-            btnNewClientDiagnosis.addEventListener('click', () => {
-                showClientFormForDiagnosis();
-            });
+                setTimeout(() => {
+                    if (clientDelBtn && clientDelBtn.dataset.confirming === 'true') {
+                        clientDelBtn.dataset.confirming = 'false';
+                        clientDelBtn.textContent = '🗑️';
+                        clientDelBtn.style.background = 'rgba(220,53,69,0.8)';
+                    }
+                }, 3000);
+            }
+            return;
         }
 
-        // Diagnosis - Mostrar clientes existentes
-        const btnShowExistingClients = document.getElementById('btn-show-existing-clients');
-        if (btnShowExistingClients) {
-            btnShowExistingClients.addEventListener('click', () => {
-                const list = document.getElementById('existing-clients-list');
-                if (list) {
-                    list.style.display = list.style.display === 'none' ? 'block' : 'none';
-                }
-            });
+        // 5. Client Photo Edit
+        const clientEditBtn = e.target.closest('.client-photo-edit-btn');
+        if (clientEditBtn) {
+            e.stopPropagation();
+            const photoId = clientEditBtn.dataset.photoId;
+            const cid = window.currentModalClientId;
+            if (photoId) window.editClientPhoto(photoId, cid, '', '', '');
+            return;
         }
-
-        // Diagnosis - Buscar cliente
-        const clientSearchInput = document.getElementById('client-search-input');
-        if (clientSearchInput) {
-            clientSearchInput.addEventListener('input', e => {
-                const searchTerm = e.target.value.toLowerCase();
-                document.querySelectorAll('.diagnosis-client-card').forEach(card => {
-                    const name = card.querySelector('strong')?.textContent.toLowerCase() || '';
-                    const phone = card.querySelector('span')?.textContent.toLowerCase() || '';
-                    card.style.display = (name.includes(searchTerm) || phone.includes(searchTerm)) ? 'flex' : 'none';
-                });
-            });
-        }
-
-        // Diagnosis - Seleccionar cliente existente
-        document.querySelectorAll('.select-client-btn').forEach(btn => {
-            btn.addEventListener('click', async e => {
-                const clientId = e.currentTarget.dataset.clientId;
-                const clientName = e.currentTarget.dataset.clientName;
-                const client = State.clients.find(c => c.id === clientId);
-                if (client) {
-                    await selectClientForDiagnosis(client);
-                }
-            });
-        });
-
-        // Diagnosis - Cambiar cliente
-        const btnChangeClient = document.getElementById('btn-change-client');
-        if (btnChangeClient) {
-            btnChangeClient.addEventListener('click', () => {
-                document.getElementById('diagnosis-client-selection').style.display = 'block';
-                document.getElementById('diagnosis-main').style.display = 'none';
-            });
-        }
-    }
+    });
 
     function showClientFormForDiagnosis() {
         const html = `
@@ -2629,6 +2913,14 @@ if (analyzeBtn) {
             grays[i] = 0.299 * r + 0.587 * g + 0.114 * b;
         }
         
+        const rAvg = rSum / n, gAvg = gSum / n, bAvg = bSum / n;
+        
+        // 1. Filtro Biológico (Color del cuero cabelludo/piel)
+        // El cuero cabelludo es predominantemente cálido (R > G > B o R > G ~= B)
+        // Rechazar si hay exceso de Azul o Verde (fotos de paisajes, objetos artificiales)
+        const isBiologicalColor = (rAvg > gAvg) && (rAvg > bAvg - 10) && (rAvg > 40);
+        
+        // 2. Filtro de Artificialidad (Colores demasiado saturados o planos)
         const avgGray = grays.reduce((a, b) => a + b, 0) / n;
         let variance = 0;
         for (let i = 0; i < n; i++) {
@@ -2636,9 +2928,9 @@ if (analyzeBtn) {
         }
         variance /= n;
         
+        // 3. Filtro Microscópico (Textura y Bordes)
         let weakEdges = 0;
         let strongEdges = 0;
-        
         for (let y = 0; y < size - 1; y++) {
             for (let x = 0; x < size - 1; x++) {
                 const idx = y * size + x;
@@ -2652,19 +2944,16 @@ if (analyzeBtn) {
         
         const weakEdgeDensity = weakEdges / (size * size);
         const strongEdgeDensity = strongEdges / (size * size);
-        const rAvg = rSum / n, gAvg = gSum / n, bAvg = bSum / n;
         
-        const isPerfectlyBlackOrWhite = (rAvg < 10 && gAvg < 10 && bAvg < 10) || (rAvg > 245 && gAvg > 245 && bAvg > 245);
-        const isUniform = variance < 100; 
-        const hasNoTexture = weakEdgeDensity < 0.03; 
-        
-        // Criterios específicos para fotos microscópicas:
-        // 1. Debe haber bordes fuertes (los cabellos crean alto contraste bajo el microscopio)
-        // 2. No debe haber demasiados bordes débiles (las fotos macroscópicas detalladas tienen demasiada densidad de bordes en todas partes)
-        const lacksStrongEdges = strongEdgeDensity < 0.01;
-        const tooManyEdges = weakEdgeDensity > 0.45;
+        // Criterios Refinados:
+        const isUniform = variance < 120; // Imágenes demasiado planas (fondos, capturas)
+        const lacksTexture = weakEdgeDensity < 0.05; // Sin detalle microscópico
+        const lacksMicroDetail = strongEdgeDensity < 0.015; // Sin pelos o poros definidos
+        const tooMuchComplexity = weakEdgeDensity > 0.40; // Demasiado ruido (no es micro)
+        const isTooDarkOrBright = (avgGray < 15) || (avgGray > 240);
 
-        return !isUniform && !hasNoTexture && !isPerfectlyBlackOrWhite && !lacksStrongEdges && !tooManyEdges;
+        // Validación final
+        return isBiologicalColor && !isUniform && !lacksTexture && !lacksMicroDetail && !tooMuchComplexity && !isTooDarkOrBright;
     }
 
     function detectHairDensity(img) {
@@ -2985,6 +3274,7 @@ window.addEventListener('message', async (event) => {
 
         openModal(isEdit ? 'Editar Cliente' : 'Nuevo Cliente', html, async () => {
             let currentClientId = isEdit ? info.id : generateId();
+            window.currentModalClientId = currentClientId;
             let sessionPhotos = [];
             let pendingFiles = [];
             const renderPhotos = () => {
@@ -2993,19 +3283,15 @@ window.addEventListener('message', async (event) => {
                 
                 let html = '';
                 sessionPhotos.forEach((p, idx) => {
-                    const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
-                    const diagInfo = (p.caspa_level !== null || p.sebo_level !== null || p.eritema_level !== null) 
-                        ? `<div style="font-size:0.55rem;color:var(--text-secondary)">C:${p.caspa_level||0} S:${p.sebo_level||0} E:${p.eritema_level||0}</div>`
-                        : '';
+                    const photoType = (p.photo_type === 'after') ? 'Después' : (p.photo_type === 'diagnosis' ? 'Diagnóstico' : 'Antes');
                     html += `
                         <div class="client-mini-photo" data-photo-id="${p.id}" style="position:relative;text-align:center">
                             <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                             <div style="font-size:0.65rem;color:var(--text-secondary)">${photoType}</div>
                             <div style="font-size:0.6rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
-                            ${diagInfo}
                             <div style="display:flex;gap:2px;justify-content:center">
-                                <button type="button" class="client-photo-edit-btn" data-photo-id="${p.id}" title="Editar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">✏️</button>
-                                <button type="button" class="delete-btn" data-id="${p.id}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">🗑️</button>
+                                <button type="button" class="client-photo-edit-btn" data-photo-id="${p.id}" title="Editar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:24px;height:24px;cursor:pointer;font-size:12px;opacity:0.9">✏️</button>
+                                <button type="button" class="client-photo-remove-btn" data-id="${p.id}" title="Eliminar" style="background:rgba(220,53,69,0.8);color:white;border:none;border-radius:4px;min-width:24px;height:24px;padding:0 4px;cursor:pointer;font-size:12px;opacity:0.9;transition:all 0.2s">🗑️</button>
                             </div>
                         </div>`;
                 });
@@ -3016,9 +3302,6 @@ window.addEventListener('message', async (event) => {
                             <img src="${pf.preview}" style="width:60px;height:60px;object-fit:cover;border-radius:8px">
                             <div style="font-size:0.65rem;color:var(--text-secondary)">Antes</div>
                             <div style="font-size:0.6rem;color:var(--text-secondary)">${toLocalDateStr(new Date())}</div>
-                             <div style="font-size:0.6rem;color:#e74c3c;font-weight:bold">
-                                 C:${pf.caspa||0} S:${pf.sebo||0} E:${pf.eritema||0}
-                             </div>
                             <div style="display:flex;gap:2px;justify-content:center">
                                 <button type="button" class="delete-pending-btn" data-idx="${idx}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">🗑️</button>
                             </div>
@@ -3153,18 +3436,8 @@ window.addEventListener('message', async (event) => {
 
             const photosList = document.getElementById('client-photos-list');
             if (photosList) {
+                // Using global delegation for deletion now, but keeping local logic for pending files
                 photosList.addEventListener('click', async e => {
-                    const delBtn = e.target.closest('.delete-btn');
-                    if (delBtn) {
-                        const photoId = delBtn.dataset.id;
-                        if (confirm('¿Eliminar foto?')) {
-                            await deleteClientPhoto(photoId, currentClientId);
-                            sessionPhotos = sessionPhotos.filter(p => p.id !== photoId);
-                            renderPhotos();
-                        }
-                        return;
-                    }
-                    
                     const delPending = e.target.closest('.delete-pending-btn');
                     if (delPending) {
                         const idx = parseInt(delPending.dataset.idx);
@@ -3172,17 +3445,13 @@ window.addEventListener('message', async (event) => {
                         renderPhotos();
                         return;
                     }
-                    
-                    const editBtn = e.target.closest('.client-photo-edit-btn');
-                    if (editBtn) {
-                        const photoId = editBtn.dataset.photoId;
-                        const photo = sessionPhotos.find(p => p.id === photoId);
-                        if (photo) {
-                            window.editClientPhoto(photoId, currentClientId, photo.photo_date || '', photo.notes || '', photo.photo_type || 'before');
-                        }
-                        return;
-                    }
                 });
+                
+                // Expose refresh function for global listener
+                window.refreshCurrentClientPhotos = async () => {
+                    sessionPhotos = await loadClientPhotos(currentClientId) || [];
+                    renderPhotos();
+                };
                 
                 photosList.addEventListener('change', async e => {
                     const select = e.target;
@@ -3666,6 +3935,52 @@ window.addEventListener('message', async (event) => {
         const apt = State.appointments.find(a => a.id === id);
         if (apt) showAppointmentForm(apt);
     };
+
+    /* ═══════════════════════════════════════
+       DIAGNOSIS AUTO-SYNC
+       ═══════════════════════════════════════ */
+    window.addEventListener('message', async e => {
+        if (e.data && e.data.type === 'diagnosis_photo') {
+            const clientId = sessionStorage.getItem('nymara_diagnosis_client_id');
+            const { photoData, results } = e.data;
+            
+            if (clientId && photoData) {
+                console.log('Diagnosis message received. Syncing photo for client:', clientId);
+                try {
+                    // Convert base64 to blob
+                    const base64Data = photoData.split(',')[1];
+                    const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(r => r.blob());
+                    
+                    const fileName = `diagnosis/${clientId}/${Date.now()}.jpg`;
+                    const { data: uploadData, error: uploadError } = await supabase.storage
+                        .from('client-photos')
+                        .upload(fileName, blob);
+                        
+                    if (uploadError) throw uploadError;
+                    
+                    const { data: { publicUrl } } = supabase.storage
+                        .from('client-photos')
+                        .getPublicUrl(fileName);
+                        
+                    // Insert into client_photos
+                    await supabase.from('client_photos').insert({
+                        id: generateId(),
+                        client_id: clientId,
+                        photo_url: publicUrl,
+                        photo_date: toLocalDateStr(new Date()),
+                        photo_type: 'diagnosis',
+                        notes: '', // Notas vacías como pidió el usuario
+                        user_email: State.currentUserEmail
+                    });
+                    
+                    showToast('Diagnóstico guardado en el historial del cliente');
+                } catch (err) {
+                    console.error('Error syncing diagnosis photo:', err);
+                    showToast('Error al guardar el diagnóstico en el historial', 'error');
+                }
+            }
+        }
+    });
 
     /* ═══════════════════════════════════════
        INIT — Check session to start
