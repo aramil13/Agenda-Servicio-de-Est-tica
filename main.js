@@ -2479,14 +2479,6 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 renderRoute();
             });
         });
-
-        // Edit appointment buttons
-        document.querySelectorAll('.edit-apt-btn').forEach(btn => {
-            btn.addEventListener('click', e => {
-                const id = e.currentTarget.dataset.id;
-                if (id) editAppointment(id);
-            });
-        });
     }
 
     /* ═══════════════════════════════════════
@@ -2590,7 +2582,29 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             return;
         }
 
-        // 4. Client Photo Delete (The one user reported)
+        // 4. Edit Buttons - Clients, Services, Salons, Appointments
+        const editBtn = e.target.closest('.edit-btn') || e.target.closest('.edit-apt-btn');
+        if (editBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const id = editBtn.dataset.id;
+            const type = editBtn.dataset.type || 'appointment';
+            
+            if (id) {
+                if (type === 'client') {
+                    if (typeof editClient === 'function') editClient(id);
+                } else if (type === 'service') {
+                    if (typeof editService === 'function') editService(id);
+                } else if (type === 'salon') {
+                    if (typeof editSalon === 'function') editSalon(id);
+                } else {
+                    if (typeof editAppointment === 'function') editAppointment(id);
+                }
+            }
+            return;
+        }
+
+        // 5. Client Photo Delete (The one user reported)
         const clientDelBtn = e.target.closest('.client-photo-remove-btn');
         if (clientDelBtn) {
             e.preventDefault();
@@ -3934,6 +3948,22 @@ window.addEventListener('message', async (event) => {
     window.editAppointment = function(id) {
         const apt = State.appointments.find(a => a.id === id);
         if (apt) showAppointmentForm(apt);
+    };
+
+    // Wrapper functions for editing clients, services, and salons
+    window.editClient = function(id) {
+        const client = State.clients.find(c => c.id === id);
+        if (client && typeof showClientForm === 'function') showClientForm(client);
+    };
+
+    window.editService = function(id) {
+        const service = State.services.find(s => s.id === id);
+        if (service && typeof showServiceForm === 'function') showServiceForm(service);
+    };
+
+    window.editSalon = function(id) {
+        const salon = State.salons.find(s => s.id === id);
+        if (salon && typeof showSalonForm === 'function') showSalonForm(salon);
     };
 
     /* ═══════════════════════════════════════
