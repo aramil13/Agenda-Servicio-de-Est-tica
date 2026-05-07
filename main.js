@@ -4223,6 +4223,7 @@ window.addEventListener('message', async (event) => {
                     data.id = generateId();
                     if (await addAppointment(data)) { 
                         if (State.session?.staff) addStaffAptId(data.id);
+                        State.selectedDate = data.date;
                         closeModal(); 
                         renderRoute(); 
                         
