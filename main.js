@@ -268,6 +268,12 @@ function displayDiagnosisTreatments(treatments) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('--- Nymara App: Diagnóstico Capilar Integrado ---');
 
+    // One-time migration: remove old saved admin email so field starts empty
+    if (!localStorage.getItem('nymara_migrated_admin_email')) {
+        localStorage.removeItem('nymara_admin_email');
+        localStorage.setItem('nymara_migrated_admin_email', '1');
+    }
+
     /* ═══════════════════════════════════════
        SUPABASE CLIENT
        ═══════════════════════════════════════ */
@@ -296,12 +302,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 delBtn.disabled = true;
                 
                 if (type === 'client') {
+                    if (State.session?.staff && !isStaffClient(id)) {
+                        showToast('No tienes permiso para eliminar este cliente', 'error');
+                        delBtn.disabled = false;
+                        delBtn.dataset.confirming = 'false';
+                        delBtn.textContent = '';
+                        return;
+                    }
                     if (await deleteClient(id)) renderRoute();
                 } else if (type === 'service') {
+                    if (State.session?.staff && !isStaffService(id)) {
+                        showToast('No tienes permiso para eliminar este servicio', 'error');
+                        delBtn.disabled = false;
+                        delBtn.dataset.confirming = 'false';
+                        delBtn.textContent = '';
+                        return;
+                    }
                     if (await deleteService(id)) renderRoute();
                 } else if (type === 'salon') {
                     if (await deleteSalon(id)) renderRoute();
                 } else {
+                    if (State.session?.staff && !isStaffAppointment(id)) {
+                        showToast('No tienes permiso para eliminar esta cita', 'error');
+                        delBtn.disabled = false;
+                        delBtn.dataset.confirming = 'false';
+                        delBtn.textContent = '';
+                        return;
+                    }
                     if (await deleteAppointment(id)) renderRoute();
                 }
             } else {
@@ -523,8 +550,71 @@ document.addEventListener('DOMContentLoaded', () => {
     const userAvatarEl = document.getElementById('user-avatar');
     const userProfileEl = document.querySelector('.user-profile');
     const btnLogout = document.getElementById('btn-logout');
+    const authTabAdmin = document.getElementById('auth-tab-admin');
+    const authTabStaff = document.getElementById('auth-tab-staff');
+    const authAdminFields = document.getElementById('auth-admin-fields');
+    const authStaffFields = document.getElementById('auth-staff-fields');
+    const authFormTitle = document.getElementById('auth-form-title');
+    const authFormSubtitle = document.getElementById('auth-form-subtitle');
 
 
+
+    let authMode = 'admin';
+    let staffName = null;
+
+    function getStaffAptIds() {
+        try { return JSON.parse(localStorage.getItem('nymara_staff_apt_ids') || '[]'); }
+        catch { return []; }
+    }
+
+    function addStaffAptId(id) {
+        const ids = getStaffAptIds();
+        if (!ids.includes(id)) { ids.push(id); localStorage.setItem('nymara_staff_apt_ids', JSON.stringify(ids)); }
+    }
+
+    function isStaffAppointment(aptId) {
+        return getStaffAptIds().includes(aptId);
+    }
+
+    function getStaffClientIds() {
+        try { return JSON.parse(localStorage.getItem('nymara_staff_client_ids') || '[]'); }
+        catch { return []; }
+    }
+
+    function addStaffClientId(id) {
+        const ids = getStaffClientIds();
+        if (!ids.includes(id)) { ids.push(id); localStorage.setItem('nymara_staff_client_ids', JSON.stringify(ids)); }
+    }
+
+    function isStaffClient(id) {
+        return getStaffClientIds().includes(id);
+    }
+
+    function getStaffServiceIds() {
+        try { return JSON.parse(localStorage.getItem('nymara_staff_service_ids') || '[]'); }
+        catch { return []; }
+    }
+
+    function addStaffServiceId(id) {
+        const ids = getStaffServiceIds();
+        if (!ids.includes(id)) { ids.push(id); localStorage.setItem('nymara_staff_service_ids', JSON.stringify(ids)); }
+    }
+
+    function isStaffService(id) {
+        return getStaffServiceIds().includes(id);
+    }
+
+    function getStaffConfig() {
+        return {
+            adminEmail: localStorage.getItem('nymara_admin_email') || '',
+            staffPassword: localStorage.getItem('nymara_staff_password') || ''
+        };
+    }
+
+    function setStaffConfig(adminEmail, staffPassword) {
+        localStorage.setItem('nymara_admin_email', adminEmail);
+        localStorage.setItem('nymara_staff_password', staffPassword);
+    }
 
     /* ═══════════════════════════════════════
        HELPERS
@@ -633,10 +723,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const [clientsRes, servicesRes, appointmentsRes, salonsRes] = await Promise.all([
-                supabase.from('clients').select('*').eq('user_email', State.currentUserEmail).order('name'),
-                supabase.from('services').select('*').eq('user_email', State.currentUserEmail).order('name'),
-                supabase.from('appointments').select('*').eq('user_email', State.currentUserEmail).order('date').order('time'),
-                supabase.from('salons').select('*').eq('user_email', State.currentUserEmail).order('name')
+                supabase.from('clients').select('*').order('name'),
+                supabase.from('services').select('*').order('name'),
+                supabase.from('appointments').select('*').order('date').order('time'),
+                supabase.from('salons').select('*').order('name')
             ]);
 
             if (clientsRes.error) throw clientsRes.error;
@@ -704,6 +794,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Check existing session
     async function checkSession() {
+        // Check for staff session first
+        const staffEmail = localStorage.getItem('nymara_staff_session_email');
+        const staffNameVal = localStorage.getItem('nymara_staff_name');
+        if (staffEmail && staffNameVal) {
+            const config = getStaffConfig();
+            if (config.adminEmail === staffEmail) {
+                handleStaffSession(staffEmail, staffNameVal);
+                return;
+            }
+        }
+
         // Listen for auth changes
         supabase.auth.onAuthStateChange(async (event, newSession) => {
             handleSessionUpdate(newSession);
@@ -723,11 +824,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleSessionUpdate(session) {
         State.session = session;
         if (session) {
-            // Logged in
+            if (session.staff) return;
             authScreen.style.display = 'none';
             appLayout.style.display = 'flex';
             
-            // Update sidebar user profile
             const email = session.user.email;
             State.currentUserEmail = email;
             State.currentUserColor = getUserColor(email);
@@ -736,14 +836,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 userAvatarEl.textContent = email.charAt(0).toUpperCase();
                 applyUserColor(email);
             }
+            const roleEl = document.querySelector('.user-role');
+            if (roleEl) roleEl.textContent = 'Administrador';
 
-            // Load data only if it's the first time we realize we are logged in
             if (State.clients.length === 0 && !State.isLoading) {
                 navigate('agenda');
                 loadAllData();
             }
         } else {
-            // Logged out
+            if (State.session && State.session.staff) return;
             authScreen.style.display = 'flex';
             appLayout.style.display = 'none';
             resetAuthState();
@@ -763,43 +864,142 @@ document.addEventListener('DOMContentLoaded', () => {
         authError.className = 'auth-error';
     }
 
+    // Auth mode tabs
+    function setAuthMode(mode) {
+        authMode = mode;
+        if (mode === 'admin') {
+            authTabAdmin.style.background = 'var(--accent-gradient)';
+            authTabAdmin.style.color = '#fff';
+            authTabStaff.style.background = 'transparent';
+            authTabStaff.style.color = 'var(--text-secondary)';
+            authAdminFields.style.display = 'block';
+            authStaffFields.style.display = 'none';
+            authFormTitle.textContent = 'Iniciar Sesión';
+            authFormSubtitle.textContent = 'Accede a tu panel de control';
+            authSubmitText.textContent = 'Entrar';
+        } else {
+            authTabStaff.style.background = 'var(--accent-gradient)';
+            authTabStaff.style.color = '#fff';
+            authTabAdmin.style.background = 'transparent';
+            authTabAdmin.style.color = 'var(--text-secondary)';
+            authAdminFields.style.display = 'none';
+            authStaffFields.style.display = 'block';
+            const config = getStaffConfig();
+            if (config.adminEmail) {
+                authFormTitle.textContent = 'Acceso Staff';
+                authFormSubtitle.textContent = 'Accede a la agenda del administrador';
+            } else {
+                authFormTitle.textContent = 'Staff no configurado';
+                authFormSubtitle.textContent = 'El administrador debe configurar el acceso staff en Ajustes';
+            }
+            authSubmitText.textContent = 'Entrar como Staff';
+        }
+        authError.style.display = 'none';
+    }
+
+    if (authTabAdmin) authTabAdmin.addEventListener('click', () => setAuthMode('admin'));
+    if (authTabStaff) authTabStaff.addEventListener('click', () => setAuthMode('staff'));
+
     // Handle Auth form submit
     if (authLoginForm) {
         authLoginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            console.log('--- Login Attempt ---');
             
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-            
-            console.log('Email to sign in:', email);
-            
-            // UI Loading state
             authSubmitText.style.opacity = '0';
             authSpinner.style.display = 'block';
             const btn = document.getElementById('auth-submit-btn');
             btn.disabled = true;
+            authError.style.display = 'none';
 
-            try {
-                console.log('Calling Supabase signInWithPassword...');
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-                if (error) {
-                    console.error('Supabase Login Error:', error);
-                    throw error;
+            if (authMode === 'staff') {
+                const name = document.getElementById('auth-staff-name').value.trim();
+                const staffPwd = document.getElementById('auth-staff-password').value;
+                const config = getStaffConfig();
+
+                if (!config.adminEmail || !config.staffPassword) {
+                    authError.textContent = 'El administrador no ha configurado el acceso staff. Ve a Ajustes > Configurar Staff.';
+                    authError.style.display = 'block';
+                    authSubmitText.style.opacity = '1';
+                    authSpinner.style.display = 'none';
+                    btn.disabled = false;
+                    return;
                 }
-                console.log('Supabase Login Success:', data);
-                // Supabase automatically updates the session via onAuthStateChange listener
-            } catch (err) {
-                console.error('Caught Auth Error:', err);
-                authError.textContent = err.message || 'Error en la autenticación';
-                authError.style.display = 'block';
-            } finally {
-                authSubmitText.style.opacity = '1';
-                authSpinner.style.display = 'none';
-                btn.disabled = false;
-                console.log('--- Login Attempt Finished ---');
+
+                if (staffPwd !== config.staffPassword) {
+                    authError.textContent = 'Contraseña de staff incorrecta';
+                    authError.style.display = 'block';
+                    authSubmitText.style.opacity = '1';
+                    authSpinner.style.display = 'none';
+                    btn.disabled = false;
+                    return;
+                }
+
+                if (!name) {
+                    authError.textContent = 'Introduce tu nombre';
+                    authError.style.display = 'block';
+                    authSubmitText.style.opacity = '1';
+                    authSpinner.style.display = 'none';
+                    btn.disabled = false;
+                    return;
+                }
+
+                staffName = name;
+                localStorage.setItem('nymara_staff_name', name);
+                handleStaffSession(config.adminEmail, name);
+            } else {
+                try {
+                    const email = document.getElementById('auth-email').value;
+                    const password = document.getElementById('auth-password').value;
+                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                } catch (err) {
+                    console.error('Auth Error:', err);
+                    authError.textContent = err.message || 'Error en la autenticación';
+                    authError.style.display = 'block';
+                    authSubmitText.style.opacity = '1';
+                    authSpinner.style.display = 'none';
+                    btn.disabled = false;
+                }
             }
         });
+    }
+
+    function handleStaffSession(adminEmail, name) {
+        State.session = { staff: true, user: { email: adminEmail } };
+        State.currentUserEmail = adminEmail;
+        State.currentUserColor = getUserColor(adminEmail);
+        staffName = name;
+
+        localStorage.setItem('nymara_staff_session_email', adminEmail);
+        localStorage.setItem('nymara_staff_name', name);
+
+        authScreen.style.display = 'none';
+        appLayout.style.display = 'flex';
+
+        if (userEmailEl) userEmailEl.textContent = 'Staff: ' + name;
+        if (userAvatarEl) {
+            userAvatarEl.textContent = name.charAt(0).toUpperCase();
+            userAvatarEl.style.background = '#10b981';
+        }
+        const roleEl = document.querySelector('.user-role');
+        if (roleEl) roleEl.textContent = 'Staff';
+
+        // Hide restricted nav items for staff
+        document.querySelectorAll('.nav-item').forEach(item => {
+            const target = item.dataset.target;
+            if (target === 'salons' || target === 'diagnosis' || target === 'whatsapp') {
+                item.style.display = 'none';
+            } else {
+                item.style.display = '';
+            }
+        });
+        const settingsBtn = document.getElementById('btn-settings');
+        if (settingsBtn) settingsBtn.style.display = 'none';
+
+        if (State.clients.length === 0 && !State.isLoading) {
+            navigate('agenda');
+            loadAllData();
+        }
     }
 
 
@@ -810,11 +1010,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if (target.dataset.confirming === 'true') {
             target.disabled = true;
             target.innerHTML = '<span>Saliendo...</span>';
+            
+            if (State.session && State.session.staff) {
+                staffName = null;
+                State.session = null;
+                State.clients = [];
+                State.services = [];
+                State.appointments = [];
+                localStorage.removeItem('nymara_staff_session_email');
+                localStorage.removeItem('nymara_staff_name');
+                // Restore all nav items
+                document.querySelectorAll('.nav-item').forEach(item => { item.style.display = ''; });
+                const settingsBtn = document.getElementById('btn-settings');
+                if (settingsBtn) settingsBtn.style.display = '';
+                authScreen.style.display = 'flex';
+                appLayout.style.display = 'none';
+                resetAuthState();
+                const roleEl = document.querySelector('.user-role');
+                if (roleEl) roleEl.textContent = 'Administrador';
+                return;
+            }
+            
             await supabase.auth.signOut();
             State.clients = [];
             State.services = [];
             State.appointments = [];
-            // handleSessionUpdate will take care of the rest
         } else {
             target.dataset.confirming = 'true';
             const originalHtml = target.innerHTML;
@@ -859,6 +1079,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const { error } = await supabase.from('clients').insert([data]);
         if (error) { showToast('Error al añadir cliente: ' + error.message, 'error'); return false; }
         State.clients.push(data);
+        if (State.session?.staff) addStaffClientId(data.id);
         showToast('Cliente añadido correctamente');
         return true;
     }
@@ -953,7 +1174,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const { data, error } = await supabase
                 .from('client_photos')
                 .select('*')
-                .eq('user_email', State.currentUserEmail)
                 .eq('client_id', clientId)
                 .order('created_at', { ascending: false });
             
@@ -971,7 +1191,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const { data, error } = await supabase
                 .from('client_photos')
                 .select('*')
-                .eq('user_email', State.currentUserEmail)
                 .order('created_at', { ascending: false });
             
             if (error) throw error;
@@ -1025,6 +1244,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const { error } = await supabase.from('services').insert([data]);
         if (error) { showToast('Error al añadir servicio: ' + error.message, 'error'); return false; }
         State.services.push(data);
+        if (State.session?.staff) addStaffServiceId(data.id);
         showToast('Servicio añadido correctamente');
         return true;
     }
@@ -1520,12 +1740,14 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             </div>
                         </div>
                         <div class="day-detail-actions">
+                            ${(!State.session?.staff || isStaffAppointment(apt.id)) ? `
                             <button class="edit-apt-btn" data-id="${apt.id}" title="Editar cita" style="background:none;border:none;cursor:pointer;margin-right:8px;">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                             </button>
                             <button class="delete-btn" data-id="${apt.id}" title="Eliminar cita">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
+                            ` : ''}
                         </div>
                     </div>`;
             });
@@ -1725,12 +1947,14 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                              ` : ''}
                          </div>
                         <div class="client-actions">
+                            ${(!State.session?.staff || isStaffClient(c.id)) ? `
                             <button class="edit-btn" data-id="${c.id}" data-type="client" title="Editar">
                                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                             </button>
                             <button class="delete-btn" data-id="${c.id}" data-type="client" title="Eliminar">
                                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
+                            ` : ''}
                         </div>
                     </div>
                 </div>`;
@@ -1773,12 +1997,14 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             <td>${parseFloat(s.price).toFixed(2)} €</td>
                             <td>
                                 <div class="actions">
+                                    ${(!State.session?.staff || isStaffService(s.id)) ? `
                                     <button class="edit-btn" data-id="${s.id}" data-type="service" title="Editar">
                                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                     </button>
                                     <button class="delete-btn" data-id="${s.id}" data-type="service" title="Eliminar">
                                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                     </button>
+                                    ` : ''}
                                 </div>
                             </td>
                         </tr>`).join('')}
@@ -2498,12 +2724,33 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 delBtn.disabled = true;
                 
                 if (type === 'client') {
+                    if (State.session?.staff && !isStaffClient(id)) {
+                        showToast('No tienes permiso para eliminar este cliente', 'error');
+                        delBtn.disabled = false;
+                        delBtn.dataset.confirming = 'false';
+                        delBtn.textContent = '';
+                        return;
+                    }
                     if (await deleteClient(id)) renderRoute();
                 } else if (type === 'service') {
+                    if (State.session?.staff && !isStaffService(id)) {
+                        showToast('No tienes permiso para eliminar este servicio', 'error');
+                        delBtn.disabled = false;
+                        delBtn.dataset.confirming = 'false';
+                        delBtn.textContent = '';
+                        return;
+                    }
                     if (await deleteService(id)) renderRoute();
                 } else if (type === 'salon') {
                     if (await deleteSalon(id)) renderRoute();
                 } else {
+                    if (State.session?.staff && !isStaffAppointment(id)) {
+                        showToast('No tienes permiso para eliminar esta cita', 'error');
+                        delBtn.disabled = false;
+                        delBtn.dataset.confirming = 'false';
+                        delBtn.textContent = '';
+                        return;
+                    }
                     if (await deleteAppointment(id)) renderRoute();
                 }
             } else {
@@ -2592,12 +2839,24 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             
             if (id) {
                 if (type === 'client') {
+                    if (State.session?.staff && !isStaffClient(id)) {
+                        showToast('No tienes permiso para editar este cliente', 'error');
+                        return;
+                    }
                     if (typeof editClient === 'function') editClient(id);
                 } else if (type === 'service') {
+                    if (State.session?.staff && !isStaffService(id)) {
+                        showToast('No tienes permiso para editar este servicio', 'error');
+                        return;
+                    }
                     if (typeof editService === 'function') editService(id);
                 } else if (type === 'salon') {
                     if (typeof editSalon === 'function') editSalon(id);
                 } else {
+                    if (State.session?.staff && !isStaffAppointment(id)) {
+                        showToast('No tienes permiso para editar esta cita', 'error');
+                        return;
+                    }
                     if (typeof editAppointment === 'function') editAppointment(id);
                 }
             }
@@ -3574,8 +3833,10 @@ window.addEventListener('message', async (event) => {
     }
 
     function showSettingsForm() {
+        const config = getStaffConfig();
         const html = `
             <form id="settings-form">
+                <h3 style="margin-bottom:1rem;font-size:1.1rem;">Horario</h3>
                 <div class="form-group">
                     <label>Hora de Apertura</label>
                     <input type="time" class="form-control" name="startTime" required value="${State.settings.startTime}">
@@ -3584,13 +3845,24 @@ window.addEventListener('message', async (event) => {
                     <label>Hora de Cierre</label>
                     <input type="time" class="form-control" name="endTime" required value="${State.settings.endTime}">
                 </div>
+                <hr style="margin:1.5rem 0;border:none;border-top:1px solid var(--border-color);">
+                <h3 style="margin-bottom:1rem;font-size:1.1rem;">Acceso Staff</h3>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">Configura el email y contraseña para que el staff pueda acceder. Puedes dejar ambos campos vacíos para deshabilitar el acceso staff.</p>
+                <div class="form-group">
+                    <label>Email del Staff</label>
+                    <input type="email" class="form-control" name="adminEmail" value="${config.adminEmail || ''}" placeholder="staff@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña de Staff</label>
+                    <input type="text" class="form-control" name="staffPassword" value="${config.staffPassword || ''}" placeholder="Contraseña">
+                </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar Horario</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
                 </div>
             </form>`;
 
-        openModal('Configurar Horario', html, () => {
+        openModal('Configuración', html, () => {
             document.getElementById('settings-form').addEventListener('submit', e => {
                 e.preventDefault();
                 const fd = new FormData(e.target);
@@ -3606,6 +3878,15 @@ window.addEventListener('message', async (event) => {
                 State.settings.endTime = end;
                 localStorage.setItem('nymara_start_time', start);
                 localStorage.setItem('nymara_end_time', end);
+                
+                const adminEmail = fd.get('adminEmail').trim();
+                const staffPassword = fd.get('staffPassword').trim();
+                setStaffConfig(adminEmail, staffPassword);
+                if (adminEmail && staffPassword) {
+                    showToast('Configuración de staff guardada.');
+                } else {
+                    showToast('Acceso staff deshabilitado.');
+                }
                 
                 showToast('Horario actualizado correctamente.');
                 closeModal();
@@ -3927,6 +4208,7 @@ window.addEventListener('message', async (event) => {
                 } else {
                     data.id = generateId();
                     if (await addAppointment(data)) { 
+                        if (State.session?.staff) addStaffAptId(data.id);
                         closeModal(); 
                         renderRoute(); 
                         
