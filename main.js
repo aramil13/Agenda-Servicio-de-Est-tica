@@ -1344,6 +1344,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return false; 
         }
         State.appointments.push(data);
+        console.log('State.appointments length after push:', State.appointments.length, 'ClientId:', data.clientId, 'Date:', data.date);
         showToast('Cita agendada correctamente');
         return true;
     }
@@ -1692,6 +1693,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Day detail panel
         const detailDate = State.selectedDate || todayStr;
         const detailApts = getAppointmentsForDate(detailDate);
+        console.log('Agenda view: appointments count in State:', State.appointments.length, 'selectedDate:', State.selectedDate, 'detailDate:', detailDate, 'apts for date:', detailApts.length);
         const detailDateObj = new Date(detailDate + 'T00:00:00');
         const detailLabel = detailDateObj.toLocaleDateString('es-ES', {
             weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
