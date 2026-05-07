@@ -1330,15 +1330,19 @@ document.addEventListener('DOMContentLoaded', () => {
             id: data.id,
             client_id: data.clientId,
             service_id: data.serviceId,
-            salon_id: data.salonId || null,
             date: data.date,
             time: data.time,
             notes: data.notes,
             user_email: State.currentUserEmail || '',
             appointment_photos: data.appointmentPhotos || [],
         };
+        if (data.salonId) dbRow.salon_id = data.salonId;
         const { error } = await supabase.from('appointments').insert([dbRow]);
-        if (error) { showToast('Error al agendar cita: ' + error.message, 'error'); return false; }
+        if (error) { 
+            console.error('Insert error details:', JSON.stringify({ dbRow, error }, null, 2));
+            showToast('Error al agendar cita: ' + error.message + (error.details ? ' (' + error.details + ')' : ''), 'error'); 
+            return false; 
+        }
         State.appointments.push(data);
         showToast('Cita agendada correctamente');
         return true;
@@ -1348,14 +1352,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const dbRow = {
             client_id: data.clientId,
             service_id: data.serviceId,
-            salon_id: data.salonId || null,
             date: data.date,
             time: data.time,
             notes: data.notes,
             appointment_photos: data.appointmentPhotos || [],
         };
+        if (data.salonId) dbRow.salon_id = data.salonId;
         const { error } = await supabase.from('appointments').update(dbRow).eq('id', id);
-        if (error) { showToast('Error al actualizar cita: ' + error.message, 'error'); return false; }
+        if (error) { 
+            console.error('Update error details:', JSON.stringify({ dbRow, error }, null, 2));
+            showToast('Error al actualizar cita: ' + error.message + (error.details ? ' (' + error.details + ')' : ''), 'error'); 
+            return false; 
+        }
         const idx = State.appointments.findIndex(a => a.id === id);
         if (idx !== -1) State.appointments[idx] = { ...State.appointments[idx], ...data };
         showToast('Cita actualizada correctamente');
