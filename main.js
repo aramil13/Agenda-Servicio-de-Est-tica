@@ -3959,11 +3959,11 @@ window.addEventListener('message', async (event) => {
                         ${State.services.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.serviceId ? 'selected' : ''}>${s.name} (${s.duration} min · ${parseFloat(s.price).toFixed(2)}€)</option>`).join('')}
                     </select>
                 </div>
-                ${(State.activeSalonId === 'all' || !State.activeSalonId) ? `
+                ${(State.activeSalonId === 'all' || !State.activeSalonId || !State.salons.some(s => s.id === State.activeSalonId)) ? `
                 <div class="form-group">
                     <label>Salón</label>
                     <select class="form-control" name="salonId" required>
-                        ${State.salons.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.salonId ? 'selected' : ''}>${s.name}</option>`).join('')}
+                        ${State.salons.length === 0 ? '<option value="">No hay salones disponibles</option>' : State.salons.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.salonId ? 'selected' : ''}>${s.name}</option>`).join('')}
                     </select>
                 </div>
                 ` : `<input type="hidden" name="salonId" value="${State.activeSalonId}">`}
@@ -4119,6 +4119,12 @@ window.addEventListener('message', async (event) => {
                     return;
                 }
 
+                if (!State.salons.some(s => s.id === data.salonId)) {
+                    showToast('El salón seleccionado no existe. Selecciona otro.', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Agendar Cita';
+                    return;
+                }
 
                 // Validar que no se solape con otra cita existente en el mismo día
                 const [targetHour, targetMin] = data.time.split(':').map(Number);
