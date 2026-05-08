@@ -703,7 +703,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.open(waUrl, '_blank');
     }
 
-    function insertWAVariable(variable) {
+    window.insertWAVariable = function(variable) {
         const ta = document.getElementById('wa-template-textarea');
         if (!ta) return;
         const start = ta.selectionStart;
@@ -1543,11 +1543,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function markAppointmentReminded(id) {
-        // Intentamos actualizar la columna whatsapp_sent
-        const { error } = await supabase.from('appointments').update({ whatsapp_sent: true }).eq('id', id);
-        if (error) { 
-            console.error('Error al marcar como avisado (¿columna whatsapp_sent existe?):', error);
-            // Si falla, al menos lo marcamos en local para que desaparezca de la lista actual
+        try {
+            const { error } = await supabase.from('appointments').update({ whatsapp_sent: true }).eq('id', id);
+            if (error) { 
+                console.error('Error al marcar como avisado (¿columna whatsapp_sent existe?):', error);
+            }
+        } catch (err) {
+            console.error('Excepción al actualizar whatsapp_sent:', err);
         }
         const apt = State.appointments.find(a => a.id === id);
         if (apt) apt.whatsappSent = true;
@@ -1730,7 +1732,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const client = State.clients.find(c => c.id === apt.clientId);
                 const cName = client ? client.name.split(' ')[0] : '??';
                 const aptUserColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-primary)';
-                eventsHtml += `<span class="cal-event" style="border-left:3px solid ${aptUserColor}">${apt.time} ${cName}</span>`;
+                eventsHtml += `<span class="cal-event" style="border-left:3px solid ${aptUserColor}">${apt.time} ${cName}${apt.isStaffAppointment ? ' <span class="staff-badge">Staff</span>' : ''}</span>`;
             });
             if (apts.length > maxShow) {
                 eventsHtml += `<span class="cal-more">+${apts.length - maxShow} más</span>`;
@@ -1795,7 +1797,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     <div class="day-detail-item">
                         <div class="day-detail-time" style="color:${userColor}">${apt.time} – ${endStr}</div>
                         <div class="day-detail-info">
-                            <strong>${client.name}</strong>
+                            <strong>${client.name}${apt.isStaffAppointment ? ' <span class="staff-badge">Staff</span>' : ''}</strong>
                             <span>${service.name} · ${service.duration} min${apt.notes ? ' · ' + apt.notes : ''}</span>
                             <span style="font-size:0.75rem;color:var(--accent-color);display:block;margin-top:2px">📍 ${State.salons.find(s => s.id === apt.salonId)?.name || 'Salón desconocido'}</span>
                             <span class="apt-user-key" style="color:${userColor}" title="${apt.userEmail}">${userDisplay}</span>
@@ -2265,45 +2267,19 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             return a.time.localeCompare(b.time);
         });
 
-        let rows = '';
         if (toRemind.length === 0) {
-            rows = `
-                <tr>
-                    <td colspan="4" style="text-align:center;padding:4rem;color:var(--text-secondary)">
-                        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="opacity:0.25;margin-bottom:1rem;"><path d="M12.031 6.172c-2.32 0-4.516.903-6.183 2.563-3.23 3.23-3.403 8.356-.511 11.777l-1.341 4.904 5.035-1.32c1.077.585 2.29.893 3.522.893h.03c2.321 0 4.516-.903 6.183-2.563 3.413-3.414 3.413-8.948 0-12.362-1.667-1.66-3.863-1.592-6.235-1.592zm5.753 12.185c-.254.71-1.472 1.286-2.028 1.368-.556.082-1.112.122-1.666-.122-.303-.122-.656-.254-1.076-.442-1.812-.816-3.033-2.656-3.13-2.77-.091-.112-.76-.98-.76-1.884 0-.904.47-1.353.64-1.554.17-.2.37-.25.5-.25s.262-.01.373.01c.123 0 .285-.04.444.33.16.38.542 1.312.59 1.41.05.1.08.21.01.34-.07.13-.1.22-.2.34-.1.12-.21.26-.3.37-.1.12-.22.25-.1.44.13.21.57.94 1.22 1.52.84.75 1.55 1 1.77 1.11.22.11.36.09.49-.06.13-.15.54-.62.68-.84.14-.21.29-.18.49-.1.2.08 1.25.59 1.47.69s.36.16.41.25c.05.1.05.57-.2.1.28l-.01.01zM12.031 0C5.386 0 0 5.385 0 12.031c0 2.11.55 4.16 1.59 5.97L0 24l6.19-1.62c1.77 1.04 3.79 1.59 5.84 1.59h.01C18.66 24 24 18.615 24 12.031 24 5.385 18.66 0 12.031 0z"/></svg>
-                        <p>No hay recordatorios pendientes para citas en 48 horas.</p>
-                        <p style="font-size:0.85rem;margin-top:0.5rem">Objetivo: Citas del ${dateLabel}</p>
-                    </td>
-                </tr>`;
-        } else {
-            toRemind.forEach(apt => {
-                const client = State.clients.find(c => c.id === apt.clientId);
-                const service = State.services.find(s => s.id === apt.serviceId);
-                rows += `
-                    <tr>
-                        <td>
-                            <div style="font-weight:600">${client.name}</div>
-                            <div style="font-size:0.8rem;color:var(--text-secondary)">${client.phone}</div>
-                        </td>
-                        <td>
-                            <div style="font-weight:500;color:var(--accent-primary)">${apt.time}</div>
-                        </td>
-                        <td>
-                            <span class="monthly-service-badge">${service ? service.name : '—'}</span>
-                        </td>
-                        <td>
-                            <button class="btn btn-primary btn-sm send-reminder-btn" 
-                                    style="padding: 0.4rem 0.8rem;"
-                                    data-name="${client.name}" 
-                                    data-phone="${client.phone}" 
-                                    data-date="${apt.date}" 
-                                    data-time="${apt.time}">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;vertical-align:middle"><path d="M12.031 6.172c-2.32 0-4.516.903-6.183 2.563-3.23 3.23-3.403 8.356-.511 11.777l-1.341 4.904 5.035-1.32c1.077.585 2.29.893 3.522.893h.03c2.321 0 4.516-.903 6.183-2.563 3.413-3.414 3.413-8.948 0-12.362-1.667-1.66-3.863-1.592-6.235-1.592zm5.753 12.185c-.254.71-1.472 1.286-2.028 1.368-.556.082-1.112.122-1.666-.122-.303-.122-.656-.254-1.076-.442-1.812-.816-3.033-2.656-3.13-2.77-.091-.112-.76-.98-.76-1.884 0-.904.47-1.353.64-1.554.17-.2.37-.25.5-.25s.262-.01.373.01c.123 0 .285-.04.444.33.16.38.542 1.312.59 1.41.05.1.08.21.01.34-.07.13-.1.22-.2.34-.1.12-.21.26-.3.37-.1.12-.22.25-.1.44.13.21.57.94 1.22 1.52.84.75 1.55 1 1.77 1.11.22.11.36.09.49-.06.13-.15.54-.62.68-.84.14-.21.29-.18.49-.1.2.08 1.25.59 1.47.69s.36.16.41.25c.05.1.05.57-.2.1.28l-.01.01zM12.031 0C5.386 0 0 5.385 0 12.031c0 2.11.55 4.16 1.59 5.97L0 24l6.19-1.62c1.77 1.04 3.79 1.59 5.84 1.59h.01C18.66 24 24 18.615 24 12.031 24 5.385 18.66 0 12.031 0z"/></svg>
-                                Recordar
-                            </button>
-                        </td>
-                    </tr>`;
-            });
+            return `
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">Recordatorios WhatsApp</h1>
+                    <p style="color:var(--text-secondary)">Gestiona los avisos para las próximas citas · <span class="supabase-badge">⚡ Automático</span></p>
+                </div>
+            </div>
+            <div class="data-card" style="padding:3rem;text-align:center;">
+                <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="opacity:0.25;margin-bottom:1rem;"><path d="M12.031 6.172c-2.32 0-4.516.903-6.183 2.563-3.23 3.23-3.403 8.356-.511 11.777l-1.341 4.904 5.035-1.32c1.077.585 2.29.893 3.522.893h.03c2.321 0 4.516-.903 6.183-2.563 3.413-3.414 3.413-8.948 0-12.362-1.667-1.66-3.863-1.592-6.235-1.592zm5.753 12.185c-.254.71-1.472 1.286-2.028 1.368-.556.082-1.112.122-1.666-.122-.303-.122-.656-.254-1.076-.442-1.812-.816-3.033-2.656-3.13-2.77-.091-.112-.76-.98-.76-1.884 0-.904.47-1.353.64-1.554.17-.2.37-.25.5-.25s.262-.01.373.01c.123 0 .285-.04.444.33.16.38.542 1.312.59 1.41.05.1.08.21.01.34-.07.13-.1.22-.2.34-.1.12-.21.26-.3.37-.1.12-.22.25-.1.44.13.21.57.94 1.22 1.52.84.75 1.55 1 1.77 1.11.22.11.36.09.49-.06.13-.15.54-.62.68-.84.14-.21.29-.18.49-.1.2.08 1.25.59 1.47.69s.36.16.41.25c.05.1.05.57-.2.1.28l-.01.01zM12.031 0C5.386 0 0 5.385 0 12.031c0 2.11.55 4.16 1.59 5.97L0 24l6.19-1.62c1.77 1.04 3.79 1.59 5.84 1.59h.01C18.66 24 24 18.615 24 12.031 24 5.385 18.66 0 12.031 0z"/></svg>
+                <h3 style="margin-bottom:0.5rem;">No hay recordatorios</h3>
+                <p style="color:var(--text-secondary);">No hay citas pendientes de notificar en los próximos 3 días.</p>
+            </div>`;
         }
 
         return `
@@ -2341,7 +2317,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                         return `
                             <tr data-aptid="${apt.id}">
                                 <td>
-                                    <div style="font-weight:600">${client ? client.name : 'Cliente desconocido'}</div>
+                                    <div style="font-weight:600">${client ? client.name : 'Cliente desconocido'}${apt.isStaffAppointment ? ' <span class="staff-badge">Staff</span>' : ''}</div>
                                     <div style="font-size:0.8rem;color:var(--text-secondary)">${client ? client.phone : 'Sin teléfono'}</div>
                                 </td>
                                 <td><span class="status-badge" style="background:var(--bg-body);color:var(--text-primary)">${dLabel}</span></td>
@@ -2593,28 +2569,38 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         // WhatsApp Reminder direct buttons
         document.querySelectorAll('.send-reminder-btn').forEach(btn => {
             btn.addEventListener('click', async e => {
-                const { name, phone, date, time } = e.currentTarget.dataset;
-                const aptId = e.currentTarget.closest('tr')?.dataset.aptid;
+                try {
+                    const { date, time } = e.currentTarget.dataset;
+                    const aptId = e.currentTarget.closest('tr')?.dataset.aptid;
 
-                let template = null, salonName = '', serviceName = '';
-                if (aptId) {
-                    const apt = State.appointments.find(a => a.id === aptId);
-                    if (apt) {
-                        const client = State.clients.find(c => c.id === apt.clientId);
-                        const salon = State.salons.find(s => s.id === apt.salonId);
-                        const service = State.services.find(s => s.id === apt.serviceId);
-                        template = client?.whatsapp_template || null;
-                        salonName = salon?.name || '';
-                        serviceName = service?.name || '';
+                    let name = '', phone = '', template = null, salonName = '', serviceName = '';
+                    if (aptId) {
+                        const apt = State.appointments.find(a => a.id === aptId);
+                        if (apt) {
+                            const client = State.clients.find(c => c.id === apt.clientId);
+                            const salon = State.salons.find(s => s.id === apt.salonId);
+                            const service = State.services.find(s => s.id === apt.serviceId);
+                            name = client?.name || e.currentTarget.dataset.name || '';
+                            phone = client?.phone || e.currentTarget.dataset.phone || '';
+                            template = client?.whatsapp_template || null;
+                            salonName = salon?.name || '';
+                            serviceName = service?.name || '';
+                        }
+                    } else {
+                        name = e.currentTarget.dataset.name || '';
+                        phone = e.currentTarget.dataset.phone || '';
                     }
-                }
 
-                sendWASMessage(phone, name, date, time, template, salonName, serviceName);
-                
-                if (aptId) {
-                    await markAppointmentReminded(aptId);
-                    renderRoute(); // Refrescar para que desaparezca
-                    showToast('Recordatorio marcado como enviado');
+                    sendWASMessage(phone, name, date, time, template, salonName, serviceName);
+                    
+                    if (aptId) {
+                        await markAppointmentReminded(aptId);
+                        renderRoute();
+                        showToast('Recordatorio marcado como enviado');
+                    }
+                } catch (err) {
+                    console.error('Error al enviar recordatorio:', err);
+                    showToast('Error al enviar recordatorio', 'error');
                 }
             });
         });
