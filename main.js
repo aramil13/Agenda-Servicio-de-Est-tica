@@ -1901,16 +1901,16 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
 
         return `
             ${State.salons.length > 0 ? `
-            <div style="text-align:center; margin-bottom: 2rem;">
+            <div style="text-align:center; margin-bottom: 1.5rem;">
                 ${State.session?.staff
-                    ? `<span style="font-size:2.5rem;font-weight:800;letter-spacing:-1px;">${State.salons.find(s => s.id === State.activeSalonId)?.name || 'Salón'}</span>`
-                    : `<select id="agenda-salon-select" style="font-size:2.5rem; font-weight:800; border:none; background:transparent; color:var(--text-primary); text-align:center; text-align-last:center; cursor:pointer; padding:0; appearance:none; letter-spacing:-1px;">
+                    ? `<span class="salon-title">${State.salons.find(s => s.id === State.activeSalonId)?.name || 'Salón'}</span>`
+                    : `<select id="agenda-salon-select" class="salon-title-select">
                     <option value="all" ${State.activeSalonId === 'all' ? 'selected' : ''}>Todos los Salones</option>
                     ${State.salons.map(s => `<option value="${s.id}" ${State.activeSalonId === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
                 </select>`}
             </div>
             ` : ''}
-            <div class="section-header" style="margin-top:-1rem;">
+            <div class="section-header">
                 <div>
                     <h1 class="section-title">Agenda</h1>
                     <p style="color:var(--text-secondary)">Calendario de citas · <span class="supabase-badge">⚡ Supabase</span></p>
@@ -2159,16 +2159,16 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
 
         return `
             ${State.salons.length > 0 ? `
-            <div style="text-align:center; margin-bottom: 2rem;">
+            <div style="text-align:center; margin-bottom: 1.5rem;">
                 ${State.session?.staff
-                    ? `<span style="font-size:2.5rem;font-weight:800;letter-spacing:-1px;">${State.salons.find(s => s.id === State.activeSalonId)?.name || 'Salón'}</span>`
-                    : `<select id="daily-salon-select" style="font-size:2.5rem; font-weight:800; border:none; background:transparent; color:var(--text-primary); text-align:center; text-align-last:center; cursor:pointer; padding:0; appearance:none; letter-spacing:-1px;">
+                    ? `<span class="salon-title">${State.salons.find(s => s.id === State.activeSalonId)?.name || 'Salón'}</span>`
+                    : `<select id="daily-salon-select" class="salon-title-select">
                     <option value="all" ${State.activeSalonId === 'all' ? 'selected' : ''}>Todos los Salones</option>
                     ${State.salons.map(s => `<option value="${s.id}" ${State.activeSalonId === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
                 </select>`}
             </div>
             ` : ''}
-            <div class="section-header" style="margin-top:-1rem;">
+            <div class="section-header">
                 <div>
                     <h1 class="section-title">Listado Diario</h1>
                     <p style="color:var(--text-secondary)">Detalle de citas por día · <span class="supabase-badge">⚡ Supabase</span></p>
@@ -2391,25 +2391,25 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
              </div>
              
             <div id="diagnosis-client-selection" style="display: ${hasClient ? 'none' : 'block'};">
-                <div style="max-width:700px;margin:60px auto;padding:40px;background:var(--bg-card);border:2px solid var(--accent-color);border-radius:16px;box-shadow:0 0 30px rgba(167,139,250,0.3);">
-                    <h2 style="margin-top:0;color:#fff;font-size:28px;text-align:center;margin-bottom:10px;">SELECCIONAR CLIENTE</h2>
-                    <p style="color:var(--text-secondary);text-align:center;margin-bottom:30px;font-size:16px;">Elija un cliente de la lista para realizar el diagnóstico capilar</p>
+                <div style="max-width:660px;margin:1.5rem auto;padding:2rem;background:var(--bg-card);border:2px solid var(--accent-color);border-radius:16px;box-shadow:0 0 30px rgba(167,139,250,0.3);">
+                    <h2 style="margin-top:0;color:#fff;font-size:1.4rem;text-align:center;margin-bottom:0.5rem;">SELECCIONAR CLIENTE</h2>
+                    <p style="color:var(--text-secondary);text-align:center;margin-bottom:1.5rem;font-size:0.9rem;">Elija un cliente de la lista para realizar el diagnóstico capilar</p>
                     <div id="diagnosis-clients-list"></div>
                 </div>
             </div>
             
             <div id="diagnosis-main" style="display: ${hasClient ? 'block' : 'none'};">
-                <div style="background:var(--bg-card);padding:20px;border-radius:12px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;border:2px solid var(--accent-color);">
+                <div style="background:var(--bg-card);padding:0.85rem;border-radius:12px;margin-bottom:0.85rem;display:flex;justify-content:space-between;align-items:center;border:2px solid var(--accent-color);">
                     <div>
-                        <div style="color:#fff;font-size:14px;margin-bottom:4px;">CLIENTE SELECCIONADO</div>
-                        <div style="display:flex;align-items:center;gap:12px;">
-                            <span id="selected-client-name" style="color:#fff;font-size:22px;font-weight:bold;">${clientName}</span>
-                            <span id="selected-client-phone" style="color:var(--accent-color);font-size:16px;font-weight:600;">${clientPhone}</span>
+                        <div style="color:#fff;font-size:0.75rem;margin-bottom:4px;">CLIENTE SELECCIONADO</div>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span id="selected-client-name" style="color:#fff;font-size:1.15rem;font-weight:bold;">${clientName}</span>
+                            <span id="selected-client-phone" style="color:var(--accent-color);font-size:0.85rem;font-weight:600;">${clientPhone}</span>
                         </div>
                     </div>
-                    <button id="btn-change-client" class="secondary-btn" style="font-size:14px;padding:8px 16px;">Cambiar Cliente</button>
+                    <button id="btn-change-client" class="secondary-btn btn-sm">Cambiar Cliente</button>
                 </div>
-                <iframe src="diagnosis/index.html" class="diagnosis-iframe" style="width:100%;height:calc(100vh - 300px);border:none;border-radius:12px;background:var(--bg-card);"></iframe>
+                <iframe src="diagnosis/index.html" class="diagnosis-iframe" style="width:100%;height:calc(100vh - 240px);border:none;border-radius:12px;background:var(--bg-card);"></iframe>
             </div>
         `;
     }
@@ -2419,20 +2419,20 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         if (!list) return;
 
         if (!State.clients || !Array.isArray(State.clients) || State.clients.length === 0) {
-            list.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:20px;">No hay clientes registrados.</p>';
+            list.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:1rem;">No hay clientes registrados.</p>';
             return;
         }
 
         list.innerHTML = State.clients.map(client => `
-            <div class="diagnosis-client-card" data-client-id="${client.id}" style="display:flex;justify-content:space-between;align-items:center;padding:16px;margin-bottom:12px;background:var(--bg-dark);border:1px solid var(--border-color);border-radius:12px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent-color)'" onmouseout="this.style.borderColor='var(--border-color)'">
-                <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="width:40px;height:40px;background:var(--accent-color);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#000;font-weight:bold;font-size:16px;">${client.name.charAt(0).toUpperCase()}</div>
+            <div class="diagnosis-client-card" data-client-id="${client.id}" style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem;margin-bottom:0.5rem;background:var(--bg-dark);border:1px solid var(--border-color);border-radius:12px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent-color)'" onmouseout="this.style.borderColor='var(--border-color)'">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="width:34px;height:34px;background:var(--accent-color);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#000;font-weight:bold;font-size:0.85rem;">${client.name.charAt(0).toUpperCase()}</div>
                     <div>
-                        <strong style="color:#fff;font-size:16px;">${client.name}</strong>
-                        <span style="color:var(--text-secondary);font-size:14px;display:block;">${client.phone || 'Sin teléfono'}</span>
+                        <strong style="color:#fff;font-size:0.9rem;">${client.name}</strong>
+                        <span style="color:var(--text-secondary);font-size:0.8rem;display:block;">${client.phone || 'Sin teléfono'}</span>
                     </div>
                 </div>
-                <span style="padding:8px 16px;background:var(--accent-color);color:#000;border-radius:8px;font-weight:600;">Seleccionar</span>
+                <span style="padding:0.35rem 0.75rem;background:var(--accent-color);color:#000;border-radius:8px;font-weight:600;font-size:0.8rem;">Seleccionar</span>
             </div>
         `).join('');
 
