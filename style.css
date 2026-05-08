@@ -983,7 +983,8 @@ textarea.form-control {
    ═══════════════════════ */
 
 /* Controls Bar */
-.monthly-controls {
+.monthly-controls,
+.daily-controls {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1018,7 +1019,8 @@ textarea.form-control {
     box-shadow: var(--shadow-glow);
 }
 
-.monthly-selectors {
+.monthly-selectors,
+.daily-selectors {
     display: flex;
     gap: 0.75rem;
 }
@@ -1028,6 +1030,15 @@ textarea.form-control {
     font-weight: 600 !important;
     font-size: 0.95rem !important;
     min-width: 140px;
+    background-color: var(--bg-base) !important;
+    cursor: pointer;
+}
+
+.daily-date-input {
+    padding: 0.6rem 1rem !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    min-width: 180px;
     background-color: var(--bg-base) !important;
     cursor: pointer;
 }
@@ -1111,6 +1122,30 @@ textarea.form-control {
     background: var(--bg-surface-hover);
 }
 
+/* Staff appointment row */
+.monthly-apt-row.staff-apt td {
+    background-color: rgba(251, 191, 36, 0.06);
+}
+
+.monthly-apt-row.staff-apt:hover td {
+    background-color: rgba(251, 191, 36, 0.12);
+}
+
+.staff-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #92400e;
+    background: rgba(251, 191, 36, 0.2);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    padding: 0.05rem 0.4rem;
+    border-radius: var(--radius-full);
+    margin-left: 0.35rem;
+    vertical-align: middle;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
 /* Time Cell */
 .monthly-time-cell {
     white-space: nowrap;
@@ -1140,11 +1175,25 @@ textarea.form-control {
     white-space: nowrap;
 }
 
+/* Salon Badge in daily listing */
+.daily-salon-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent-primary);
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    padding: 0.15rem 0.6rem;
+    border-radius: var(--radius-full);
+    white-space: nowrap;
+}
+
 /* ── Print Styles ── */
 @media print {
     .sidebar,
     .section-header .btn,
     .monthly-controls,
+    .daily-controls,
     .toast-notification {
         display: none !important;
     }
@@ -1454,7 +1503,8 @@ textarea.form-control {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .monthly-controls {
+    .monthly-controls,
+    .daily-controls {
         flex-wrap: wrap;
     }
 }
@@ -1464,7 +1514,8 @@ textarea.form-control {
         grid-template-columns: 1fr;
     }
 
-    .monthly-select {
+    .monthly-select,
+    .daily-date-input {
         min-width: 100px;
     }
 }

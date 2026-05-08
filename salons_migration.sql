@@ -15,5 +15,9 @@ CREATE INDEX IF NOT EXISTS idx_salons_name ON salons(name);
 ALTER TABLE appointments
 ADD COLUMN IF NOT EXISTS salon_id UUID REFERENCES salons(id) ON DELETE SET NULL;
 
+-- Agregar columna user_email para aislamiento por usuario
+ALTER TABLE salons ADD COLUMN IF NOT EXISTS user_email TEXT;
+CREATE INDEX IF NOT EXISTS idx_salons_user_email ON salons(user_email);
+
 -- Opcional: Desactivar RLS temporalmente para pruebas
 ALTER TABLE salons DISABLE ROW LEVEL SECURITY;

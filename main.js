@@ -514,9 +514,8 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedDate: null,
         selectedSalonId: null,
         isLoading: false,
-        // Monthly listing state
-        monthlyYear: new Date().getFullYear(),
-        monthlyMonth: new Date().getMonth(),
+        // Daily listing state
+        dailyDate: (() => { const d = new Date(); const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0'); return `${y}-${m}-${day}`; })(),
         activeSalonId: localStorage.getItem('nymara_agenda_salon') || 'all',
         // Auth state
         session: null,
@@ -604,16 +603,22 @@ document.addEventListener('DOMContentLoaded', () => {
         return getStaffServiceIds().includes(id);
     }
 
-    function getStaffConfig() {
-        return {
-            adminEmail: localStorage.getItem('nymara_admin_email') || '',
-            staffPassword: localStorage.getItem('nymara_staff_password') || ''
-        };
+    function getStaffAccounts() {
+        try { return JSON.parse(localStorage.getItem('nymara_staff_accounts') || '[]'); }
+        catch { return []; }
     }
 
-    function setStaffConfig(adminEmail, staffPassword) {
-        localStorage.setItem('nymara_admin_email', adminEmail);
-        localStorage.setItem('nymara_staff_password', staffPassword);
+    function saveStaffAccount(account) {
+        const accounts = getStaffAccounts();
+        const idx = accounts.findIndex(a => a.id === account.id);
+        if (idx >= 0) accounts[idx] = account;
+        else accounts.push(account);
+        localStorage.setItem('nymara_staff_accounts', JSON.stringify(accounts));
+    }
+
+    function deleteStaffAccount(id) {
+        const accounts = getStaffAccounts().filter(a => a.id !== id);
+        localStorage.setItem('nymara_staff_accounts', JSON.stringify(accounts));
     }
 
     /* ═══════════════════════════════════════
@@ -665,8 +670,10 @@ document.addEventListener('DOMContentLoaded', () => {
         'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ];
 
+    const DEFAULT_WA_TEMPLATE = 'Hola {cliente}, desde Estética y Bienestar Lara, en colaboración con {salon}, te recordamos tu cita para el día {fecha} a las {hora}. Si necesitas cambiar o anular su cita por favor hágamelo saber. Para confirmarla agradecería un OK. Gracias y te esperamos';
+
     /** Helper to send specialized WhatsApp messages */
-    function sendWASMessage(phone, name, date = null, time = null) {
+    function sendWASMessage(phone, name, date = null, time = null, template = null, salonName = '', serviceName = '') {
         if (!phone) {
             showToast('El cliente no tiene un teléfono configurado.', 'error');
             return;
@@ -675,7 +682,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const cleanPhone = phone.replace(/\D/g, '');
         let msg = '';
         
-        if (date && time) {
+        if (template) {
+            const dateObj = date ? new Date(date + 'T00:00:00') : null;
+            const dateLabel = dateObj ? dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' }) : '';
+            msg = template
+                .replace(/{cliente}/g, name)
+                .replace(/{salon}/g, salonName)
+                .replace(/{servicio}/g, serviceName)
+                .replace(/{fecha}/g, dateLabel)
+                .replace(/{hora}/g, time || '');
+        } else if (date && time) {
             const dateObj = new Date(date + 'T00:00:00');
             const dateLabel = dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
             msg = `Hola ${name} tienes una cita con Nymara Estilistas, el ${dateLabel}, a las ${time}`;
@@ -685,6 +701,25 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
         window.open(waUrl, '_blank');
+    }
+
+    function insertWAVariable(variable) {
+        const ta = document.getElementById('wa-template-textarea');
+        if (!ta) return;
+        const start = ta.selectionStart;
+        const end = ta.selectionEnd;
+        const text = ta.value;
+        ta.value = text.substring(0, start) + variable + text.substring(end);
+        ta.selectionStart = ta.selectionEnd = start + variable.length;
+        ta.focus();
+    }
+
+    function toggleWATemplate() {
+        const select = document.getElementById('enviar-was-select');
+        const group = document.getElementById('wa-template-group');
+        if (select && group) {
+            group.style.display = select.value === 'true' ? '' : 'none';
+        }
     }
 
     /* ═══════════════════════════════════════
@@ -726,7 +761,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 supabase.from('clients').select('*').order('name'),
                 supabase.from('services').select('*').order('name'),
                 supabase.from('appointments').select('*').order('date').order('time'),
-                supabase.from('salons').select('*').order('name')
+                supabase.from('salons').select('*').or(`user_email.eq.${State.currentUserEmail},user_email.is.null`).order('name')
             ]);
 
             if (clientsRes.error) throw clientsRes.error;
@@ -759,6 +794,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 whatsappSent: a.whatsapp_sent || false,
                 userEmail: a.user_email || '',
                 appointmentPhotos: a.appointment_photos || [],
+                isStaffAppointment: a.is_staff_appointment || false,
             }));
             
             // Cargar todas las fotos de clientes
@@ -803,10 +839,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Check for staff session first
         const staffEmail = localStorage.getItem('nymara_staff_session_email');
         const staffNameVal = localStorage.getItem('nymara_staff_name');
-        if (staffEmail && staffNameVal) {
-            const config = getStaffConfig();
-            if (config.adminEmail === staffEmail) {
-                handleStaffSession(staffEmail, staffNameVal);
+        const staffSalonId = localStorage.getItem('nymara_staff_salon_id');
+        if (staffEmail && staffNameVal && staffSalonId) {
+            const accounts = getStaffAccounts();
+            const account = accounts.find(a => a.name === staffNameVal && a.salonId === staffSalonId);
+            if (account) {
+                handleStaffSession(account);
                 return;
             }
         }
@@ -890,10 +928,10 @@ document.addEventListener('DOMContentLoaded', () => {
             authTabAdmin.style.color = 'var(--text-secondary)';
             authAdminFields.style.display = 'none';
             authStaffFields.style.display = 'block';
-            const config = getStaffConfig();
-            if (config.adminEmail) {
+            const accounts = getStaffAccounts();
+            if (accounts.length > 0) {
                 authFormTitle.textContent = 'Acceso Staff';
-                authFormSubtitle.textContent = 'Accede a la agenda del administrador';
+                authFormSubtitle.textContent = 'Introduce tu nombre y contraseña';
             } else {
                 authFormTitle.textContent = 'Staff no configurado';
                 authFormSubtitle.textContent = 'El administrador debe configurar el acceso staff en Ajustes';
@@ -920,19 +958,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (authMode === 'staff') {
                 const name = document.getElementById('auth-staff-name').value.trim();
                 const staffPwd = document.getElementById('auth-staff-password').value;
-                const config = getStaffConfig();
+                const accounts = getStaffAccounts();
 
-                if (!config.adminEmail || !config.staffPassword) {
-                    authError.textContent = 'El administrador no ha configurado el acceso staff. Ve a Ajustes > Configurar Staff.';
-                    authError.style.display = 'block';
-                    authSubmitText.style.opacity = '1';
-                    authSpinner.style.display = 'none';
-                    btn.disabled = false;
-                    return;
-                }
-
-                if (staffPwd !== config.staffPassword) {
-                    authError.textContent = 'Contraseña de staff incorrecta';
+                if (accounts.length === 0) {
+                    authError.textContent = 'El administrador no ha configurado el acceso staff. Ve a Ajustes > Configuración.';
                     authError.style.display = 'block';
                     authSubmitText.style.opacity = '1';
                     authSpinner.style.display = 'none';
@@ -949,9 +978,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
+                const account = accounts.find(a => a.name === name && a.password === staffPwd);
+                if (!account) {
+                    authError.textContent = 'Nombre o contraseña incorrectos';
+                    authError.style.display = 'block';
+                    authSubmitText.style.opacity = '1';
+                    authSpinner.style.display = 'none';
+                    btn.disabled = false;
+                    return;
+                }
+
                 staffName = name;
                 localStorage.setItem('nymara_staff_name', name);
-                handleStaffSession(config.adminEmail, name);
+                handleStaffSession(account);
             } else {
                 try {
                     const email = document.getElementById('auth-email').value;
@@ -970,21 +1009,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function handleStaffSession(adminEmail, name) {
-        State.session = { staff: true, user: { email: adminEmail } };
+    function handleStaffSession(account) {
+        const adminEmail = account.adminEmail || localStorage.getItem('nymara_staff_admin_email') || '';
+        State.session = { staff: true, user: { email: adminEmail }, staffAccountId: account.id };
         State.currentUserEmail = adminEmail;
         State.currentUserColor = getUserColor(adminEmail);
-        staffName = name;
+        State.activeSalonId = account.salonId;
+        localStorage.setItem('nymara_agenda_salon', account.salonId);
+        staffName = account.name;
 
         localStorage.setItem('nymara_staff_session_email', adminEmail);
-        localStorage.setItem('nymara_staff_name', name);
+        localStorage.setItem('nymara_staff_name', account.name);
+        localStorage.setItem('nymara_staff_salon_id', account.salonId);
 
         authScreen.style.display = 'none';
         appLayout.style.display = 'flex';
 
-        if (userEmailEl) userEmailEl.textContent = 'Staff: ' + name;
+        if (userEmailEl) userEmailEl.textContent = 'Staff: ' + account.name;
         if (userAvatarEl) {
-            userAvatarEl.textContent = name.charAt(0).toUpperCase();
+            userAvatarEl.textContent = account.name.charAt(0).toUpperCase();
             userAvatarEl.style.background = '#10b981';
         }
         const roleEl = document.querySelector('.user-role');
@@ -1223,11 +1266,12 @@ document.addEventListener('DOMContentLoaded', () => {
             phone: data.phone, 
             email: data.email,
             enviar_was: data.enviar_was,
+            whatsapp_template: data.whatsapp_template,
             observations: data.observations 
         }).eq('id', data.id);
         if (error) { 
             console.error('Supabase update error:', error);
-            showToast('Error al actualizar (¿columna "enviar_was" existe?): ' + error.message, 'error'); 
+            showToast('Error al actualizar: ' + error.message, 'error'); 
             return false; 
         }
         State.clients = State.clients.map(c => c.id === data.id ? data : c);
@@ -1302,7 +1346,8 @@ document.addEventListener('DOMContentLoaded', () => {
             name: data.name,
             address: data.address || null,
             phone: data.phone || null,
-            email: data.email || null
+            email: data.email || null,
+            user_email: State.currentUserEmail
         }).eq('id', data.id);
         
         if (error) { 
@@ -1341,6 +1386,7 @@ document.addEventListener('DOMContentLoaded', () => {
             notes: data.notes,
             user_email: State.currentUserEmail || '',
             appointment_photos: data.appointmentPhotos || [],
+            is_staff_appointment: !!State.session?.staff,
         };
         if (data.salonId) dbRow.salon_id = data.salonId;
         const { error } = await supabase.from('appointments').insert([dbRow]);
@@ -1648,6 +1694,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getAppointmentsForDate(dateStr) {
         const salonId = State.activeSalonId || 'all';
+        const isAdmin = !State.session?.staff;
         
         return State.appointments
             .filter(a => a.date === dateStr && (salonId === 'all' || a.salonId === salonId))
@@ -1855,10 +1902,12 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         return `
             ${State.salons.length > 0 ? `
             <div style="text-align:center; margin-bottom: 2rem;">
-                <select id="agenda-salon-select" style="font-size:2.5rem; font-weight:800; border:none; background:transparent; color:var(--text-primary); text-align:center; text-align-last:center; cursor:pointer; padding:0; appearance:none; letter-spacing:-1px;">
+                ${State.session?.staff
+                    ? `<span style="font-size:2.5rem;font-weight:800;letter-spacing:-1px;">${State.salons.find(s => s.id === State.activeSalonId)?.name || 'Salón'}</span>`
+                    : `<select id="agenda-salon-select" style="font-size:2.5rem; font-weight:800; border:none; background:transparent; color:var(--text-primary); text-align:center; text-align-last:center; cursor:pointer; padding:0; appearance:none; letter-spacing:-1px;">
                     <option value="all" ${State.activeSalonId === 'all' ? 'selected' : ''}>Todos los Salones</option>
                     ${State.salons.map(s => `<option value="${s.id}" ${State.activeSalonId === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
-                </select>
+                </select>`}
             </div>
             ` : ''}
             <div class="section-header" style="margin-top:-1rem;">
@@ -1867,10 +1916,10 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     <p style="color:var(--text-secondary)">Calendario de citas · <span class="supabase-badge">⚡ Supabase</span></p>
                 </div>
                 <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
-                    <button class="btn btn-secondary" id="btn-settings" title="Configurar Horario">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        Horas
-                    </button>
+                    ${!State.session?.staff ? `
+                    <button class="btn btn-secondary" id="btn-settings" title="Configuración">
+                        Configuración
+                    </button>` : ''}
                     <button class="btn btn-primary" id="btn-add-appointment" onclick="showAppointmentForm()">
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                         Nueva Cita
@@ -2041,32 +2090,30 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
     }
 
     /* ═══════════════════════════════════════
-       MONTHLY LISTING VIEW
+       DAILY LISTING VIEW
        ═══════════════════════════════════════ */
     function getMonthlyView() {
-        const year = State.monthlyYear;
-        const month = State.monthlyMonth;
-        const monthLabel = `${MONTH_NAMES[month]} ${year}`;
+        const dateStr = State.dailyDate;
+        const dateObj = new Date(dateStr + 'T00:00:00');
+        const dayLabel = dateObj.toLocaleDateString('es-ES', {
+            weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+        });
 
-        // Filter appointments for the selected month
-        const monthStr = String(month + 1).padStart(2, '0');
-        const prefix = `${year}-${monthStr}`;
-        
-        let salonId = State.activeSalonId || 'all';
+        const salonId = State.activeSalonId || 'all';
+        const isAdmin = !State.session?.staff;
+        const showSalonCol = (salonId === 'all' || isAdmin) && State.salons.length > 0;
 
-        const monthAppointments = State.appointments
-            .filter(a => a.date.startsWith(prefix) && (salonId === 'all' || a.salonId === salonId))
-            .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+        const dayAppointments = State.appointments
+            .filter(a => a.date === dateStr && (salonId === 'all' || a.salonId === salonId))
+            .sort((a, b) => a.time.localeCompare(b.time));
 
         // Summary stats
-        const totalCitas = monthAppointments.length;
-        let totalIngresos = 0;
+        const totalCitas = dayAppointments.length;
         let totalMinutos = 0;
         const clientesUnicos = new Set();
-        monthAppointments.forEach(apt => {
+        dayAppointments.forEach(apt => {
             const service = State.services.find(s => s.id === apt.serviceId);
             if (service) {
-                totalIngresos += parseFloat(service.price) || 0;
                 totalMinutos += parseInt(service.duration) || 0;
             }
             clientesUnicos.add(apt.clientId);
@@ -2074,110 +2121,75 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         const totalHoras = Math.floor(totalMinutos / 60);
         const remainMin = totalMinutos % 60;
 
-        // Group appointments by day for visual separators
+        const colCount = showSalonCol ? 6 : 5;
+
         let tableRows = '';
-        if (monthAppointments.length === 0) {
+        if (dayAppointments.length === 0) {
             tableRows = `
                 <tr>
-                    <td colspan="6" style="text-align:center;padding:3rem;color:var(--text-secondary)">
+                    <td colspan="${colCount}" style="text-align:center;padding:3rem;color:var(--text-secondary)">
                         <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom:0.75rem;opacity:0.35;display:block;margin-left:auto;margin-right:auto;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                        No hay citas registradas en este mes.
+                        No hay citas registradas en este día.
                     </td>
                 </tr>`;
         } else {
-            let lastDate = '';
-            monthAppointments.forEach((apt, idx) => {
+            dayAppointments.forEach(apt => {
                 const client = State.clients.find(c => c.id === apt.clientId) || { name: 'Eliminado' };
                 const service = State.services.find(s => s.id === apt.serviceId) || { name: 'Eliminado', duration: 0, price: 0 };
                 const endTime = new Date(new Date(`${apt.date}T${apt.time}`).getTime() + (service.duration || 0) * 60000);
                 const endStr = endTime.toTimeString().substring(0, 5);
-
-                // Date label for grouping
-                const dateObj = new Date(apt.date + 'T00:00:00');
-                const dayLabel = dateObj.toLocaleDateString('es-ES', {
-                    weekday: 'long', day: 'numeric', month: 'long'
-                });
-
-                if (apt.date !== lastDate) {
-                    const dayCount = monthAppointments.filter(a => a.date === apt.date).length;
-                    tableRows += `
-                        <tr class="monthly-date-row">
-                            <td colspan="7">
-                                <span class="monthly-date-label">${dayLabel}</span>
-                                <span class="monthly-date-count">${dayCount} cita${dayCount !== 1 ? 's' : ''}</span>
-                            </td>
-                        </tr>`;
-                    lastDate = apt.date;
-                }
+                const salon = State.salons.find(s => s.id === apt.salonId);
+                const staffClass = apt.isStaffAppointment ? ' staff-apt' : '';
+                const staffBadge = apt.isStaffAppointment ? ' <span class="staff-badge">Staff</span>' : '';
 
                 tableRows += `
-                    <tr class="monthly-apt-row">
+                    <tr class="monthly-apt-row${staffClass}">
                         <td class="monthly-time-cell">
                             <span class="monthly-time">${apt.time}</span>
                             <span class="monthly-time-end">– ${endStr}</span>
                         </td>
-                        <td>
-                            <div style="font-weight:600">${client.name}</div>
-                        </td>
-                        <td>
-                            <span class="monthly-service-badge">${service.name}</span>
-                        </td>
+                        <td><div style="font-weight:600">${client.name}${staffBadge}</div></td>
+                        ${showSalonCol ? `<td><span class="daily-salon-badge">${salon ? salon.name : '—'}</span></td>` : ''}
+                        <td><span class="monthly-service-badge">${service.name}</span></td>
                         <td>${service.duration} min</td>
-                        <td style="font-weight:600">${parseFloat(service.price).toFixed(2)} €</td>
                         <td style="color:var(--text-secondary);font-size:0.85rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${apt.notes || '—'}</td>
                     </tr>`;
             });
         }
 
-        // Build month selector options
-        let monthOptions = '';
-        MONTH_NAMES.forEach((name, i) => {
-            monthOptions += `<option value="${i}" ${i === month ? 'selected' : ''}>${name}</option>`;
-        });
-
-        // Year options (current year ± 2)
-        const currentYear = new Date().getFullYear();
-        let yearOptions = '';
-        for (let y = currentYear - 2; y <= currentYear + 2; y++) {
-            yearOptions += `<option value="${y}" ${y === year ? 'selected' : ''}>${y}</option>`;
-        }
-
         return `
             ${State.salons.length > 0 ? `
             <div style="text-align:center; margin-bottom: 2rem;">
-                <select id="monthly-salon-select" style="font-size:2.5rem; font-weight:800; border:none; background:transparent; color:var(--text-primary); text-align:center; text-align-last:center; cursor:pointer; padding:0; appearance:none; letter-spacing:-1px;">
+                ${State.session?.staff
+                    ? `<span style="font-size:2.5rem;font-weight:800;letter-spacing:-1px;">${State.salons.find(s => s.id === State.activeSalonId)?.name || 'Salón'}</span>`
+                    : `<select id="daily-salon-select" style="font-size:2.5rem; font-weight:800; border:none; background:transparent; color:var(--text-primary); text-align:center; text-align-last:center; cursor:pointer; padding:0; appearance:none; letter-spacing:-1px;">
                     <option value="all" ${State.activeSalonId === 'all' ? 'selected' : ''}>Todos los Salones</option>
                     ${State.salons.map(s => `<option value="${s.id}" ${State.activeSalonId === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
-                </select>
+                </select>`}
             </div>
             ` : ''}
             <div class="section-header" style="margin-top:-1rem;">
                 <div>
-                    <h1 class="section-title">Listado Mensual</h1>
-                    <p style="color:var(--text-secondary)">Detalle de citas por mes · <span class="supabase-badge">⚡ Supabase</span></p>
+                    <h1 class="section-title">Listado Diario</h1>
+                    <p style="color:var(--text-secondary)">Detalle de citas por día · <span class="supabase-badge">⚡ Supabase</span></p>
                 </div>
                 <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
-                    <button class="btn btn-primary" id="btn-print-monthly">
+                    <button class="btn btn-primary" id="btn-print-daily">
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                         Imprimir
                     </button>
                 </div>
             </div>
 
-            <!-- Month/Year Selector -->
-            <div class="monthly-controls">
-                <button class="cal-nav-btn" id="monthly-prev">
+            <!-- Date Selector -->
+            <div class="daily-controls">
+                <button class="cal-nav-btn" id="daily-prev">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
                 </button>
-                <div class="monthly-selectors">
-                    <select class="form-control monthly-select" id="monthly-month-select">
-                        ${monthOptions}
-                    </select>
-                    <select class="form-control monthly-select" id="monthly-year-select">
-                        ${yearOptions}
-                    </select>
+                <div class="daily-selectors">
+                    <input type="date" class="form-control daily-date-input" id="daily-date-input" value="${dateStr}">
                 </div>
-                <button class="cal-nav-btn" id="monthly-next">
+                <button class="cal-nav-btn" id="daily-next">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
                 </button>
             </div>
@@ -2202,18 +2214,12 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     </div>
                     <div class="stat-content"><h3>Tiempo Total</h3><p>${totalHoras}h ${remainMin}m</p></div>
                 </div>
-                <div class="stat-card stat-card-highlight">
-                    <div class="stat-icon stat-icon-highlight">
-                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </div>
-                    <div class="stat-content"><h3>Ingresos Estimados</h3><p>${totalIngresos.toFixed(2)} €</p></div>
-                </div>
             </div>
 
             <!-- Listing Table -->
-            <div class="data-card monthly-table-card" id="monthly-print-area">
+            <div class="data-card monthly-table-card" id="daily-print-area">
                 <div class="monthly-table-header">
-                    <h3>📋 ${monthLabel}</h3>
+                    <h3>📋 ${dayLabel}</h3>
                     <span class="monthly-count-badge">${totalCitas} cita${totalCitas !== 1 ? 's' : ''}</span>
                 </div>
                 <table class="table monthly-table">
@@ -2221,9 +2227,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                         <tr>
                             <th>Hora</th>
                             <th>Cliente</th>
+                            ${showSalonCol ? '<th>Salón</th>' : ''}
                             <th>Servicio</th>
                             <th>Duración</th>
-                            <th>Precio</th>
                             <th>Notas</th>
                         </tr>
                     </thead>
@@ -2588,12 +2594,22 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         document.querySelectorAll('.send-reminder-btn').forEach(btn => {
             btn.addEventListener('click', async e => {
                 const { name, phone, date, time } = e.currentTarget.dataset;
-                const id = e.currentTarget.closest('[data-id]') ? e.currentTarget.closest('[data-id]').dataset.id : null;
-                
-                // Si el botón está en la vista de recordatorios, intentamos sacar el ID de la cita
                 const aptId = e.currentTarget.closest('tr')?.dataset.aptid;
 
-                sendWASMessage(phone, name, date, time);
+                let template = null, salonName = '', serviceName = '';
+                if (aptId) {
+                    const apt = State.appointments.find(a => a.id === aptId);
+                    if (apt) {
+                        const client = State.clients.find(c => c.id === apt.clientId);
+                        const salon = State.salons.find(s => s.id === apt.salonId);
+                        const service = State.services.find(s => s.id === apt.serviceId);
+                        template = client?.whatsapp_template || null;
+                        salonName = salon?.name || '';
+                        serviceName = service?.name || '';
+                    }
+                }
+
+                sendWASMessage(phone, name, date, time, template, salonName, serviceName);
                 
                 if (aptId) {
                     await markAppointmentReminded(aptId);
@@ -2656,33 +2672,30 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             });
         }
 
-        // Monthly listing controls
-        const monthlyPrev = document.getElementById('monthly-prev');
-        const monthlyNext = document.getElementById('monthly-next');
-        const monthlyMonthSel = document.getElementById('monthly-month-select');
-        const monthlyYearSel = document.getElementById('monthly-year-select');
+        // Daily listing controls
+        const dailyPrev = document.getElementById('daily-prev');
+        const dailyNext = document.getElementById('daily-next');
+        const dailyDateInput = document.getElementById('daily-date-input');
 
-        if (monthlyPrev) monthlyPrev.addEventListener('click', () => {
-            State.monthlyMonth--;
-            if (State.monthlyMonth < 0) { State.monthlyMonth = 11; State.monthlyYear--; }
+        if (dailyPrev) dailyPrev.addEventListener('click', () => {
+            const d = new Date(State.dailyDate + 'T00:00:00');
+            d.setDate(d.getDate() - 1);
+            State.dailyDate = toLocalDateStr(d);
             renderRoute();
         });
-        if (monthlyNext) monthlyNext.addEventListener('click', () => {
-            State.monthlyMonth++;
-            if (State.monthlyMonth > 11) { State.monthlyMonth = 0; State.monthlyYear++; }
+        if (dailyNext) dailyNext.addEventListener('click', () => {
+            const d = new Date(State.dailyDate + 'T00:00:00');
+            d.setDate(d.getDate() + 1);
+            State.dailyDate = toLocalDateStr(d);
             renderRoute();
         });
-        if (monthlyMonthSel) monthlyMonthSel.addEventListener('change', e => {
-            State.monthlyMonth = parseInt(e.target.value);
-            renderRoute();
-        });
-        if (monthlyYearSel) monthlyYearSel.addEventListener('change', e => {
-            State.monthlyYear = parseInt(e.target.value);
+        if (dailyDateInput) dailyDateInput.addEventListener('change', e => {
+            State.dailyDate = e.target.value;
             renderRoute();
         });
 
-        // Print monthly listing
-        const btnPrint = document.getElementById('btn-print-monthly');
+        // Print daily listing
+        const btnPrint = document.getElementById('btn-print-daily');
         if (btnPrint) btnPrint.addEventListener('click', () => {
             window.print();
         });
@@ -2702,7 +2715,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         });
 
         // Salon filter
-        const salonSelects = [document.getElementById('agenda-salon-select'), document.getElementById('monthly-salon-select')];
+        const salonSelects = [document.getElementById('agenda-salon-select'), document.getElementById('daily-salon-select')];
         salonSelects.forEach(select => {
             if (select) {
                 select.addEventListener('change', e => {
@@ -3533,10 +3546,21 @@ window.addEventListener('message', async (event) => {
                 </div>
                 <div class="form-group">
                     <label>¿Enviar mensaje de WhatsApp automático?</label>
-                    <select class="form-control" name="enviar_was">
+                    <select class="form-control" name="enviar_was" id="enviar-was-select" onchange="toggleWATemplate()">
                         <option value="true" ${isEdit && (info.enviar_was === true || info.enviar_was === 'true' || info.enviar_was === 1) ? 'selected' : ''}>Sí</option>
                         <option value="false" ${!isEdit || (info.enviar_was === false || info.enviar_was === 'false' || info.enviar_was === 0 || info.enviar_was === null) ? 'selected' : ''}>No</option>
                     </select>
+                </div>
+                <div class="form-group" id="wa-template-group" style="${isEdit && (info.enviar_was === true || info.enviar_was === 'true' || info.enviar_was === 1) ? '' : 'display:none'}">
+                    <label>Plantilla de mensaje WhatsApp</label>
+                    <div style="display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap;">
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="insertWAVariable('{cliente}')">+ Cliente</button>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="insertWAVariable('{salon}')">+ Salón</button>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="insertWAVariable('{servicio}')">+ Servicio</button>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="insertWAVariable('{fecha}')">+ Fecha</button>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="insertWAVariable('{hora}')">+ Hora</button>
+                    </div>
+                    <textarea class="form-control" id="wa-template-textarea" name="whatsapp_template" rows="3" placeholder="Escribe tu plantilla...">${isEdit ? (info.whatsapp_template || DEFAULT_WA_TEMPLATE) : DEFAULT_WA_TEMPLATE}</textarea>
                 </div>
                 <div class="form-group">
                     <label>Observaciones</label>
@@ -3767,12 +3791,14 @@ window.addEventListener('message', async (event) => {
                 submitBtn.textContent = 'Guardando…';
 
                 const fd = new FormData(e.target);
+                const enviarWas = fd.get('enviar_was') === 'true';
                 const data = { 
                     id: currentClientId, 
                     name: fd.get('name'), 
                     phone: fd.get('phone'), 
                     email: fd.get('email'),
-                    enviar_was: fd.get('enviar_was') === 'true',
+                    enviar_was: enviarWas,
+                    whatsapp_template: enviarWas ? fd.get('whatsapp_template') : null,
                     observations: fd.get('observations')
                 };
 
@@ -3849,10 +3875,22 @@ window.addEventListener('message', async (event) => {
     }
 
     function showSettingsForm() {
-        const config = getStaffConfig();
+        const accounts = getStaffAccounts();
+        const staffList = accounts.length > 0 ? accounts.map((acc, i) => `
+            <div class="staff-entry" data-staff-id="${acc.id}" style="background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1rem;margin-bottom:0.75rem;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                    <strong style="font-size:0.95rem;">${acc.name}</strong>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeStaffAccount('${acc.id}')" style="padding:0.25rem 0.6rem;font-size:0.75rem;">Eliminar</button>
+                </div>
+                <div style="font-size:0.85rem;color:var(--text-secondary);">Salón: ${State.salons.find(s => s.id === acc.salonId)?.name || '—'}</div>
+            </div>
+        `).join('') : '<p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">No hay usuarios staff configurados.</p>';
+
+        const salonOptions = State.salons.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+
         const html = `
             <form id="settings-form">
-                <h3 style="margin-bottom:1rem;font-size:1.1rem;">Horario</h3>
+                <h3 style="margin-bottom:1rem;font-size:1.1rem;">Configuración</h3>
                 <div class="form-group">
                     <label>Hora de Apertura</label>
                     <input type="time" class="form-control" name="startTime" required value="${State.settings.startTime}">
@@ -3863,18 +3901,37 @@ window.addEventListener('message', async (event) => {
                 </div>
                 <hr style="margin:1.5rem 0;border:none;border-top:1px solid var(--border-color);">
                 <h3 style="margin-bottom:1rem;font-size:1.1rem;">Acceso Staff</h3>
-                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">Configura el email y contraseña para que el staff pueda acceder. Puedes dejar ambos campos vacíos para deshabilitar el acceso staff.</p>
-                <div class="form-group">
-                    <label>Email del Staff</label>
-                    <input type="email" class="form-control" name="adminEmail" value="${config.adminEmail || ''}" placeholder="staff@email.com">
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">Crea usuarios y contraseñas para que el staff pueda acceder. Cada usuario se asigna a un salón.</p>
+                
+                <div id="staff-list" style="margin-bottom:1rem;">
+                    ${staffList}
                 </div>
-                <div class="form-group">
-                    <label>Contraseña de Staff</label>
-                    <input type="text" class="form-control" name="staffPassword" value="${config.staffPassword || ''}" placeholder="Contraseña">
+
+                <div style="background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1rem;">
+                    <h4 style="font-size:0.95rem;margin-bottom:0.75rem;">Nuevo usuario staff</h4>
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" class="form-control" id="new-staff-name" placeholder="Nombre del empleado">
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        <input type="text" class="form-control" id="new-staff-password" placeholder="Contraseña">
+                    </div>
+                    <div class="form-group">
+                        <label>Salón</label>
+                        <select class="form-control" id="new-staff-salon">
+                            ${salonOptions}
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="addStaffFromSettings()" style="margin-top:0.25rem;">Añadir Staff</button>
                 </div>
+                <div style="margin-top:1rem;font-size:0.8rem;color:var(--text-secondary);">
+                    <strong>Nota:</strong> Los cambios en el staff se guardan automáticamente al añadir o eliminar.
+                </div>
+                <hr style="margin:1.5rem 0;border:none;border-top:1px solid var(--border-color);">
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cerrar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Horario</button>
                 </div>
             </form>`;
 
@@ -3894,21 +3951,53 @@ window.addEventListener('message', async (event) => {
                 State.settings.endTime = end;
                 localStorage.setItem('nymara_start_time', start);
                 localStorage.setItem('nymara_end_time', end);
-                
-                const adminEmail = fd.get('adminEmail').trim();
-                const staffPassword = fd.get('staffPassword').trim();
-                setStaffConfig(adminEmail, staffPassword);
-                if (adminEmail && staffPassword) {
-                    showToast('Configuración de staff guardada.');
-                } else {
-                    showToast('Acceso staff deshabilitado.');
-                }
-                
+
                 showToast('Horario actualizado correctamente.');
                 closeModal();
             });
         });
     }
+
+    window.addStaffFromSettings = function() {
+        const name = document.getElementById('new-staff-name').value.trim();
+        const password = document.getElementById('new-staff-password').value.trim();
+        const salonId = document.getElementById('new-staff-salon').value;
+
+        if (!name || !password) {
+            showToast('Debes introducir nombre y contraseña.', 'error');
+            return;
+        }
+
+        const accounts = getStaffAccounts();
+        if (accounts.some(a => a.name === name)) {
+            showToast('Ya existe un usuario staff con ese nombre.', 'error');
+            return;
+        }
+
+        // Save the admin email alongside staff accounts
+        const adminEmail = State.currentUserEmail || '';
+        localStorage.setItem('nymara_staff_admin_email', adminEmail);
+
+        saveStaffAccount({
+            id: generateId(),
+            name,
+            password,
+            salonId,
+            adminEmail
+        });
+
+        showToast('Usuario staff añadido correctamente.');
+        closeModal();
+        showSettingsForm();
+    };
+
+    window.removeStaffAccount = function(id) {
+        if (!confirm('¿Eliminar este usuario staff?')) return;
+        deleteStaffAccount(id);
+        showToast('Usuario staff eliminado.');
+        closeModal();
+        showSettingsForm();
+    };
 
     function findNextAvailableTime(dateStr, durationMinutes) {
         const [startH, startM] = State.settings.startTime.split(':').map(Number);
@@ -4238,7 +4327,9 @@ window.addEventListener('message', async (event) => {
                         // Notificar por WhatsApp si el cliente lo tiene activado
                         const client = State.clients.find(c => c.id === data.clientId);
                         if (client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1) && client.phone) {
-                            sendWASMessage(client.phone, client.name, data.date, data.time);
+                            const salon = State.salons.find(s => s.id === data.salonId);
+                            const service = State.services.find(s => s.id === data.serviceId);
+                            sendWASMessage(client.phone, client.name, data.date, data.time, client.whatsapp_template, salon?.name || '', service?.name || '');
                         }
                     }
                 }

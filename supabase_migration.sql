@@ -24,5 +24,9 @@ ADD COLUMN IF NOT EXISTS appointment_photos JSONB DEFAULT '[]';
 -- Opcional: Agregar índice para búsquedas más rápidas
 CREATE INDEX IF NOT EXISTS idx_appointments_user_email ON appointments(user_email);
 
+-- Agregar columna para identificar citas creadas por staff
+ALTER TABLE appointments
+ADD COLUMN IF NOT EXISTS is_staff_appointment BOOLEAN DEFAULT FALSE;
+
 -- Desactivar RLS temporalmente para probar (quitar después si funciona)
 ALTER TABLE client_photos DISABLE ROW LEVEL SECURITY;
