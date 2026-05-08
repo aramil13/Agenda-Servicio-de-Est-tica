@@ -739,6 +739,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 State.salons = salonsRes.data;
             }
 
+            // Validar que activeSalonId siga siendo un salón existente
+            if (State.activeSalonId !== 'all' && !State.salons.some(s => s.id === State.activeSalonId)) {
+                State.activeSalonId = 'all';
+                localStorage.setItem('nymara_agenda_salon', 'all');
+            }
+
             State.clients = clientsRes.data;
             State.services = servicesRes.data;
             // Map DB snake_case to JS camelCase for appointments
@@ -4112,8 +4118,8 @@ window.addEventListener('message', async (event) => {
                     appointmentPhotos: existingPhotos
                 };
                 
-                if (data.salonId === 'all') {
-                    showToast('Por favor, selecciona un salón específico para la cita.', 'error');
+                if (data.salonId === 'all' || !State.salons.some(s => s.id === data.salonId)) {
+                    showToast('Por favor, selecciona un salón válido para la cita.', 'error');
                     submitBtn.disabled = false;
                     submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Agendar Cita';
                     return;
