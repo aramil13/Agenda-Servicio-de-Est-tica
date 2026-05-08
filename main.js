@@ -1336,16 +1336,21 @@ document.addEventListener('DOMContentLoaded', () => {
             id: data.id,
             client_id: data.clientId,
             service_id: data.serviceId,
-            salon_id: data.salonId || null,
             date: data.date,
             time: data.time,
             notes: data.notes,
             user_email: State.currentUserEmail || '',
             appointment_photos: data.appointmentPhotos || [],
         };
+        if (data.salonId) dbRow.salon_id = data.salonId;
         const { error } = await supabase.from('appointments').insert([dbRow]);
-        if (error) { showToast('Error al agendar cita: ' + error.message, 'error'); return false; }
+        if (error) { 
+            console.error('Insert error details:', JSON.stringify({ dbRow, error }, null, 2));
+            showToast('Error al agendar cita: ' + error.message + (error.details ? ' (' + error.details + ')' : ''), 'error'); 
+            return false; 
+        }
         State.appointments.push(data);
+        console.log('State.appointments length after push:', State.appointments.length, 'ClientId:', data.clientId, 'Date:', data.date);
         showToast('Cita agendada correctamente');
         return true;
     }
@@ -1354,14 +1359,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const dbRow = {
             client_id: data.clientId,
             service_id: data.serviceId,
-            salon_id: data.salonId || null,
             date: data.date,
             time: data.time,
             notes: data.notes,
             appointment_photos: data.appointmentPhotos || [],
         };
+        if (data.salonId) dbRow.salon_id = data.salonId;
         const { error } = await supabase.from('appointments').update(dbRow).eq('id', id);
-        if (error) { showToast('Error al actualizar cita: ' + error.message, 'error'); return false; }
+        if (error) { 
+            console.error('Update error details:', JSON.stringify({ dbRow, error }, null, 2));
+            showToast('Error al actualizar cita: ' + error.message + (error.details ? ' (' + error.details + ')' : ''), 'error'); 
+            return false; 
+        }
         const idx = State.appointments.findIndex(a => a.id === id);
         if (idx !== -1) State.appointments[idx] = { ...State.appointments[idx], ...data };
         showToast('Cita actualizada correctamente');
@@ -1690,6 +1699,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Day detail panel
         const detailDate = State.selectedDate || todayStr;
         const detailApts = getAppointmentsForDate(detailDate);
+        console.log('Agenda view: appointments count in State:', State.appointments.length, 'selectedDate:', State.selectedDate, 'detailDate:', detailDate, 'apts for date:', detailApts.length);
         const detailDateObj = new Date(detailDate + 'T00:00:00');
         const detailLabel = detailDateObj.toLocaleDateString('es-ES', {
             weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
@@ -3965,11 +3975,11 @@ window.addEventListener('message', async (event) => {
                         ${State.services.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.serviceId ? 'selected' : ''}>${s.name} (${s.duration} min · ${parseFloat(s.price).toFixed(2)}€)</option>`).join('')}
                     </select>
                 </div>
-                ${(State.activeSalonId === 'all' || !State.activeSalonId) ? `
+                ${(State.activeSalonId === 'all' || !State.activeSalonId || !State.salons.some(s => s.id === State.activeSalonId)) ? `
                 <div class="form-group">
                     <label>Salón</label>
                     <select class="form-control" name="salonId" required>
-                        ${State.salons.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.salonId ? 'selected' : ''}>${s.name}</option>`).join('')}
+                        ${State.salons.length === 0 ? '<option value="">No hay salones disponibles</option>' : State.salons.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.salonId ? 'selected' : ''}>${s.name}</option>`).join('')}
                     </select>
                 </div>
                 ` : `<input type="hidden" name="salonId" value="${State.activeSalonId}">`}
@@ -4125,6 +4135,12 @@ window.addEventListener('message', async (event) => {
                     return;
                 }
 
+                if (!State.salons.some(s => s.id === data.salonId)) {
+                    showToast('El salón seleccionado no existe. Selecciona otro.', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Agendar Cita';
+                    return;
+                }
 
                 // Validar que no se solape con otra cita existente en el mismo día
                 const [targetHour, targetMin] = data.time.split(':').map(Number);
@@ -4215,6 +4231,7 @@ window.addEventListener('message', async (event) => {
                     data.id = generateId();
                     if (await addAppointment(data)) { 
                         if (State.session?.staff) addStaffAptId(data.id);
+                        State.selectedDate = data.date;
                         closeModal(); 
                         renderRoute(); 
                         
