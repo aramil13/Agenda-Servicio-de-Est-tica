@@ -1013,6 +1013,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Password visibility toggle
+    document.addEventListener('click', e => {
+        const btn = e.target.closest('.password-toggle');
+        if (!btn) return;
+        const inputId = btn.dataset.toggle;
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+        btn.setAttribute('aria-label', isPassword ? 'Ocultar contraseña' : 'Mostrar contraseña');
+        btn.innerHTML = isPassword
+            ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+            : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+    });
+
     function handleStaffSession(account) {
         const adminEmail = account.adminEmail || localStorage.getItem('nymara_staff_admin_email') || '';
         State.session = { staff: true, user: { email: adminEmail }, staffAccountId: account.id };
@@ -3867,10 +3882,13 @@ window.addEventListener('message', async (event) => {
     function showSettingsForm() {
         const accounts = getStaffAccounts();
         const staffList = accounts.length > 0 ? accounts.map((acc, i) => `
-            <div class="staff-entry" data-staff-id="${acc.id}" style="background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1rem;margin-bottom:0.75rem;">
+            <div class="staff-entry" id="staff-entry-${acc.id}" data-staff-id="${acc.id}" style="background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1rem;margin-bottom:0.75rem;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
                     <strong style="font-size:0.95rem;">${acc.name}</strong>
-                    <button type="button" class="btn btn-danger btn-sm" onclick="removeStaffAccount('${acc.id}')" style="padding:0.25rem 0.6rem;font-size:0.75rem;">Eliminar</button>
+                    <div style="display:flex;gap:0.5rem;">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="editStaffAccount('${acc.id}')" style="padding:0.25rem 0.6rem;font-size:0.75rem;">Editar</button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeStaffAccount('${acc.id}')" style="padding:0.25rem 0.6rem;font-size:0.75rem;">Eliminar</button>
+                    </div>
                 </div>
                 <div style="font-size:0.85rem;color:var(--text-secondary);">Salón: ${State.salons.find(s => s.id === acc.salonId)?.name || '—'}</div>
             </div>
@@ -3921,7 +3939,7 @@ window.addEventListener('message', async (event) => {
                 <hr style="margin:1.5rem 0;border:none;border-top:1px solid var(--border-color);">
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cerrar</button>
-                    <button type="submit" class="btn btn-primary">Guardar Horario</button>
+                    <button type="submit" class="btn btn-primary">Guardar Configuración</button>
                 </div>
             </form>`;
 
@@ -3942,7 +3960,7 @@ window.addEventListener('message', async (event) => {
                 localStorage.setItem('nymara_start_time', start);
                 localStorage.setItem('nymara_end_time', end);
 
-                showToast('Horario actualizado correctamente.');
+                showToast('Configuración actualizada correctamente.');
                 closeModal();
             });
         });
@@ -3977,7 +3995,6 @@ window.addEventListener('message', async (event) => {
         });
 
         showToast('Usuario staff añadido correctamente.');
-        closeModal();
         showSettingsForm();
     };
 
@@ -3985,8 +4002,67 @@ window.addEventListener('message', async (event) => {
         if (!confirm('¿Eliminar este usuario staff?')) return;
         deleteStaffAccount(id);
         showToast('Usuario staff eliminado.');
-        closeModal();
         showSettingsForm();
+    };
+
+    window.editStaffAccount = function(id) {
+        const accounts = getStaffAccounts();
+        const account = accounts.find(a => a.id === id);
+        if (!account) return;
+
+        const entry = document.getElementById('staff-entry-' + id);
+        if (!entry) return;
+
+        const salonOptions = State.salons.map(s => `<option value="${s.id}"${s.id === account.salonId ? ' selected' : ''}>${s.name}</option>`).join('');
+
+        entry.innerHTML = `
+            <div style="background:var(--bg-dark);border-radius:var(--radius-md);padding:1rem;">
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input type="text" class="form-control" id="edit-staff-name-${id}" value="${account.name}">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="text" class="form-control" id="edit-staff-password-${id}" value="${account.password}">
+                </div>
+                <div class="form-group">
+                    <label>Salón</label>
+                    <select class="form-control" id="edit-staff-salon-${id}">${salonOptions}</select>
+                </div>
+                <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
+                    <button type="button" class="btn btn-primary btn-sm" onclick="saveStaffEdit('${id}')">Guardar</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="showSettingsForm()">Cancelar</button>
+                </div>
+            </div>
+        `;
+    };
+
+    window.saveStaffEdit = function(id) {
+        const name = document.getElementById('edit-staff-name-' + id).value.trim();
+        const password = document.getElementById('edit-staff-password-' + id).value.trim();
+        const salonId = document.getElementById('edit-staff-salon-' + id).value;
+
+        if (!name || !password) {
+            showToast('El nombre y la contraseña son obligatorios.', 'error');
+            return;
+        }
+
+        const accounts = getStaffAccounts();
+        const existing = accounts.find(a => a.name === name && a.id !== id);
+        if (existing) {
+            showToast('Ya existe otro usuario staff con ese nombre.', 'error');
+            return;
+        }
+
+        const account = accounts.find(a => a.id === id);
+        if (account) {
+            account.name = name;
+            account.password = password;
+            account.salonId = salonId;
+            saveStaffAccount(account);
+            showToast('Usuario staff actualizado.');
+            showSettingsForm();
+        }
     };
 
     function findNextAvailableTime(dateStr, durationMinutes) {

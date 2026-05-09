@@ -1,3 +1,0 @@
-
-// Salons view function
-function getSalonsView() { return 'test'; }
