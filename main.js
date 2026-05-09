@@ -808,7 +808,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderRoute();
             
             // Verificación post-carga: ¿Hay recordatorios para los próximos 3 días?
-            if (State.session) {
+            if (State.session && !State.session.staff) {
                 const today = new Date();
                 const futureLimit = new Date(today);
                 futureLimit.setDate(today.getDate() + 3);
@@ -1824,6 +1824,11 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             </div>
                         </div>
                         <div class="day-detail-actions">
+                            ${!State.session?.staff && client && client.phone ? `
+                            <button class="wa-apt-btn" data-aptid="${apt.id}" title="Enviar WhatsApp" style="background:none;border:none;cursor:pointer;margin-right:8px;">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12.031 6.172c-2.32 0-4.516.903-6.183 2.563-3.23 3.23-3.403 8.356-.511 11.777l-1.341 4.904 5.035-1.32c1.077.585 2.29.893 3.522.893h.03c2.321 0 4.516-.903 6.183-2.563 3.413-3.414 3.413-8.948 0-12.362-1.667-1.66-3.863-1.592-6.235-1.592z"/></svg>
+                            </button>
+                            ` : ''}
                             ${(!State.session?.staff || isStaffAppointment(apt.id)) ? `
                             <button class="edit-apt-btn" data-id="${apt.id}" title="Editar cita" style="background:none;border:none;cursor:pointer;margin-right:8px;">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
@@ -2266,6 +2271,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
        WHATSAPP REMINDERS VIEW
        ═══════════════════════════════════════ */
     function getWhatsAppView() {
+        if (State.session?.staff) {
+            return '<div class="data-card" style="padding:3rem;text-align:center;"><p style="color:var(--text-secondary)">Acceso no disponible para staff.</p></div>';
+        }
         // Buscamos citas en los próximos 3 días para dar más margen
         const today = new Date();
         const futureLimit = new Date(today);
@@ -2859,6 +2867,31 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             const photo = apt?.appointmentPhotos?.find(p => p.id === photoId);
             if (photo && aptId) {
                 window.editAptPhoto(photoId, aptId, photo.photo_date || '', photo.notes || '', photo.photo_type || 'before');
+            }
+            return;
+        }
+
+        // 3b. WhatsApp from day detail
+        const waBtn = e.target.closest('.wa-apt-btn');
+        if (waBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const aptId = waBtn.dataset.aptid;
+            if (aptId) {
+                const apt = State.appointments.find(a => a.id === aptId);
+                if (apt) {
+                    const client = State.clients.find(c => c.id === apt.clientId);
+                    const salon = State.salons.find(s => s.id === apt.salonId);
+                    const service = State.services.find(s => s.id === apt.serviceId);
+                    const phone = client?.phone || '';
+                    const name = client?.name || '';
+                    const template = client?.whatsapp_template || null;
+                    if (phone) {
+                        sendWASMessage(phone, name, apt.date, apt.time, template, salon?.name || '', service?.name || '');
+                    } else {
+                        showToast('El cliente no tiene teléfono registrado.', 'error');
+                    }
+                }
             }
             return;
         }
@@ -4389,14 +4422,6 @@ window.addEventListener('message', async (event) => {
                         State.selectedDate = data.date;
                         closeModal(); 
                         renderRoute(); 
-                        
-                        // Notificar por WhatsApp si el cliente lo tiene activado
-                        const client = State.clients.find(c => c.id === data.clientId);
-                        if (client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1) && client.phone) {
-                            const salon = State.salons.find(s => s.id === data.salonId);
-                            const service = State.services.find(s => s.id === data.serviceId);
-                            sendWASMessage(client.phone, client.name, data.date, data.time, client.whatsapp_template, salon?.name || '', service?.name || '');
-                        }
                     }
                 }
                 submitBtn.disabled = false;
