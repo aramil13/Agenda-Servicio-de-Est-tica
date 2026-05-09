@@ -2173,6 +2173,32 @@ textarea.form-control {
     .diagnosis-container {
         height: calc(100vh - 140px);
     }
+    .sidebar-footer {
+        padding-top: 1rem;
+    }
+    .user-profile {
+        gap: 0.5rem;
+        min-width: 0;
+    }
+    .user-avatar {
+        width: 30px;
+        height: 30px;
+        font-size: 0.9rem;
+    }
+    .user-info {
+        min-width: 0;
+    }
+    .user-email {
+        max-width: 90px;
+        font-size: 0.75rem;
+    }
+    .user-role {
+        font-size: 0.65rem;
+    }
+    .btn-logout {
+        padding: 0.3rem;
+        flex-shrink: 0;
+    }
     .monthly-controls,
     .daily-controls {
         padding: 0.65rem 1rem;

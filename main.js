@@ -906,6 +906,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         authError.style.display = 'none';
         authError.className = 'auth-error';
+        const btn = document.getElementById('auth-submit-btn');
+        if (btn) btn.disabled = false;
+        if (authSubmitText) authSubmitText.style.opacity = '1';
+        if (authSpinner) authSpinner.style.display = 'none';
     }
 
     // Auth mode tabs
