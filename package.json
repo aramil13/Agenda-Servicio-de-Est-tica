@@ -2,7 +2,7 @@
   "name": "agenda-estetica",
   "version": "1.0.0",
   "description": "Agenda Servicio de Estética",
-  "main": "main.js",
+  "main": "serve.js",
   "scripts": {
     "start": "node serve.js"
   },
