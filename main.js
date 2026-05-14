@@ -1038,7 +1038,7 @@ document.addEventListener('DOMContentLoaded', () => {
         authResetError.style.display = 'none';
         try {
             const { error } = await supabase.auth.updateUser({ password: pwd });
-            if (error) throw error;
+            if (error && !error.message?.toLowerCase().includes('same as the old')) throw error;
             showToast('Contraseña actualizada correctamente.');
             isRecoveryMode = false;
             State.session = null;
@@ -4127,7 +4127,7 @@ window.addEventListener('message', async (event) => {
                 btn.textContent = 'Actualizando...';
                 try {
                     const { error } = await supabase.auth.updateUser({ password: newPassword });
-                    if (error) throw error;
+                    if (error && !error.message?.toLowerCase().includes('same as the old')) throw error;
                     showToast('Contraseña actualizada correctamente.');
                     pwdInput.value = '';
                 } catch (err) {
