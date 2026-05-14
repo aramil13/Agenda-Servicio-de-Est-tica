@@ -3970,6 +3970,13 @@ window.addEventListener('message', async (event) => {
                     <strong>Nota:</strong> Los cambios en el staff se guardan automáticamente al añadir o eliminar.
                 </div>
                 <hr style="margin:1.5rem 0;border:none;border-top:1px solid var(--border-color);">
+                <h3 style="margin-bottom:1rem;font-size:1.1rem;">Cambiar Contraseña</h3>
+                <div class="form-group">
+                    <label>Nueva contraseña</label>
+                    <input type="password" class="form-control" id="change-password-input" placeholder="••••••••" minlength="6">
+                </div>
+                <button type="button" class="btn btn-primary" id="btn-change-password" style="margin-bottom:1rem;">Actualizar Contraseña</button>
+                <hr style="margin:1.5rem 0;border:none;border-top:1px solid var(--border-color);">
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cerrar</button>
                     <button type="submit" class="btn btn-primary">Guardar Configuración</button>
@@ -3995,6 +4002,29 @@ window.addEventListener('message', async (event) => {
 
                 showToast('Configuración actualizada correctamente.');
                 closeModal();
+            });
+
+            document.getElementById('btn-change-password').addEventListener('click', async () => {
+                const pwdInput = document.getElementById('change-password-input');
+                const newPassword = pwdInput.value.trim();
+                if (!newPassword || newPassword.length < 6) {
+                    showToast('La contraseña debe tener al menos 6 caracteres.', 'error');
+                    return;
+                }
+                const btn = document.getElementById('btn-change-password');
+                btn.disabled = true;
+                btn.textContent = 'Actualizando...';
+                try {
+                    const { error } = await supabase.auth.updateUser({ password: newPassword });
+                    if (error) throw error;
+                    showToast('Contraseña actualizada correctamente.');
+                    pwdInput.value = '';
+                } catch (err) {
+                    showToast('Error: ' + err.message, 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = 'Actualizar Contraseña';
+                }
             });
         });
     }
