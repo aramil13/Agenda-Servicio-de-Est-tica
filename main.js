@@ -555,10 +555,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const authStaffFields = document.getElementById('auth-staff-fields');
     const authFormTitle = document.getElementById('auth-form-title');
     const authFormSubtitle = document.getElementById('auth-form-subtitle');
-
-
+    const btnForgotPassword = document.getElementById('btn-forgot-password');
+    const authResetSection = document.getElementById('auth-reset-section');
+    const authResetError = document.getElementById('auth-reset-error');
+    const authResetSuccess = document.getElementById('auth-reset-success');
+    const authResetEmailGroup = document.getElementById('auth-reset-email-group');
+    const authResetPasswordGroup = document.getElementById('auth-reset-password-group');
+    const authResetTitle = document.getElementById('auth-reset-title');
+    const authResetSubtitle = document.getElementById('auth-reset-subtitle');
+    const btnSendReset = document.getElementById('btn-send-reset');
+    const btnUpdatePassword = document.getElementById('btn-update-password');
+    const btnCancelReset = document.getElementById('btn-cancel-reset');
 
     let authMode = 'admin';
+    let isRecoveryMode = false;
     let staffName = null;
 
     function getStaffAptIds() {
@@ -851,6 +861,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Listen for auth changes
         supabase.auth.onAuthStateChange(async (event, newSession) => {
+            if (event === 'PASSWORD_RECOVERY') {
+                isRecoveryMode = true;
+                authScreen.style.display = 'flex';
+                appLayout.style.display = 'none';
+                showNewPasswordForm();
+                return;
+            }
             handleSessionUpdate(newSession);
         });
 
@@ -869,6 +886,7 @@ document.addEventListener('DOMContentLoaded', () => {
         State.session = session;
         if (session) {
             if (session.staff) return;
+            if (isRecoveryMode) return;
             authScreen.style.display = 'none';
             appLayout.style.display = 'flex';
             
@@ -896,6 +914,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function resetAuthState() {
+        isRecoveryMode = false;
+        showLoginForm();
         if (authLoginForm) {
             authLoginForm.reset();
             // Explicitly clear values to bypass some browser autofill behaviors
@@ -912,6 +932,40 @@ document.addEventListener('DOMContentLoaded', () => {
         if (authSpinner) authSpinner.style.display = 'none';
     }
 
+    function showLoginForm() {
+        authLoginForm.style.display = 'block';
+        authResetSection.style.display = 'none';
+        authResetError.style.display = 'none';
+        authResetSuccess.style.display = 'none';
+        authResetEmailGroup.style.display = 'block';
+        authResetPasswordGroup.style.display = 'none';
+        authResetTitle.textContent = 'Restablecer Contraseña';
+        authResetSubtitle.textContent = 'Te enviaremos un enlace para restablecer tu contraseña';
+    }
+
+    function showResetForm() {
+        authLoginForm.style.display = 'none';
+        authResetSection.style.display = 'block';
+        authResetError.style.display = 'none';
+        authResetSuccess.style.display = 'none';
+        authResetEmailGroup.style.display = 'block';
+        authResetPasswordGroup.style.display = 'none';
+        authResetTitle.textContent = 'Restablecer Contraseña';
+        authResetSubtitle.textContent = 'Te enviaremos un enlace para restablecer tu contraseña';
+        document.getElementById('auth-reset-email').value = '';
+    }
+
+    function showNewPasswordForm() {
+        authLoginForm.style.display = 'none';
+        authResetSection.style.display = 'block';
+        authResetError.style.display = 'none';
+        authResetSuccess.style.display = 'none';
+        authResetEmailGroup.style.display = 'none';
+        authResetPasswordGroup.style.display = 'block';
+        authResetTitle.textContent = 'Establecer Nueva Contraseña';
+        authResetSubtitle.textContent = 'Elige una nueva contraseña para tu cuenta';
+    }
+
     // Auth mode tabs
     function setAuthMode(mode) {
         authMode = mode;
@@ -925,6 +979,7 @@ document.addEventListener('DOMContentLoaded', () => {
             authFormTitle.textContent = 'Iniciar Sesión';
             authFormSubtitle.textContent = 'Accede a tu panel de control';
             authSubmitText.textContent = 'Entrar';
+            btnForgotPassword.style.display = '';
         } else {
             authTabStaff.style.background = 'var(--accent-gradient)';
             authTabStaff.style.color = '#fff';
@@ -932,6 +987,7 @@ document.addEventListener('DOMContentLoaded', () => {
             authTabAdmin.style.color = 'var(--text-secondary)';
             authAdminFields.style.display = 'none';
             authStaffFields.style.display = 'block';
+            btnForgotPassword.style.display = 'none';
             const accounts = getStaffAccounts();
             if (accounts.length > 0) {
                 authFormTitle.textContent = 'Acceso Staff';
@@ -947,6 +1003,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (authTabAdmin) authTabAdmin.addEventListener('click', () => setAuthMode('admin'));
     if (authTabStaff) authTabStaff.addEventListener('click', () => setAuthMode('staff'));
+
+    if (btnForgotPassword) btnForgotPassword.addEventListener('click', showResetForm);
+    if (btnCancelReset) btnCancelReset.addEventListener('click', () => { showLoginForm(); setAuthMode(authMode); });
+
+    if (btnSendReset) btnSendReset.addEventListener('click', async () => {
+        const email = document.getElementById('auth-reset-email').value.trim();
+        if (!email) { authResetError.textContent = 'Introduce tu correo electrónico'; authResetError.style.display = 'block'; return; }
+        btnSendReset.disabled = true;
+        document.getElementById('auth-reset-btn-text').style.opacity = '0';
+        document.getElementById('auth-reset-spinner').style.display = 'block';
+        authResetError.style.display = 'none';
+        try {
+            const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+            if (error) throw error;
+            authResetSuccess.style.display = 'block';
+            authResetEmailGroup.style.display = 'none';
+        } catch (err) {
+            authResetError.textContent = err.message || 'Error al enviar el enlace';
+            authResetError.style.display = 'block';
+        } finally {
+            btnSendReset.disabled = false;
+            document.getElementById('auth-reset-btn-text').style.opacity = '1';
+            document.getElementById('auth-reset-spinner').style.display = 'none';
+        }
+    });
+
+    if (btnUpdatePassword) btnUpdatePassword.addEventListener('click', async () => {
+        const pwd = document.getElementById('auth-reset-new-password').value;
+        if (!pwd || pwd.length < 6) { authResetError.textContent = 'La contraseña debe tener al menos 6 caracteres'; authResetError.style.display = 'block'; return; }
+        btnUpdatePassword.disabled = true;
+        document.getElementById('auth-update-btn-text').style.opacity = '0';
+        document.getElementById('auth-update-spinner').style.display = 'block';
+        authResetError.style.display = 'none';
+        try {
+            const { error } = await supabase.auth.updateUser({ password: pwd });
+            if (error) throw error;
+            showToast('Contraseña actualizada correctamente.');
+            isRecoveryMode = false;
+            State.session = null;
+            showLoginForm();
+            setAuthMode('admin');
+        } catch (err) {
+            authResetError.textContent = err.message || 'Error al actualizar la contraseña';
+            authResetError.style.display = 'block';
+        } finally {
+            btnUpdatePassword.disabled = false;
+            document.getElementById('auth-update-btn-text').style.opacity = '1';
+            document.getElementById('auth-update-spinner').style.display = 'none';
+        }
+    });
 
     // Handle Auth form submit
     if (authLoginForm) {
