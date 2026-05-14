@@ -778,10 +778,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (servicesRes.error) throw servicesRes.error;
             if (appointmentsRes.error) throw appointmentsRes.error;
             if (salonsRes.error) {
-                console.warn('Tabla salons no existe aún:', salonsRes.error.message);
+                console.warn('Error cargando salones:', salonsRes.error.message);
                 State.salons = [];
             } else {
-                State.salons = salonsRes.data;
+                State.salons = salonsRes.data || [];
+                if (State.salons.length === 0) {
+                    const { data: allSalons } = await supabase.from('salons').select('*').order('name');
+                    if (allSalons && allSalons.length > 0) State.salons = allSalons;
+                }
             }
 
             // Validar que activeSalonId siga siendo un salón existente
@@ -4033,7 +4037,8 @@ window.addEventListener('message', async (event) => {
             </div>
         `).join('') : '<p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">No hay usuarios staff configurados.</p>';
 
-        const salonOptions = State.salons.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+        const hasSalons = State.salons && State.salons.length > 0;
+        const salonOptions = hasSalons ? State.salons.map(s => `<option value="${s.id}">${s.name}</option>`).join('') : '<option value="">— Sin salones —</option>';
 
         const html = `
             <form id="settings-form">
@@ -4069,6 +4074,7 @@ window.addEventListener('message', async (event) => {
                         <select class="form-control" id="new-staff-salon">
                             ${salonOptions}
                         </select>
+                        ${!hasSalons ? '<p style="font-size:0.8rem;color:var(--accent-warning);margin-top:0.35rem;">⚠️ Crea primero un salón en la pestaña Salones.</p>' : ''}
                     </div>
                     <button type="button" class="btn btn-primary" onclick="addStaffFromSettings()" style="margin-top:0.25rem;">Añadir Staff</button>
                 </div>
@@ -4187,7 +4193,8 @@ if (error && !error.message?.toLowerCase().includes('different from the old')) t
         const entry = document.getElementById('staff-entry-' + id);
         if (!entry) return;
 
-        const salonOptions = State.salons.map(s => `<option value="${s.id}"${s.id === account.salonId ? ' selected' : ''}>${s.name}</option>`).join('');
+        const hasSalons = State.salons && State.salons.length > 0;
+        const salonOptions = hasSalons ? State.salons.map(s => `<option value="${s.id}"${s.id === account.salonId ? ' selected' : ''}>${s.name}</option>`).join('') : '<option value="">— Sin salones —</option>';
 
         entry.innerHTML = `
             <div style="background:var(--bg-dark);border-radius:var(--radius-md);padding:1rem;">
