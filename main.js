@@ -1936,7 +1936,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                         <div class="day-detail-info">
                             <strong>${client.name}${apt.isStaffAppointment ? ' <span class="staff-badge">Staff</span>' : ''}</strong>
                             <span>${service.name} · ${service.duration} min${apt.notes ? ' · ' + apt.notes : ''}</span>
-                            <span style="font-size:0.75rem;color:var(--accent-color);display:block;margin-top:2px">📍 <strong>Salón: ${State.salons.find(s => s.id === apt.salonId)?.name || 'Salón desconocido'}</strong></span>
+                            <span style="font-size:0.75rem;color:var(--accent-color);display:block;margin-top:2px"><strong>Salón: ${State.salons.find(s => s.id === apt.salonId)?.name || 'Salón desconocido'}</strong></span>
                             <span class="apt-user-key" style="color:${userColor}" title="${apt.userEmail}">${userDisplay}</span>
                             ${photosHtml}
                             </div>
