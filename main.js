@@ -3973,7 +3973,12 @@ window.addEventListener('message', async (event) => {
                 <h3 style="margin-bottom:1rem;font-size:1.1rem;">Cambiar Contraseña</h3>
                 <div class="form-group">
                     <label>Nueva contraseña</label>
-                    <input type="password" class="form-control" id="change-password-input" placeholder="••••••••" minlength="6">
+                    <div class="auth-input-wrapper">
+                        <input type="password" class="form-control auth-input" id="change-password-input" placeholder="••••••••" minlength="6">
+                        <button type="button" class="password-toggle" data-toggle="change-password-input" tabindex="-1" aria-label="Mostrar contraseña">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
                 </div>
                 <button type="button" class="btn btn-primary" id="btn-change-password" style="margin-bottom:1rem;">Actualizar Contraseña</button>
                 <hr style="margin:1.5rem 0;border:none;border-top:1px solid var(--border-color);">
